@@ -5,6 +5,7 @@
         <!-- The page's own colours (web/ui/trafficlab.css), so the window and the page look like one thing. -->
         <SolidColorBrush x:Key="PageBrush" Color="#EEF1EF" />
         <SolidColorBrush x:Key="PanelBrush" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="CardBrush" Color="#FFFFFF" />
         <SolidColorBrush x:Key="InkBrush" Color="#17201C" />
         <SolidColorBrush x:Key="MutedTextBrush" Color="#4F5C56" />
         <SolidColorBrush x:Key="LineBrush" Color="#D3DAD6" />

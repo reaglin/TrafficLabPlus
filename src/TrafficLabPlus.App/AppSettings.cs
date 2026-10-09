@@ -10,6 +10,28 @@ public sealed class AppSettings
 
     public string? DefaultCourse { get; set; }
 
+    // publishing (D15): where, and which studies are left out
+    public string? GitHubAccount { get; set; }
+
+    public string? Repository { get; set; }
+
+    public string? SiteTitle { get; set; }
+
+    /// <summary>Full paths of studies marked "Don't publish".</summary>
+    public List<string> DontPublish { get; set; } = [];
+
+    /// <summary>The website's address after the last publish, and the study folders on it then.</summary>
+    public string? LastSiteUrl { get; set; }
+
+    public List<string> LastPublished { get; set; } = [];
+
+    /// <summary>Each published study's folder on the website, by its file's full path: once handed in,
+    /// a link must not change because a file was renamed or another file took the name.</summary>
+    public Dictionary<string, string> Slugs { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The titles of the studies on the website now, by folder, to say what comes off it.</summary>
+    public Dictionary<string, string> PublishedTitles { get; set; } = [];
+
     public static string DataFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TrafficLabPlus");
 
     /// <summary>Where studies are saved unless the student picks somewhere else.</summary>

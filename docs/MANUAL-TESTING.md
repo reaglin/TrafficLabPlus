@@ -205,3 +205,23 @@ made study you would want different.
    link goes there).
 
 **What to send back:** which icon, and anything the policy should say differently.
+
+---
+
+## Phase 7 — publish and hand in (2026-10-09)
+
+### Test 15 — publish your studies and hand in a link
+
+1. Save a study or two (Ctrl+S; the LPGA example saves as your own copy). Go to **6 Publish**. Under
+   **1 Your studies** every saved study is listed with a tick; untick one.
+2. **GitHub token…**: follow its steps (it opens the right GitHub page and checks the token). The account
+   fills in.
+3. **Publish**. The first time it creates the **TrafficLab** repository and switches GitHub Pages on.
+   Then: the summary page's link and each study's link, each with **Copy the link** and **Open**. Wait a
+   minute or two the first time, then open the summary page on your phone: a card per study; tap one and
+   play it.
+4. Tick the study you left out, untick another, publish again: you are told first which study comes off,
+   by name. The addresses of the others do not change.
+5. Come back another day: the links are still in 1 Your studies and 3 Publish, ready to copy.
+
+**What to send back:** whether a student new to GitHub could get through this alone.

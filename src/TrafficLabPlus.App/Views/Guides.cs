@@ -141,12 +141,18 @@ public static class Guides
             "Is the page's goal clear from its title and introduction? Is the budget enough for a few fixes but not everything? At Today's demand, is there something worth fixing — orange or red roads at least on the busier demand buttons? Are the names the ones people use?\n\nOpen in your browser shows the same page in Edge or Chrome, as a visitor sees it."));
 
     public static StackPanel Publish() => Build(
-        "nothing yet — publishing to the web arrives in a later version.",
-        "saving the page as a file now.",
+        "tick the studies to put on your website (1), say where (2: your GitHub account; the repository is TrafficLab unless you change it), and press Publish (3). Then copy the link to hand in.",
+        "unticking a study (it stays off the website), the GitHub account when a token is saved, and saving one study's page as a file instead.",
         new("What this step does",
-            "In a later version: every study goes into one GitHub Pages website of yours, with a summary page linking to each one, and you hand in the link. You will be able to leave any study out. For now you can save the page as one file."),
-        new("Save the page as a web page file",
-            "Saves the page as one .html file. It needs nothing else: it opens in any browser with no internet, can be emailed or put on any web site, and is exactly the page shown in Preview."));
+            "It puts your studies on the web as one website on GitHub Pages: a summary page with a card for each study, linking to each study's own page. Every study saved on this computer goes in, except the ones you untick. Each publish builds the whole website again, so a study you untick comes off it — you are told before anything is sent. Your study files, notes and AI settings stay on this computer."),
+        new("1  Your studies",
+            "Every study in Documents\\TrafficLabPlus\\Studies, and any you opened recently. The tick says whether it goes on the website; your choice is remembered. A study open in the window is published as it is now. A study with problems (the yellow bar) can still be published, but its page shows the problems instead of the simulation — you are asked first."),
+        new("2  Where it goes",
+            "GitHub account: your GitHub user name; with a saved token it can be left empty. Repository: TrafficLab — every study goes into this one; TrafficLab+ creates it the first time, and never replaces a repository it did not make without asking. Website title: the summary page's heading.\n\nGitHub token: a password just for TrafficLab+, made on GitHub. With one saved, TrafficLab+ does everything, including switching the website on. Without one, it publishes with Git (if installed) to a repository you made, and says how to switch the website on. New to GitHub? opens the steps."),
+        new("3  Publish",
+            "Press Publish. It builds the website, sends it to GitHub, and switches GitHub Pages on. The first time, GitHub takes a minute or two to put it up — the address shows \"404\" until then. Then: the summary page's link and each study's link, each with Copy the link. Hand in the one your instructor asked for."),
+        new("Save one study's page as a file",
+            "One .html file for the open study. It needs nothing else: it opens in any browser with no internet, can be emailed or put on any web site, and is exactly the page shown in Preview."));
 }
 
 /// <summary>Preview: the guide beside the full page, and the AI coach for the last traffic test.</summary>

@@ -14,7 +14,9 @@ the **AI** (through the shared `Eaglin.AiManager`), the program previews the pag
 **The point of the software is the web page** (Ron, 2026-10-09). The engine is JavaScript because
 it runs in the published page; C# does the map, the study, the AI, building and publishing.
 
-**Status: phases 0–6 built, 2026-10-09** (the day it started). Phase 6: the AI, over
+**Status: phases 0–7 built, 2026-10-09** (the day it started). Phase 7: Publish builds one website
+— a summary page and a page per ticked study — and sends it to one GitHub Pages repository
+(TrafficLab), ported from Gamify+; Store screenshots by `tools/store-shots.ps1`. Phase 6: the AI, over
 `Eaglin.AiManager` 1.4.1 — fill in the network, estimate traffic, write the challenge, coach a test;
 it only proposes (Core/Ai: prompts and a defensive reader; App/Ai: TrafficAi, AiWindow). The icon
 (packaging/make-icon.py) and the privacy policy (softwareplus.ai/trafficlab/privacy/) are done. Phase 4: the Map section finds a
@@ -27,7 +29,8 @@ self-contained HTML file. The page opens blank as a puzzle, the name is optional
 makes the printout. Phase 3: the `.trafficlab` study file, a start screen, the sections (Map ▸ Network ▸
 Traffic ▸ Challenge ▸ Preview ▸ Publish), a network editor (drawing + forms) with the page rebuilt beside
 it after every change, undo, New study with its budget, About. 40 tests green. Everything is ⚠️ waiting
-for Ron (`docs/MANUAL-TESTING.md`, tests 1–14). Next: publishing (phase 7), then the Store (phase 8).
+for Ron (`docs/MANUAL-TESTING.md`, tests 1–15). Next: the Store package (phase 8.3) once Ron reads the
+identity from Partner Center.
 
 ### Read these first
 
@@ -54,6 +57,9 @@ TrafficLabPlus.slnx
 │                             Osm/: OsmData (Overpass JSON), OsmJunctions (crossings, divided roads,
 │                             roundabouts), NetworkFromOsm (junctions → study), OsmClient, OsmCache
 │                             Counts/: FdotCounts (FDOT AADT: read, match to road ends, AADT×K×D, apply)
+│                             Ai/: AiPrompts + AiProposals (the four asks, checked), AiReader
+│                             Site/: SiteBuilder (the summary page + a page per study), SiteMarks
+│                             Publish/: Publisher, GitHubApi, GitCli, GitHubAddress (from Gamify+)
 ├── src/TrafficLabPlus.App/   Map/: map.html + Leaflet 1.9.4 (bundled) for the Map section
 │                             WPF: MainWindow (sections, problems bar, preview), StudySession (undo,
 │                             unsaved), NewStudyWindow; Views/: Form (field helper), NetworkCanvas,

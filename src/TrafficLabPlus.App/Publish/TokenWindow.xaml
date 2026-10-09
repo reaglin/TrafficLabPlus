@@ -1,0 +1,44 @@
+<Window x:Class="TrafficLabPlus.App.Publish.TokenWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="GitHub token — TrafficLab+" Width="620" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{StaticResource PageBrush}" Foreground="{StaticResource InkBrush}"
+        FontFamily="Segoe UI" FontSize="14">
+    <StackPanel Margin="20,16">
+        <TextBlock Text="Let TrafficLab+ publish for you" FontSize="17" FontWeight="SemiBold" />
+        <TextBlock TextWrapping="Wrap" Margin="0,4,0,10" Foreground="{StaticResource MutedTextBrush}"
+                   Text="A token is a long password that lets TrafficLab+ do three things on your GitHub account: create the repository your website lives in, upload the website, and switch GitHub Pages on. You make it once, on github.com." />
+
+        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource LineBrush}"
+                BorderThickness="1" CornerRadius="6" Padding="12,10">
+            <StackPanel>
+                <TextBlock FontWeight="SemiBold" Text="Making the token" Margin="0,0,0,4" />
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,2">
+                    <Run Text="1. Sign in to GitHub, then " /><Hyperlink NavigateUri="https://github.com/settings/personal-access-tokens/new" RequestNavigate="OnLink">open GitHub's token page</Hyperlink><Run Text=". (By hand: your picture at the top right → Settings → Developer settings, the last item on the left. That is your account's Settings — a repository's Settings tab has no Developer settings.)" />
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,2" Text="2. Name it (for example TrafficLab+). Resource owner: your own account. Expiration: no more than a year from today — GitHub refuses anything later, and then Generate does nothing. A preset such as 90 days is simplest." />
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,2" Text="3. Repository access: All repositories." />
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,2" Text="4. Repository permissions — set to Read and write: Administration, Contents and Pages. Leave the rest." />
+                <TextBlock TextWrapping="Wrap" Text="5. Press Generate token. Check the box GitHub shows names your expiry date (if it says never expire, cancel and choose the date again — if Generate does nothing, look for a red message on the form). Copy the token (it begins github_pat_ and is shown only once) and paste it below." />
+            </StackPanel>
+        </Border>
+
+        <TextBlock Text="Token" FontWeight="SemiBold" Margin="0,14,0,4" />
+        <PasswordBox x:Name="TokenBox" Padding="6,5" AutomationProperties.Name="GitHub token" />
+        <TextBlock x:Name="Current" TextWrapping="Wrap" FontSize="13" Margin="0,4,0,0"
+                   Foreground="{StaticResource MutedTextBrush}" />
+
+        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+            <Button x:Name="SaveButton" Content="Check and save" Click="OnSave" IsDefault="True"
+                    Background="{StaticResource AccentBrush}" Foreground="White" Padding="14,6" Margin="0,0,8,0" />
+            <Button x:Name="RemoveButton" Content="Remove the saved token" Click="OnRemove" Padding="14,6" Margin="0,0,8,0" />
+            <Button Content="Close" Click="OnClose" IsCancel="True" Padding="14,6" />
+        </StackPanel>
+
+        <TextBlock x:Name="Result" TextWrapping="Wrap" Margin="0,10,0,0" />
+
+        <TextBlock TextWrapping="Wrap" FontSize="12" Margin="0,12,0,0" Foreground="{StaticResource MutedTextBrush}"
+                   Text="The token is saved on this computer only, encrypted for your Windows account. It is never put in a study site or a website. You can cancel it at any time on GitHub: your picture → Settings → Developer settings → Personal access tokens." />
+    </StackPanel>
+</Window>

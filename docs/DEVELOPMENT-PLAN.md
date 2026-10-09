@@ -140,12 +140,15 @@ Through `Eaglin.AiManager` and `Eaglin.AiManager.Wpf` (latest on the local feed:
 
 | # | Task | Done when |
 |---|---|---|
-| 7.1 | Port `Publisher`, `GitHubApi`, `GitCli`, `TokenStore` from GamifyPlus | |
-| 7.2 | **One repository** (`TrafficLab`), GitHub Pages: **every study goes in, except those the student marks "Don't publish"**; one folder per study; a **summary page as the index** — a card per study (title, place, intersections, budget, date) linking to its page; a publish never touches anything else, and says before sending which folders it will remove (D15, Ron 2026-10-09) | A test publish to a local repository: the index lists exactly the studies sent; a study marked "Don't publish" is not sent, and its old folder is removed |
-| 7.3 | Marked as made by TrafficLab+ (topic, description, `trafficlab-site.json`, generator meta) | A publish refuses a repository it did not make |
-| 7.4 | **"Copy the link to hand in"** after a publish — for one study, or for the summary page — and a plain "New to GitHub?" guide |  |
-| 7.5 | Real publish with Ron's token | Ron opens the link on his phone |
-| 7.6 | The Publish section lists every study the program knows, each with **Publish / Don't publish** (kept with the study) and whether its page in the repository is up to date | UX review |
+| 7.1 | ⚠️ `Publisher`, `GitHubApi`, `GitCli`, `GitHubAddress` (Core/Publish) and `TokenStore`, `TokenWindow` (App/Publish) ported from Gamify+: with a token, TrafficLab+ creates the repository, pushes (Git, or the API without Git) and switches Pages on; without one, Git pushes to a repository the student made and the steps to switch Pages on are given | Tests: Git pushes the whole site to a local repository; the API creates the repository and switches Pages on (a fake GitHub) |
+| 7.2 | ⚠️ **One repository** (`TrafficLab`), GitHub Pages: **every saved study goes in, except those unticked** (remembered); one folder per study, its address fixed once published; a **summary page as the index** — a card per study (sign letters, title, place, intersections, budget) linking to its page; each publish rebuilds the whole site, and says first which studies will come off it (D15, Ron 2026-10-09) | Tests: each study has its page and the index links to each; the index needs nothing from the internet; a study left out is gone and .git is kept; folder names are safe and unique. Store screenshot 08 is the summary page |
+| 7.3 | ⚠️ Marked as made by TrafficLab+: the `trafficlab-plus` topic, the description, `trafficlab-site.json`, the generator meta. A repository that holds something, is not where TrafficLab+ last published and lacks the topic is **never replaced without a yes — and No is the default** | Tests: a repository TrafficLab+ did not make is not replaced without a yes; a marked one is recognised |
+| 7.4 | ⚠️ **Copy the link to hand in** — for the summary page and for each study — after a publish, and any day after (the links stay in the Publish step); a **New to GitHub?** guide in four steps; the token window says how to make a token | Action: Ron, hand-test 15 |
+| 7.5 | Real publish with Ron's token | **Action: Ron** — save a GitHub token in Publish ▸ GitHub token…, publish, and open the link on his phone (hand-test 15) |
+| 7.6 | ⚠️ The Publish step lists every study the program knows (the studies folder, recent studies, the open one), each with a tick (Publish / leave out, remembered by its file) and, once published, its link with Copy | Seen in the running window: it found Ron's own East New York Avenue study |
+| 7.7 | ⚠️ **UX review** of Publish (cognitive walkthrough + Nielsen, `ux-reviewer`), 2026-10-09: 1 critical, 4 major, 4 minor | Fixed: replacing a repository TrafficLab+ did not make asks with **No as the default** and says Yes deletes everything in it; a study's address stays fixed once published, even if its file is renamed; the links can be copied any day, not only right after publishing; no internet is said in words; the steps to switch the website on come before the links, which say to check they are up first; what comes off the website is named by title; typed boxes survive a tick; one set of words ("ticked"); long introductions cut on the summary cards. Not done: a "← All studies" link on each study page (a page is built the same for the site and for a file). Action: Ron, hand-test 15 |
+
+**Hand-test:** `docs/MANUAL-TESTING.md`, test 15.
 
 ---
 
@@ -158,7 +161,7 @@ Through `Eaglin.AiManager` and `Eaglin.AiManager.Wpf` (latest on the local feed:
 | 8.3 | `packaging/` ported from GamifyPlus; WACK | WACK passes |
 | 8.4 | ⚠️ Privacy policy **live at https://softwareplus.ai/trafficlab/privacy/** (2026-10-09): nothing comes to us; OpenStreetMap (tiles, Nominatim, Overpass), FDOT on ArcGIS, the AI provider and GitHub, each only when used; the pages collect nothing | Action: Ron reads it; it goes in Partner Center as the privacy URL |
 | 8.5 | ⚠️ `SoftwarePlus\site\trafficlab\`: the summary page (with the icon, "Coming soon") and the privacy policy are live; feature pages and live example pages come with the release | Started 2026-10-09 |
-| 8.6 | Listing, screenshots, submit | Live on the Store |
+| 8.6 | ⚠️ Listing, **screenshots**, submit. Nine screenshots at 1920×1080 in `resources/images/screenshots/` (start; the map from OpenStreetMap; the network and the live page; FDOT counts; the challenge; the preview; the AI proposing; the published summary page; a player building a plan), made by `tools/store-shots.ps1` from a demo study built from the saved LPGA answers (`--demo-study`) and the website (`--build-site`) | Action: Ron picks the ones for the listing; the listing text and submission are his, 2026-10-10 |
 
 ---
 

@@ -65,23 +65,30 @@ function Keys($text) {
     [System.Windows.Forms.SendKeys]::SendWait($text)
 }
 
-function Shot($out) {
-    $proc.Refresh()
-    $hw = [System.Windows.Automation.AutomationElement]::FocusedElement
-    # the program's window in front (a dialog it opened), else its main window
-    $target = $h
-    $fg = [Win2]::GetForegroundWindow(); $fgPid = 0
-    [Win2]::GetWindowThreadProcessId($fg, [ref]$fgPid) | Out-Null
-    if ($fgPid -eq $proc.Id) { $target = $fg }
+function Grab($hwnd) {
     $r = New-Object Win2+RECT
-    [Win2]::GetWindowRect($target, [ref]$r) | Out-Null
-    $w = $r.Right - $r.Left; $ht = $r.Bottom - $r.Top
-    $bmp = New-Object System.Drawing.Bitmap $w, $ht
+    [Win2]::GetWindowRect($hwnd, [ref]$r) | Out-Null
+    $bmp = New-Object System.Drawing.Bitmap ($r.Right - $r.Left), ($r.Bottom - $r.Top)
     $g = [System.Drawing.Graphics]::FromImage($bmp)
     $hdc = $g.GetHdc()
-    [Win2]::PrintWindow($target, $hdc, 2) | Out-Null
+    [Win2]::PrintWindow($hwnd, $hdc, 2) | Out-Null
     $g.ReleaseHdc($hdc); $g.Dispose()
-    $bmp.Save($out, [System.Drawing.Imaging.ImageFormat]::Png); $bmp.Dispose()
+    return @{ Bitmap = $bmp; Rect = $r }
+}
+
+# The main window; a dialog of the program in front is drawn onto it where it sits, so the
+# picture is what a person sees.
+function Shot($out) {
+    $main = Grab $h
+    $fg = [Win2]::GetForegroundWindow(); $fgPid = 0
+    [Win2]::GetWindowThreadProcessId($fg, [ref]$fgPid) | Out-Null
+    if ($fgPid -eq $proc.Id -and $fg -ne $h) {
+        $front = Grab $fg
+        $g = [System.Drawing.Graphics]::FromImage($main.Bitmap)
+        $g.DrawImage($front.Bitmap, $front.Rect.Left - $main.Rect.Left, $front.Rect.Top - $main.Rect.Top)
+        $g.Dispose(); $front.Bitmap.Dispose()
+    }
+    $main.Bitmap.Save($out, [System.Drawing.Imaging.ImageFormat]::Png); $main.Bitmap.Dispose()
     Write-Output "saved $out"
 }
 

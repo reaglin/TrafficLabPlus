@@ -34,6 +34,14 @@ public partial class MainWindow : Window
     public MainWindow(string? openPath = null)
     {
         InitializeComponent();
+
+        // tools/store-shots.ps1 sets the window to the Store screenshot size, e.g. TRAFFICLAB_WINDOW=1920x1080
+        if (Environment.GetEnvironmentVariable("TRAFFICLAB_WINDOW") is { } size && size.Split('x') is [var w, var h]
+            && double.TryParse(w, out double width) && double.TryParse(h, out double height))
+        {
+            Width = width / (VisualTreeHelperDpi());
+            Height = height / (VisualTreeHelperDpi());
+        }
         _sections["Start"] = new StartView(OpenExample, () => Go(NavMap), NewStudy, OpenStudy, OpenFile, () => _recent.Load());
         _sections["Map"] = new MapView(MakeFromMap);
         _sections["Network"] = new NetworkView();
@@ -45,7 +53,7 @@ public partial class MainWindow : Window
             string? json = await Preview.RunScriptAsync("window.TL_lastTest ? JSON.stringify(window.TL_lastTest()) : 'null'");
             return json is null ? null : System.Text.Json.JsonSerializer.Deserialize<string>(json);
         });
-        _sections["Publish"] = new PublishView();
+        _sections["Publish"] = new PublishView(_settings, () => _recent.Load());
         _sections["Settings"] = new SettingsView(_settings);
         _sections["About"] = new AboutView();
         _rebuild.Tick += (_, _) => { _rebuild.Stop(); BuildPage(); };
@@ -58,6 +66,13 @@ public partial class MainWindow : Window
         {
             Loaded += (_, _) => OpenFile(openPath);
         }
+    }
+
+    // the screen's scale, so a size in pixels comes out as that many pixels
+    private static double VisualTreeHelperDpi()
+    {
+        using var g = System.Drawing.Graphics.FromHwnd(IntPtr.Zero);
+        return g.DpiX / 96.0;
     }
 
     // ---------------------------------------------------------------- the sections

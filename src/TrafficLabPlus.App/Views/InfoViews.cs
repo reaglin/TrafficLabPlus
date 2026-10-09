@@ -11,69 +11,6 @@ using TrafficLabPlus.Core.Model;
 
 namespace TrafficLabPlus.App.Views;
 
-/// <summary>Publish: GitHub Pages arrives in phase 7. Until then the page can be saved as a file.</summary>
-public sealed class PublishView : SectionView
-{
-    public override void Rebuild()
-    {
-        (ScrollViewer scroll, StackPanel panel) = Column();
-        Content = scroll;
-        if (Session is not { } s)
-        {
-            return;
-        }
-
-        panel.Children.Add(Title("Publish"));
-        panel.Children.Add(Lead("Putting the page on the web with GitHub Pages, and copying the link to hand in, arrive in a later version of TrafficLab+."));
-        panel.Children.Add(Guides.Publish());
-        panel.Children.Add(Lead("Today you can save the page as a file. It is the same page as the one on the right: one file, with everything inside it. It opens in any web browser, with no internet needed, and can be put on any web site or sent to someone."));
-        var form = new Form(panel, s);
-        List<StudyProblem> problems = StudyValidator.Check(s.Study);
-        if (problems.Count > 0)
-        {
-            form.Note($"The page cannot run yet: {problems.Count} problem{(problems.Count == 1 ? "" : "s")} to fix (listed at the top of the window). A page saved now shows those problems instead of the simulation.", Form.Res("ErrorBrush"));
-        }
-
-        form.Button("Save the page as a web page file…", "Saves an .html file wherever you choose.", () => SavePage(s, Window.GetWindow(this)), primary: true);
-    }
-
-    private static void SavePage(StudySession s, Window owner)
-    {
-        Form.CommitPending();
-        var dialog = new SaveFileDialog
-        {
-            Title = "Save the page",
-            Filter = "Web page (*.html)|*.html",
-            FileName = Safe(s.Study.Title) + ".html",
-            InitialDirectory = Directory.Exists(AppSettings.StudiesFolder) ? AppSettings.StudiesFolder : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-        };
-        if (dialog.ShowDialog(owner) != true)
-        {
-            return;
-        }
-
-        try
-        {
-            File.WriteAllText(dialog.FileName, PageBuilder.Build(s.Study));
-            if (MessageBox.Show(owner, $"Saved the page as {dialog.FileName}.\n\nOpen it in your web browser now?", "TrafficLab+",
-                    MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
-            {
-                Process.Start(new ProcessStartInfo(dialog.FileName) { UseShellExecute = true });
-            }
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
-        {
-            MessageBox.Show(owner, "The page could not be saved there: " + ex.Message + "\n\nTry another folder, such as Documents.", "TrafficLab+", MessageBoxButton.OK, MessageBoxImage.Warning);
-        }
-    }
-
-    public static string Safe(string name)
-    {
-        string cleaned = string.Concat(name.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '-' : c)).Trim();
-        return cleaned.Length == 0 ? "study" : cleaned;
-    }
-}
-
 /// <summary>Settings: what a new study is filled in with, and where things are kept.</summary>
 public sealed class SettingsView(AppSettings settings) : SectionView
 {
