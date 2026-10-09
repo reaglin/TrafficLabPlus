@@ -55,9 +55,11 @@ The LPGA core is good; this phase changes what it reads, not how it drives.
 | # | Task | Done when |
 |---|---|---|
 | 2.1 | `template.html` + `PageBuilder`: study + engine + UI + CSS + font → **one self-contained HTML file** | Opens from disk and from a sub-path; no network requests (checked in headless Chrome) |
-| 2.2 | The page's title, author, course, and intro built from the study (LPGA's intro dialog, generalised) | |
+| 2.2 | The page's title, author, course, and intro built from the study (LPGA's intro dialog, generalised). The player's name box is labelled **optional**; Start works with it blank, and the printout then says "Name not given" | Tested with and without a name |
 | 2.3 | "© OpenStreetMap contributors" and "Made with TrafficLab+" on every page | |
-| 2.4 | The student's plan shown as their answer (see question 1) | |
+| 2.4 | The page **opens blank, as a puzzle**: today's network, no plan (question 1) | No plan is ever stored in a published page |
+| 2.7 | **Submit plan → printout**: the player's plan, its cost against the budget, the score and its parts, the per-approach LOS before and after, their name if given, the study and date; a print-friendly layout (Print / Save as PDF from the browser) | Printed from Chrome and Edge on one page |
+| 2.8 | US customary units on the page (mph, ft, veh/hr) | Every number on the page checked |
 | 2.5 | Light and dark, phone width (16 px gutter, no sideways scroll) | Checked in headless Chrome at 390 px and 1440 px |
 | 2.6 | Page tests: build LPGA, load it headless, run a traffic test, read the score | Green |
 
@@ -68,12 +70,13 @@ The LPGA core is good; this phase changes what it reads, not how it drives.
 | # | Task | Done when |
 |---|---|---|
 | 3.1 | `.trafficlab` study file (zip: `study.json`, OSM extract, notes); New / Open / Save / Recent | Round-trips; a newer-format file is refused, not half-read |
-| 3.2 | Start screen: what TrafficLab+ is, the steps, Open the LPGA example / New study / Continue | |
+| 3.2 | Start screen: what TrafficLab+ is, the steps, Open the LPGA example / New study / Continue. **LPGA is built in** as the example | |
 | 3.3 | Sections in the order the work happens: **Map ▸ Network ▸ Traffic ▸ Challenge ▸ Preview ▸ Publish**, plus Settings and About | |
 | 3.4 | Network editor: nodes, links, lanes, pockets, signal timing — every field explained in plain words, with where its value came from (OSM tag / default / typed / AI) | |
 | 3.5 | **Preview**: the built page in WebView2, rebuilt on every change | What the window shows is the file that will be published |
 | 3.6 | About: "Created by Dr. Ron Eaglin" card and the link to softwareplus.ai/trafficlab/ | |
 | 3.7 | UX review of every screen | Recorded here with the fixes |
+| 3.8 | **New study asks for the budget** the simulation will use (with LPGA's $5M as the suggestion and a line on what it means) | The budget is on the page and in the score |
 
 **Hand-test:** open the LPGA example, change a signal's cycle, watch the preview change.
 
@@ -137,7 +140,7 @@ Through `Eaglin.AiManager` and `Eaglin.AiManager.Wpf` (latest on the local feed:
 
 | # | Task | Done when |
 |---|---|---|
-| 8.1 | Name **TrafficLab+** reserved in Partner Center (question 4) | Identity known |
+| 8.1 | ⚠️ Name **TrafficLab+** reserved in Partner Center — done by Ron 2026-10-09. **Action when packaging starts: Ron reads Package/Identity Name, Publisher and Publisher display name from Product identity** | Identity in the manifest |
 | 8.2 | Icon: one white mark on guide-sign green with a "+" | Ron approves |
 | 8.3 | `packaging/` ported from GamifyPlus; WACK | WACK passes |
 | 8.4 | Privacy policy at `softwareplus.ai/trafficlab/privacy/` (says: OSM and FDOT queries, AI calls go to the provider the user chose, GitHub publish) | Live |
@@ -146,20 +149,19 @@ Through `Eaglin.AiManager` and `Eaglin.AiManager.Wpf` (latest on the local feed:
 
 ---
 
-## Open questions for Ron
+## Open questions for Ron — all 5 answered (asked and answered 2026-10-09)
 
-Asked 2026-10-09.
-
-1. **What does a published page open with?** Proposed: the study as it is today, with the
-   student's plan loaded as "the engineer's plan" and its score shown; a visitor can clear it and
-   try their own. (Alternative: no plan shown, so the page is a puzzle for the next person.)
-2. **Teacher hand-outs:** may a teacher give students a starting study file (e.g. LPGA with a $5M
-   budget) to open, change and publish? Proposed: yes — it is just a `.trafficlab` file.
-3. **Units:** US customary on the page (mph, feet, veh/hr), as LPGA? Proposed: yes; metres inside.
-4. **Partner Center:** please reserve **TrafficLab+** (new product) when convenient; phase 8 needs
-   the identity.
-5. **Does the class need a list of everyone's links?** E.g. the teacher pastes the links into
-   TrafficLab+ and gets one page of all the class's studies. Not planned unless you want it.
+1. ~~What does a published page open with?~~ **Blank, as a puzzle.** The page opens with today's
+   network and no plan. The player builds a plan; when they **submit** it (run the scored test and
+   finish), that plan and its score become the **printout**. Tasks 2.4, 2.7.
+2. ~~Teacher hand-outs?~~ **Yes, and LPGA is built in as the example.** When a user creates a new
+   study they set the **budget** the generated simulation uses. Tasks 3.2, 3.8.
+3. ~~Units?~~ **US customary on the page** (mph, feet, veh/hr); metres inside. Task 2.8.
+4. ~~Partner Center?~~ **TrafficLab+ is reserved** (Ron, 2026-10-09). Task 8.1 needs the identity
+   values from Partner Center ▸ Product identity when packaging starts.
+5. ~~A list of the class's links?~~ **No.** Students entering their names is enough. **The name is
+   optional:** a player may leave it blank and still play, and the page says the name is optional.
+   Task 2.2.
 
 ---
 

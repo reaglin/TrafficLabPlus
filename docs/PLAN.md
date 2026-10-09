@@ -23,9 +23,10 @@ A student:
 3. **watches it run** in the program, exactly as the page will run, and adjusts it;
 4. **publishes it to GitHub Pages** and **hands in the link**.
 
-The published page is the **full lab**, like LPGA: the simulation runs live, roads are shaded by
+The published page is the **full lab**, like LPGA, and it **opens blank, as a puzzle**: the simulation runs live, roads are shaded by
 Level of Service, a visitor raises demand, clicks a road or intersection, builds a plan of fixes
-under a budget, and runs a scored traffic test.
+under a budget, and runs a scored traffic test. When they **submit** their plan it becomes a
+**printout** with their name (optional) and score.
 
 **The point of the software is the web page.** The program is the authoring tool; the page is what
 a student hands in and what anyone opens on a phone.
@@ -56,6 +57,11 @@ its model.
 | D7 | **Publish to GitHub Pages** with the student's own account and token | The route Gamify+ and LMS-2-Website already use; the link is stable and free |
 | D8 | **The published page is the full lab** | Visitors run it, inspect, build plans, run scored tests — as LPGA does |
 | D9 | **Volumes are typed in, or looked up from FDOT AADT**, besides the AI's estimate | A count sheet from class, or published counts converted to the peak hour with K and D factors. Florida first |
+| D10 | **A published page opens blank, as a puzzle**; when the player submits their plan, it becomes the **printout** | Ron: the plan is the player's work, not the author's. No plan is stored in a page |
+| D11 | **LPGA is built in as the example**; a new study asks for the **budget** its simulation uses | A teacher can also hand out any study file as a starting point |
+| D12 | **US customary units** on the page (mph, ft, veh/hr) | As LPGA; metres inside |
+| D13 | **The player's name is optional** — blank still plays, and the page says so | Ron: entering names is enough; no class list of links |
+| D14 | Store name **TrafficLab+ reserved** by Ron, 2026-10-09 | |
 
 ### Consequences of D6–D8 (decided in this plan, not asked)
 
@@ -87,7 +93,6 @@ OSM extract it came from, notes) under `Documents\TrafficLabPlus\Studies`.
 | **Signals** | cycle, split, main-street group, protected lefts, yellow, all-red | typed, or the AI (OSM does not carry timing) |
 | **Zones / demand** | entering volume per edge zone, trip pattern, scenarios (Today, 2035, Event) | typed, FDOT AADT × K × D, or the AI |
 | **Challenge** | budget, cost of each fix, which fixes are allowed, scoring weights, goals text | defaults from LPGA; the teacher; the AI |
-| **Plan** | the student's own fixes, shown on the page as their answer | the student, in the preview |
 | Background | an optional faint outline of nearby streets for context | OSM |
 
 Positions are stored in **metres**; the page scales them. (LPGA used 1 px = 0.6 m with speeds in
