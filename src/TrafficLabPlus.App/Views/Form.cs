@@ -51,7 +51,7 @@ public sealed class Form(StackPanel panel, StudySession session)
         return note;
     }
 
-    public void Text(string label, string help, Func<string?> get, Action<string?> set, string? key = null, bool multiLine = false)
+    public void Text(string label, string help, Func<string?> get, Action<string?> set, string? key = null, bool multiLine = false, bool required = false)
     {
         var box = new TextBox
         {
@@ -61,10 +61,18 @@ public sealed class Form(StackPanel panel, StudySession session)
             MinHeight = multiLine ? 60 : 0,
             Padding = new Thickness(3),
         };
-        Field(label, help, box, key, out TextBlock? origin, out _);
+        Field(label, help, box, key, out TextBlock? origin, out TextBlock error, required);
         void Commit()
         {
             string? value = string.IsNullOrWhiteSpace(box.Text) ? null : box.Text.Trim();
+            if (required && value is null)
+            {
+                error.Text = "This one needs a value: type something here. (The old one is kept until you do.)";
+                error.Visibility = Visibility.Visible;
+                return;
+            }
+
+            error.Visibility = Visibility.Collapsed;
             if (value != (get() ?? null))
             {
                 session.Edit(key, () => set(value));
@@ -90,7 +98,7 @@ public sealed class Form(StackPanel panel, StudySession session)
     /// study's (<paramref name="keep"/>), refused outside <paramref name="min"/>–<paramref name="max"/>.</summary>
     public void Number(string label, string unit, string help, Func<double?> get, Action<double> set,
                        double min, double max, string? key = null, int decimals = 0,
-                       Func<double, double>? show = null, Func<double, double>? keep = null)
+                       Func<double, double>? show = null, Func<double, double>? keep = null, bool required = true)
     {
         show ??= v => v;
         keep ??= v => v;
@@ -101,8 +109,8 @@ public sealed class Form(StackPanel panel, StudySession session)
         row.Children.Add(unitText);
         void Fill() => box.Text = get() is double v ? Math.Round(show(v), decimals).ToString("0." + new string('#', decimals), Culture) : "";
         Fill();
-        Field(label, help, row, key, out TextBlock? origin, out TextBlock error);
-        AutomationProperties.SetName(box, label);
+        Field(label, help, row, key, out TextBlock? origin, out TextBlock error, required);
+        AutomationProperties.SetName(box, label + (required ? " (needs a value)" : " (optional)"));
 
         void Commit()
         {
@@ -146,7 +154,7 @@ public sealed class Form(StackPanel panel, StudySession session)
     }
 
     public void Choice(string label, string help, IReadOnlyList<(string Value, string Text)> options, Func<string> get,
-                       Action<string> set, string? key = null)
+                       Action<string> set, string? key = null, bool required = true)
     {
         var combo = new ComboBox { MinWidth = 220, HorizontalAlignment = HorizontalAlignment.Left };
         foreach ((string value, string text) in options)
@@ -155,8 +163,7 @@ public sealed class Form(StackPanel panel, StudySession session)
         }
 
         combo.SelectedItem = combo.Items.Cast<ComboBoxItem>().FirstOrDefault(i => (string)i.Tag == get());
-        Field(label, help, combo, key, out TextBlock? origin, out _);
-        AutomationProperties.SetName(combo, label);
+        Field(label, help, combo, key, out TextBlock? origin, out _, required);
         combo.SelectionChanged += (_, _) =>
         {
             if (combo.SelectedItem is ComboBoxItem { Tag: string value } && value != get())
@@ -169,7 +176,12 @@ public sealed class Form(StackPanel panel, StudySession session)
 
     public void Check(string text, string help, Func<bool> get, Action<bool> set, string? key = null)
     {
-        var box = new CheckBox { Content = text, IsChecked = get(), Margin = new Thickness(0, 6, 0, 0) };
+        // a tick is always optional: leaving it as it is is a choice too
+        var content = new StackPanel { Orientation = Orientation.Horizontal };
+        content.Children.Add(new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, MaxWidth = 430 });
+        content.Children.Add(Chip(required: false));
+        var box = new CheckBox { Content = content, IsChecked = get(), Margin = new Thickness(0, 6, 0, 0) };
+        AutomationProperties.SetName(box, text + " (optional)");
         panel.Children.Add(box);
         TextBlock? origin = OriginLine(key);
         panel.Children.Add(new TextBlock { Text = help, TextWrapping = TextWrapping.Wrap, Foreground = Res("MutedTextBrush"), Margin = new Thickness(20, 0, 0, origin is null ? 6 : 0) });
@@ -218,14 +230,58 @@ public sealed class Form(StackPanel panel, StudySession session)
         return button;
     }
 
-    private void Field(string label, string help, FrameworkElement input, string? key, out TextBlock? origin, out TextBlock error)
+    /// <summary>The small tag beside a field's name: required (the page needs a value here) or
+    /// optional (it may be left empty, or as it is).</summary>
+    public static Border Chip(bool required) => new()
     {
-        var title = new Label { Content = label, Padding = new Thickness(0), Margin = new Thickness(0, 8, 0, 2), FontWeight = FontWeights.SemiBold, Target = input };
-        panel.Children.Add(title);
+        BorderBrush = Res(required ? "AccentBrush" : "LineBrush"),
+        Background = required ? Res("ChipBrush") : Brushes.Transparent,
+        BorderThickness = new Thickness(1),
+        CornerRadius = new CornerRadius(8),
+        Padding = new Thickness(6, 0, 6, 1),
+        Margin = new Thickness(8, 0, 0, 0),
+        VerticalAlignment = VerticalAlignment.Center,
+        Child = new TextBlock
+        {
+            Text = required ? "needs a value" : "optional",
+            FontSize = 11,
+            FontWeight = FontWeights.Normal,
+            Foreground = Res(required ? "AccentBrush" : "MutedTextBrush"),
+        },
+        ToolTip = required
+            ? "Needs a value: the page cannot run without one. It already has one — change it only if it is wrong."
+            : "Optional: you may leave it as it is.",
+    };
+
+    /// <summary>What the tags mean, once at the top of a page.</summary>
+    public void ChipLegend()
+    {
+        StackPanel Row(bool required, string text)
+        {
+            var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 2) };
+            Border chip = Chip(required);
+            chip.Margin = new Thickness(0, 0, 6, 0);
+            row.Children.Add(chip);
+            row.Children.Add(new TextBlock { Text = text, Foreground = Res("MutedTextBrush"), VerticalAlignment = VerticalAlignment.Center });
+            return row;
+        }
+
+        panel.Children.Add(Row(true, "always has one; change it only if it is wrong"));
+        var last = Row(false, "leave it as it is if you like");
+        last.Margin = new Thickness(0, 0, 0, 8);
+        panel.Children.Add(last);
+    }
+
+    private void Field(string label, string help, FrameworkElement input, string? key, out TextBlock? origin, out TextBlock error, bool required)
+    {
+        var titleRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 2) };
+        titleRow.Children.Add(new Label { Content = label, Padding = new Thickness(0), FontWeight = FontWeights.SemiBold, Target = input, VerticalAlignment = VerticalAlignment.Center });
+        titleRow.Children.Add(Chip(required));
+        panel.Children.Add(titleRow);
         panel.Children.Add(input);
         if (input is not StackPanel)
         {
-            AutomationProperties.SetName(input, label);
+            AutomationProperties.SetName(input, label + (required ? " (needs a value)" : " (optional)"));
         }
 
         error = new TextBlock { Foreground = Res("ErrorBrush"), TextWrapping = TextWrapping.Wrap, Visibility = Visibility.Collapsed, Margin = new Thickness(0, 2, 0, 0) };

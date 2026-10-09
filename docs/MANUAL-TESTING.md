@@ -157,5 +157,23 @@ made study you would want different.
 6. Open the **Four-Way Intersection** example and go to Traffic: it says counts need a study made from
    the map, and what to do instead.
 
-**What to send back:** whether AADT × K × D is the busy hour you want students to test, or whether
-you would rather use K alone (both directions averaged) or a typed peak-hour count.
+**What to send back:** anything about the counts that a student would get wrong.
+
+---
+
+## Steps and help (2026-10-09)
+
+### Test 12 — Previous and Next, and the help on each step
+
+1. Start TrafficLab+ and go to **1 Map** with no study open. The bar at the foot says *Step 1 of 6: Map*;
+   **Next: Network →** is greyed out, and the line under the title says to make a study first.
+2. Open the LPGA example, go to **1 Map**, and press **Next** five times: Network, Traffic, Challenge,
+   Preview, Publish. **← Previous** goes back the same way. On Publish there is no Next.
+3. On each step, read the box at the top: *What you need to do here* and *Optional*. Open **Help for this
+   step: every option explained**: every setting on the page is described. Choose another road in
+   Network: the help stays open.
+4. Look at the tags beside the settings: **needs a value** (it always has one; change it only if it is
+   wrong) and **optional**. Clear the Title in Challenge and leave the box: it is refused, in words, and the old title
+   is kept.
+
+**What to send back:** any setting tagged wrongly, and anything the help does not answer.

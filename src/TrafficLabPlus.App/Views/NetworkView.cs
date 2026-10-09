@@ -33,7 +33,11 @@ public sealed class NetworkView : SectionView
 
         var top = new StackPanel { Margin = new Thickness(18, 14, 18, 8) };
         top.Children.Add(Title("Network"));
-        top.Children.Add(Lead("The roads and intersections the page simulates. Click one on the drawing (or choose it from the list below) to change it; drag an intersection or a road end to move it. The page on the right is rebuilt after every change. Ctrl+Z undoes."));
+        top.Children.Add(Lead("Click a road or intersection on the drawing to change it; drag one to move it. The page on the right follows every change; Ctrl+Z undoes."));
+        top.Children.Add(Guides.Network());
+        var legend = new StackPanel();
+        new Form(legend, null!).ChipLegend();
+        top.Children.Add(legend);
         var tools = new WrapPanel();
         AddMode(tools, CanvasMode.Select, "Choose and move", "Click something to change it; drag an intersection or road end to move it.");
         AddMode(tools, CanvasMode.AddSignal, "Add intersection", "Click on the drawing where the new intersection goes. It starts as a traffic signal; it needs 3 or 4 roads.");
@@ -251,7 +255,7 @@ public sealed class NetworkView : SectionView
         form.Choice("Kind", "What is here today. A plan on the page can turn a signal into a roundabout; it cannot turn a roundabout back.",
             [(StudyNode.SignalType, "Traffic signal"), (StudyNode.Roundabout, "Roundabout (one that exists today)"), (StudyNode.End, "Road end (traffic enters and leaves)")],
             () => n.Type, v => { StudyEdits.SetType(s.Study, n, v); RebuildSoon(); }, k + "type");
-        form.Text("Name", "What people read on the page and on the printout, like \"LPGA & Williamson\".", () => n.Name, v => { n.Name = v; FillChooserLater(); }, k + "name");
+        form.Text("Name", "What people read on the page and on the printout, like \"LPGA & Williamson\". Left empty, the page uses the short id (" + n.Id + ").", () => n.Name, v => { n.Name = v; FillChooserLater(); }, k + "name");
         if (!end)
         {
             form.Text("Short name", "A shorter name for the page's tables, like \"Williamson\". Leave it empty to use the name.", () => n.Short, v => n.Short = v, k + "short");

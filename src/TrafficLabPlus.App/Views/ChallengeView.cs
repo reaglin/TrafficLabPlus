@@ -18,12 +18,14 @@ public sealed class ChallengeView : SectionView
 
         Study st = s.Study;
         panel.Children.Add(Title("Challenge"));
-        panel.Children.Add(Lead("What a player is asked to do: the words at the top of the page, the money they have, and what each fix costs. A player builds a plan within the budget, tests it, and submits it for a score out of 100."));
+        panel.Children.Add(Lead("The words on the page, the budget, and what each fix costs."));
+        panel.Children.Add(Guides.Challenge());
         var form = new Form(panel, s);
+        form.ChipLegend();
 
         form.Heading("The page");
-        form.Text("Title", "The page's heading and the printout's, like \"LPGA Traffic Lab\".", () => st.Title, v => st.Title = v ?? "Traffic study", "study/title");
-        form.Text("Sign letters", "Up to 5 letters for the green sign in the page's header, like LPGA. Leave it empty for none.", () => st.Short, v => st.Short = v is { Length: > 5 } ? v[..5] : v, "study/short");
+        form.Text("Title", "The page's heading and the printout's, like \"LPGA Traffic Lab\".", () => st.Title, v => st.Title = v ?? "Traffic study", "study/title", required: true);
+        form.Text("Sign letters", "Up to 5 letters for the green sign in the page's header, like LPGA. Left empty, the sign says TL+.", () => st.Short, v => st.Short = v is { Length: > 5 } ? v[..5] : v, "study/short");
         form.Text("Subtitle", $"One line under the title. Left empty, the page says \"Fix this network on a {Money(st.Budget)} budget\".", () => st.Subtitle, v => st.Subtitle = v, "study/subtitle");
         form.Text("Introduction", "A sentence or two at the top of the page's instructions: where this is and why it matters.", () => st.Intro, v => st.Intro = v, "study/intro", multiLine: true);
         form.Text("Place", "Where the network is, like \"Daytona Beach, Florida\". On the printout.", () => st.Place, v => st.Place = v, "study/place");
@@ -55,8 +57,9 @@ public sealed class ChallengeView : SectionView
         form.Text("Notes", "", () => s.Document.Notes, v => s.Document.Notes = v ?? "", null, multiLine: true);
     }
 
+    // every price starts at LPGA's: changing one is optional
     private static void Cost(Form form, string label, string help, Func<double?> get, Action<double> set, string name) =>
-        form.Number(label, "$ million", help, get, set, 0, 100, "costs/" + name, 3);
+        form.Number(label, "$ million", help, get, set, 0, 100, "costs/" + name, 3, required: false);
 
     private static string Money(double millions) => millions >= 1 ? "$" + millions.ToString("0.##", System.Globalization.CultureInfo.CurrentCulture) + "M" : "$" + (millions * 1000).ToString("0", System.Globalization.CultureInfo.CurrentCulture) + "K";
 }

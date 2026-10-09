@@ -39,6 +39,7 @@ public partial class MainWindow : Window
         _sections["Network"] = new NetworkView();
         _sections["Traffic"] = new TrafficView();
         _sections["Challenge"] = new ChallengeView();
+        _sections["Preview"] = new PreviewHelpView();
         _sections["Publish"] = new PublishView();
         _sections["Settings"] = new SettingsView(_settings);
         _sections["About"] = new AboutView();
@@ -76,20 +77,89 @@ public partial class MainWindow : Window
 
         _current = name;
         bool withPage = _session is not null && name is "Network" or "Traffic" or "Challenge" or "Publish" or "Preview";
-        bool pageOnly = name == "Preview";
         SectionHost.Content = _sections.GetValueOrDefault(name);
         if (_sections.TryGetValue(name, out SectionView? view))
         {
             view.Attach(name is "Start" or "Settings" or "About" ? null : _session);
         }
 
-        EditorColumn.Width = pageOnly ? new GridLength(0) : withPage ? _editorWidth : new GridLength(1, GridUnitType.Star);
-        Splitter.Visibility = withPage && !pageOnly ? Visibility.Visible : Visibility.Collapsed;
+        EditorColumn.Width = name == "Preview" && withPage ? new GridLength(400) : withPage ? _editorWidth : new GridLength(1, GridUnitType.Star);
+        Splitter.Visibility = withPage ? Visibility.Visible : Visibility.Collapsed;
         PreviewPane.Visibility = withPage ? Visibility.Visible : Visibility.Collapsed;
         PreviewColumn.Width = withPage ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
         if (withPage && _builtJson is null)
         {
             BuildPage();
+        }
+
+        ShowSteps();
+    }
+
+    // ---------------------------------------------------------------- Previous / Next
+
+    /// <summary>The work, in order. Previous and Next walk it.</summary>
+    private static readonly (string Name, string Title)[] Steps =
+    [
+        ("Map", "Map"), ("Network", "Network"), ("Traffic", "Traffic"), ("Challenge", "Challenge"), ("Preview", "Preview"), ("Publish", "Publish"),
+    ];
+
+    private RadioButton NavFor(string name) => name switch
+    {
+        "Map" => NavMap,
+        "Network" => NavNetwork,
+        "Traffic" => NavTraffic,
+        "Challenge" => NavChallenge,
+        "Preview" => NavPreview,
+        "Publish" => NavPublish,
+        _ => NavStart,
+    };
+
+    private void ShowSteps()
+    {
+        int i = Array.FindIndex(Steps, s => s.Name == _current);
+        StepBar.Visibility = i < 0 ? Visibility.Collapsed : Visibility.Visible;
+        if (i < 0)
+        {
+            return;
+        }
+
+        StepTitle.Text = $"Step {i + 1} of {Steps.Length}: {Steps[i].Title}";
+        PrevButton.Visibility = i > 0 ? Visibility.Visible : Visibility.Hidden;
+        PrevButton.Content = i > 0 ? "← Previous: " + Steps[i - 1].Title : "";
+        NextButton.Visibility = i < Steps.Length - 1 ? Visibility.Visible : Visibility.Hidden;
+        NextButton.Content = i < Steps.Length - 1 ? "Next: " + Steps[i + 1].Title + " →" : "";
+        // a screen reader says where the button goes, as the button does
+        System.Windows.Automation.AutomationProperties.SetName(PrevButton, i > 0 ? "Previous step: " + Steps[i - 1].Title : "Previous step");
+        System.Windows.Automation.AutomationProperties.SetName(NextButton, i < Steps.Length - 1 ? "Next step: " + Steps[i + 1].Title : "Next step");
+
+        // the map is where a study starts: until there is one, the steps after it have nothing to show
+        bool canGoOn = _session is not null;
+        NextButton.IsEnabled = canGoOn;
+        StepNote.Text = !canGoOn
+            ? "Make a study first — press Make the study… on this page once you have chosen intersections — or start one from a layout or an example on the Start screen. Then Next takes you on."
+            : _current switch
+            {
+                "Map" => "This step is optional if your study was made from a layout or an example: press Next.",
+                "Publish" => "The last step. Go back to any step to change something; the page is rebuilt each time.",
+                _ => "You can come back to any step at any time; the sections on the left go straight to one.",
+            };
+    }
+
+    private void Prev_Click(object sender, RoutedEventArgs e)
+    {
+        int i = Array.FindIndex(Steps, s => s.Name == _current);
+        if (i > 0)
+        {
+            Go(NavFor(Steps[i - 1].Name));
+        }
+    }
+
+    private void Next_Click(object sender, RoutedEventArgs e)
+    {
+        int i = Array.FindIndex(Steps, s => s.Name == _current);
+        if (i >= 0 && i < Steps.Length - 1 && _session is not null)
+        {
+            Go(NavFor(Steps[i + 1].Name));
         }
     }
 
@@ -136,6 +206,7 @@ public partial class MainWindow : Window
 
     private void ShowStudyState()
     {
+        ShowSteps();
         bool open = _session is not null;
         // the map needs no study: it is where one starts
         foreach (RadioButton nav in new[] { NavNetwork, NavTraffic, NavChallenge, NavPreview, NavPublish })

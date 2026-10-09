@@ -57,7 +57,7 @@
                     <RadioButton x:Name="NavStart" Style="{StaticResource SectionButton}" Content="Start" Tag="Start" Checked="Section_Checked"
                                  ToolTip="What TrafficLab+ is for, and the ways in" />
                     <RadioButton x:Name="NavMap" Style="{StaticResource SectionButton}" Content="1  Map" Tag="Map" Checked="Section_Checked"
-                                 ToolTip="Find the intersection on a map (next version)" />
+                                 ToolTip="Find the intersection on a map and load its roads from OpenStreetMap" />
                     <RadioButton x:Name="NavNetwork" Style="{StaticResource SectionButton}" Content="2  Network" Tag="Network" Checked="Section_Checked"
                                  ToolTip="The roads and intersections: lanes, speeds, signals, turn lanes" />
                     <RadioButton x:Name="NavTraffic" Style="{StaticResource SectionButton}" Content="3  Traffic" Tag="Traffic" Checked="Section_Checked"
@@ -83,6 +83,22 @@
                     <TextBlock x:Name="ProblemsTitle" FontWeight="SemiBold" TextWrapping="Wrap" />
                     <ItemsControl x:Name="ProblemsList" />
                 </StackPanel>
+            </Border>
+
+            <!-- Ron, 2026-10-09: "Next ->" and "<- Previous" through Map, Network, Traffic, Challenge,
+                 Preview, Publish. The bar says which step this is and what the neighbours are. -->
+            <Border x:Name="StepBar" DockPanel.Dock="Bottom" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource LineBrush}"
+                    BorderThickness="0,1,0,0" Padding="14,8" Visibility="Collapsed">
+                <DockPanel>
+                    <Button x:Name="PrevButton" DockPanel.Dock="Left" Padding="12,5" Click="Prev_Click" MinWidth="150" />
+                    <Button x:Name="NextButton" DockPanel.Dock="Right" Padding="12,5" Click="Next_Click" MinWidth="150"
+                            Style="{StaticResource Primary}" />
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="12,0">
+                        <TextBlock x:Name="StepTitle" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                        <TextBlock x:Name="StepNote" Foreground="{StaticResource MutedTextBrush}" FontSize="12" TextWrapping="Wrap"
+                                   TextAlignment="Center" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </DockPanel>
             </Border>
 
             <Grid x:Name="Work">

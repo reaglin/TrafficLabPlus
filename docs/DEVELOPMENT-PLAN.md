@@ -79,6 +79,9 @@ The LPGA core is good; this phase changes what it reads, not how it drives.
 | 3.7 | ⚠️ **UX review** (cognitive walkthrough + Nielsen, `ux-reviewer`, plus the running window captured with PrintWindow), 2026-10-09: 1 critical, 3 major, 6 minor | Fixed: a value still being typed is now saved by Ctrl+S, Save, Close and Save the page (it was lost); Ctrl+Z after a change undoes the study, not just the box; **renaming a street renames it everywhere** (every road with that name, and the intersections and road ends named after it — one undo); the add-road message points to the form below; Esc and a second click leave an Add mode; Delete removes only from the drawing; the signal count in New study selects its layout; the budget box takes 3.5, $3.5M, 3.5 million or 3,500,000; the saved page is named after the title and its messages open over the window; road-end help fits typed volumes; "players" on the page, "students" for who hands it in; Help names the start screen. Also from looking: drawing labels no longer pile up or run off the edge; the page's instructions do not reopen on every rebuild. **Not done:** the engine's own words in the yellow bar ("road segment", ids) — they must change in the page's check and the window's together; a later round. Action: Ron, hand-tests 5–8 |
 | 3.8 | ⚠️ **New study asks for the budget** (LPGA's $5M suggested, with a line on what it means), with a title, place, a starting layout — one signal, a T, or 2–10 signals along a main street — and author/course (defaults in Settings). Starting demand is moderately busy today and past capacity on "Busy day" | Test: the budget is in the built page; every starting layout passes the check and runs in the engine with every trip routed. Action: Ron, hand-test 6 |
 | 3.9 | ⚠️ **A second built-in example: Four-Way Intersection** (Ron, 2026-10-09: "Add the 4 way intersection to the built in examples"). One signal, a four-lane main street across a two-lane side street, no turn lanes today, $2M budget (a roundabout is out of reach); today the side street is at LOS D (v/c 0.86), on Busy day it fails. Offered on the start screen and in File ▸ Open an example | `samples/four-way.json`, written by `tools/make-four-way.js` (a test keeps them in step); every built-in example passes the check, runs with every trip routed, and builds a page (tests). Action: Ron opens it (hand-test 5) |
+| 3.10 | ⚠️ **← Previous / Next →** through Map ▸ Network ▸ Traffic ▸ Challenge ▸ Preview ▸ Publish (Ron, 2026-10-09: "The only thing needed is a "Next ->" and "<- Previous""). A bar at the foot of each step says which step it is (Step 2 of 6) and names the steps either side; with no study open, Next is held at Map and says why | Tried in the running window. Action: Ron, hand-test 12 |
+| 3.11 | ⚠️ **Optional clearly stated, detailed help** on every step (Ron, same day): a box at the top — *What you need to do here* and *Optional* — and **Help for this step: every option explained**, opening to every setting described in plain words; each setting tagged **required** (the page needs a value; it starts with one) or **optional**; Preview has its own guide beside the page | Action: Ron, hand-test 12 |
+| 3.12 | ⚠️ **UX review** of the steps and guides, 2026-10-09: 0 critical, 3 major, 6 minor | Fixed: the tag reads **needs a value** ("always has one; change it only if it is wrong"), not "required", so no student thinks they must change it; the demand buttons and the FDOT K, D and Use boxes are tagged optional as the guide says; Network's guide sits under its title, not over the chosen item's settings; the sign-letters help says empty shows TL+; the Map note names the button, not "step 4"; the Map tooltip no longer says "next version"; a screen reader hears where Previous and Next go; Preview says it can be skipped; title, lead, guide in the same order everywhere. Action: Ron, hand-test 12 |
 
 **Hand-test:** `docs/MANUAL-TESTING.md`, tests 5–8.
 
@@ -156,7 +159,7 @@ Through `Eaglin.AiManager` and `Eaglin.AiManager.Wpf` (latest on the local feed:
 
 ---
 
-## Open questions for Ron — all 6 answered (2026-10-09); 7 open
+## Open questions for Ron — all 7 answered (2026-10-09)
 
 1. ~~What does a published page open with?~~ **Blank, as a puzzle.** The page opens with today's
    network and no plan. The player builds a plan; when they **submit** it (run the scored test and
@@ -181,7 +184,8 @@ Through `Eaglin.AiManager` and `Eaglin.AiManager.Wpf` (latest on the local feed:
    (b) Submit tests at whatever is set, the printout says what that was (it does now), and the teacher
    tells the class which demand to use.
 
-7. **Which hour do FDOT counts give the page?** (asked 2026-10-09, phase 5) TrafficLab+ uses **AADT × K × D**
+7. ~~Which hour do FDOT counts give the page?~~ **(a) keep AADT × K × D, answered by Ron 2026-10-09: "keep
+   it, that is how it is today."** Task 5.3. The question as asked (2026-10-09, phase 5): TrafficLab+ uses **AADT × K × D**
    coming in at every counted road end — the busier direction of the design hour, as if every road's
    busier direction were toward the intersection. With LPGA's counts that runs the corridor over capacity
    (LOS F) at "Today". Options: (a) keep it — a deliberately busy hour; (b) **AADT × K ÷ 2** each way (the

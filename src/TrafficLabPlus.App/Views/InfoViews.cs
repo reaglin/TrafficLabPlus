@@ -25,6 +25,7 @@ public sealed class PublishView : SectionView
 
         panel.Children.Add(Title("Publish"));
         panel.Children.Add(Lead("Putting the page on the web with GitHub Pages, and copying the link to hand in, arrive in a later version of TrafficLab+."));
+        panel.Children.Add(Guides.Publish());
         panel.Children.Add(Lead("Today you can save the page as a file. It is the same page as the one on the right: one file, with everything inside it. It opens in any web browser, with no internet needed, and can be put on any web site or sent to someone."));
         var form = new Form(panel, s);
         List<StudyProblem> problems = StudyValidator.Check(s.Study);

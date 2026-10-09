@@ -56,8 +56,9 @@ public sealed class MapView : SectionView
         var (scroll, p) = Column();
         p.Children.Add(Title("Map"));
         p.Children.Add(Lead("Find your intersection, bring in its roads from OpenStreetMap, and choose the intersections to study — one, or up to ten along a corridor. TrafficLab+ makes the study from them: roads, lanes, turn lanes, speeds and names."));
+        p.Children.Add(Guides.Map());
 
-        Step(p, "1  Find the place", "A street and a town works best, like \"LPGA Boulevard, Daytona Beach\". (OpenStreetMap does not find a crossing by its two street names: find one of the streets, then pick the crossing in step 3.) Or simply drag and zoom the map.");
+        Step(p, "1  Find the place  (optional)", "A street and a town works best, like \"LPGA Boulevard, Daytona Beach\". (OpenStreetMap does not find a crossing by its two street names: find one of the streets, then pick the crossing in step 3.) Or simply drag and zoom the map.");
         var searchRow = new DockPanel();
         var go = new Button { Content = "Search", Padding = new Thickness(10, 3, 10, 3), Margin = new Thickness(6, 0, 0, 0) };
         DockPanel.SetDock(go, Dock.Right);

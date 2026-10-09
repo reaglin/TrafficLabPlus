@@ -37,7 +37,9 @@ public sealed class TrafficView : SectionView
         Demand dm = st.Demand;
         panel.Children.Add(Title("Traffic"));
         panel.Children.Add(Lead("How many vehicles use the network at today's demand, and where they come in and go out. Cars on the page pick their own routes between the road ends. The page's demand slider and its buttons (below) multiply today's numbers."));
+        panel.Children.Add(Guides.Traffic());
         var form = new Form(panel, s);
+        form.ChipLegend();
         List<StudyNode> ends = st.Nodes.Where(n => n.Type == StudyNode.End).ToList();
 
         if (dm.Od is { Count: > 0 })
@@ -231,7 +233,11 @@ public sealed class TrafficView : SectionView
                     "Directional factor: the share going the busier way in that hour."));
             }
 
-            var use = new CheckBox { Content = "Use this count", IsChecked = m.Use, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 0, 0) };
+            var useText = new StackPanel { Orientation = Orientation.Horizontal };
+            useText.Children.Add(new TextBlock { Text = "Use this count" });
+            useText.Children.Add(Form.Chip(required: false));
+            var use = new CheckBox { Content = useText, IsChecked = m.Use, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 0, 0) };
+            System.Windows.Automation.AutomationProperties.SetName(use, "Use this count (optional)");
             use.Checked += (_, _) => { m.Use = true; Changed(); };
             use.Unchecked += (_, _) => { m.Use = false; Changed(); };
             row.Children.Add(use);
@@ -308,7 +314,7 @@ public sealed class TrafficView : SectionView
     {
         var p = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 12, 0), ToolTip = help };
         var box = new TextBox { Width = 56, Text = (value * 100).ToString("0.#", CultureInfo.CurrentCulture), HorizontalContentAlignment = HorizontalAlignment.Right, Padding = new Thickness(2) };
-        System.Windows.Automation.AutomationProperties.SetName(box, name + " factor, percent");
+        System.Windows.Automation.AutomationProperties.SetName(box, name + " factor, percent (optional)");
         System.Windows.Automation.AutomationProperties.SetHelpText(box, help);
         p.Children.Add(new TextBlock { Text = name + " ", FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center });
         p.Children.Add(box);
@@ -318,6 +324,7 @@ public sealed class TrafficView : SectionView
             VerticalAlignment = VerticalAlignment.Center,
             Foreground = Form.Res("MutedTextBrush"),
         });
+        p.Children.Add(Form.Chip(required: false));
         void Commit()
         {
             if (double.TryParse(box.Text.Replace("%", "", StringComparison.Ordinal), NumberStyles.Float, CultureInfo.CurrentCulture, out double v) && v >= min && v <= max)
@@ -458,8 +465,8 @@ public sealed class TrafficView : SectionView
         for (int i = 0; i < list.Count; i++)
         {
             Scenario sc = list[i];
-            form.Text($"Button {i + 1}: name", "What the button says.", () => sc.Name, v => sc.Name = v ?? "Today", "demand/scenarios");
-            form.Number($"Button {i + 1}: demand", "% of today", "100 is today's traffic; 125 is a quarter more.", () => sc.Mult, v => sc.Mult = v, 10, 300, "demand/scenarios", 0, v => v * 100, v => v / 100);
+            form.Text($"Button {i + 1}: name", "What the button says, like \"Today\", \"2035\" or \"Race Week\". Left empty, it says Today.", () => sc.Name, v => sc.Name = v ?? "Today", "demand/scenarios");
+            form.Number($"Button {i + 1}: demand", "% of today", "100 is today's traffic; 125 is a quarter more.", () => sc.Mult, v => sc.Mult = v, 10, 300, "demand/scenarios", 0, v => v * 100, v => v / 100, required: false);
             if (list.Count > 1)
             {
                 var remove = new Button { Content = $"Remove button {i + 1}", HorizontalAlignment = HorizontalAlignment.Left, Padding = new Thickness(8, 1, 8, 1), Margin = new Thickness(0, 4, 0, 4) };
