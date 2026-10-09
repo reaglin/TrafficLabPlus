@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The page itself (engine, interface, stylesheet, fonts, template) and the built-in LPGA
+         example are embedded, so the program builds a page with nothing installed beside it.
+         Editing anything in web/ changes nothing until `dotnet build` runs. RecursiveDir keeps
+         Windows separators (web/fonts\x.woff2); WebAssets reads names with either. -->
+    <EmbeddedResource Include="..\..\web\**\*">
+      <LogicalName>web/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\samples\lpga.json">
+      <LogicalName>samples/lpga.json</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

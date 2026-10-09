@@ -14,7 +14,12 @@ the **AI** (through the shared `Eaglin.AiManager`), the program previews the pag
 **The point of the software is the web page** (Ron, 2026-10-09). The engine is JavaScript because
 it runs in the published page; C# does the map, the study, the AI, building and publishing.
 
-**Status: plan stage, 2026-10-09** — no code yet. Open questions for Ron are in the plan.
+**Status: phases 0–2 built, 2026-10-09** (the day it started). The LPGA engine is data-driven and
+reproduces Ron's original page **exactly** (same cars, same score); the page builder makes one
+self-contained HTML file; the window previews it. The page opens blank as a puzzle, the name is
+optional, and **Submit plan** makes the printout. 14 tests green (16 Node engine tests inside one);
+UX review done and fixed. Everything is ⚠️ waiting for Ron (`docs/MANUAL-TESTING.md`). Next: phase 3
+(the study file and editor), then the map (4).
 
 ### Read these first
 
@@ -23,6 +28,42 @@ it runs in the published page; C# does the map, the study, the AI, building and 
 | `docs/DEVELOPMENT-PLAN.md` | **The work breakdown** — phases, tasks, marks, open questions. Start here |
 | `docs/PLAN.md` | The strategy: decisions with Ron and why, the study, the architecture |
 | `reference/lpga-traffic-lab.html` | Ron's original page: the engine to generalise and the yardstick for it |
+| `docs/STUDY-FORMAT.md` | The study JSON, field by field |
+| `docs/MANUAL-TESTING.md` | Ron's hand-tests |
+
+## Layout
+
+```
+TrafficLabPlus.slnx
+├── web/                 THE PAGE, embedded into Core (editing it changes nothing until `dotnet build`)
+│   core/trafficlab-core.js   the engine: validate + load a study, then LPGA's model unchanged
+│   ui/trafficlab-ui.js       canvas, inspector, plan, tests, Submit → printout
+│   ui/trafficlab.css, fonts/ (Overpass, OFL), template.html
+├── src/TrafficLabPlus.Core/  Build/PageBuilder (study → one HTML file), WebAssets
+├── src/TrafficLabPlus.App/   WPF: MainWindow (preview strip), Views/PreviewView (WebView2)
+├── tests/TrafficLabPlus.Tests/  xUnit; EngineTests runs tests/js under Node; PagePlayTests plays the page
+├── tests/js/            engine.test.js, reference.js (loads the ORIGINAL core out of reference/)
+├── samples/lpga.json    the built-in example — generated, never hand-edited: tools/make-lpga-study.js
+└── tools/               play-page.js (headless Chrome), capture-window.ps1, make-lpga-study.js
+```
+
+## Build, test, run
+
+```powershell
+dotnet build TrafficLabPlus.slnx
+dotnet test TrafficLabPlus.slnx          # needs node on PATH; plays the page if Chrome or Edge is installed
+node --test tests/js/engine.test.js      # the engine alone
+dotnet run --project src/TrafficLabPlus.App
+.\src\TrafficLabPlus.Appin\Debug
+et10.0-windows\TrafficLabPlus.exe --build-example out.html
+.\src\TrafficLabPlus.Appin\Debug
+et10.0-windows\TrafficLabPlus.exe --build-page study.json out.html
+node tools/play-page.js out.html "Maria Gomez" shot.png   # TL_WIDTH=390 TL_DARK=1 TL_PRINT=p.pdf
+```
+
+**The engine is LPGA's.** Change its behaviour only on purpose: the yardstick tests compare it car
+for car with the original page, so any change to the model shows up there first. A deliberate change
+means the yardstick tests change with it, and the plan says why.
 
 ## Rules that carry the design
 

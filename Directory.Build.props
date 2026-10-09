@@ -1,0 +1,30 @@
+<Project>
+
+  <!-- Shared settings for TrafficLabPlus (src/, tests/, later packaging/). -->
+
+  <PropertyGroup>
+    <!-- One version property; packaging will read it for the MSIX identity. -->
+    <TrafficLabPlusVersion>0.1.0</TrafficLabPlusVersion>
+    <Version>$(TrafficLabPlusVersion)</Version>
+    <AssemblyVersion>$(TrafficLabPlusVersion).0</AssemblyVersion>
+    <FileVersion>$(TrafficLabPlusVersion).0</FileVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Company>Ron Eaglin</Company>
+    <Product>TrafficLab+</Product>
+    <Copyright>Copyright © Ron Eaglin</Copyright>
+    <RepositoryUrl>https://github.com/reaglin/TrafficLabPlus</RepositoryUrl>
+  </PropertyGroup>
+
+</Project>

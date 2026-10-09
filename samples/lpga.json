@@ -1,0 +1,693 @@
+{
+  "format": 1,
+  "title": "LPGA Traffic Lab",
+  "short": "LPGA",
+  "subtitle": "Fix the LPGA Blvd / I-95 / Williamson corridor on a $5M budget",
+  "place": "Daytona Beach, Florida",
+  "author": "Dr. Ron Eaglin",
+  "course": "",
+  "intro": "This is the LPGA Blvd corridor at I-95 in Daytona Beach.",
+  "world": {
+    "x": 0,
+    "y": 0,
+    "w": 600,
+    "h": 504
+  },
+  "budget": 5,
+  "costs": {
+    "addLaneBase": 0.6,
+    "addLanePerKm": 6.666666666666667,
+    "oneWay": 0.15,
+    "pocketL": 0.45,
+    "pocketR": 0.35,
+    "retime": 0.02,
+    "protL": 0.08,
+    "roundabout": 2.8
+  },
+  "demand": {
+    "mode": "gravity",
+    "baseTotal": 3800,
+    "noTrips": [
+      [
+        "I95N",
+        "I95S"
+      ]
+    ],
+    "noTripsWhy": "Freeway-to-freeway trips stay on I-95.",
+    "scenarios": [
+      {
+        "name": "Today",
+        "mult": 1
+      },
+      {
+        "name": "2035",
+        "mult": 1.25
+      },
+      {
+        "name": "Race Week",
+        "mult": 1.5
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "W",
+      "type": "end",
+      "name": "LPGA Blvd (west)",
+      "x": 4.8,
+      "y": 337.2,
+      "weight": 700
+    },
+    {
+      "id": "I95N",
+      "type": "end",
+      "name": "I-95 north ramps",
+      "x": 31.2,
+      "y": 180,
+      "weight": 950
+    },
+    {
+      "id": "I95S",
+      "type": "end",
+      "name": "I-95 south ramps",
+      "x": 42,
+      "y": 474,
+      "weight": 950
+    },
+    {
+      "id": "NE",
+      "type": "end",
+      "name": "LPGA Blvd (east)",
+      "x": 597,
+      "y": 55.2,
+      "weight": 900
+    },
+    {
+      "id": "N",
+      "type": "end",
+      "name": "N Williamson Blvd (north)",
+      "x": 333.6,
+      "y": 2.4,
+      "weight": 550
+    },
+    {
+      "id": "S",
+      "type": "end",
+      "name": "N Williamson Blvd (south)",
+      "x": 478.8,
+      "y": 501.6,
+      "weight": 650
+    },
+    {
+      "id": "BUC",
+      "type": "end",
+      "name": "Gateway N Dr / Buc-ee's",
+      "x": 214.8,
+      "y": 123.6,
+      "weight": 480
+    },
+    {
+      "id": "SW",
+      "type": "end",
+      "name": "Market Center Dr (south) / Academy",
+      "x": 238.8,
+      "y": 501.6,
+      "weight": 430
+    },
+    {
+      "id": "I1",
+      "type": "signal",
+      "name": "LPGA & I-95 Ramps",
+      "x": 57.6,
+      "y": 308.4,
+      "short": "I-95 Ramps",
+      "signal": {
+        "cycle": 100,
+        "split": 0.62,
+        "mainLinks": [
+          "L1",
+          "L2"
+        ],
+        "protMain": true,
+        "protSide": false
+      }
+    },
+    {
+      "id": "I2",
+      "type": "signal",
+      "name": "LPGA & Market Center",
+      "x": 244.2,
+      "y": 205.2,
+      "short": "Market Center",
+      "signal": {
+        "cycle": 90,
+        "split": 0.6,
+        "mainLinks": [
+          "L2",
+          "L3"
+        ],
+        "protMain": true,
+        "protSide": false
+      }
+    },
+    {
+      "id": "I3",
+      "type": "signal",
+      "name": "LPGA & Williamson",
+      "x": 375,
+      "y": 142.2,
+      "short": "Williamson",
+      "signal": {
+        "cycle": 120,
+        "split": 0.56,
+        "mainLinks": [
+          "L3",
+          "L4"
+        ],
+        "protMain": true,
+        "protSide": true
+      }
+    },
+    {
+      "id": "I4",
+      "type": "signal",
+      "name": "Market Center & Shoppes Way",
+      "x": 286.2,
+      "y": 318.6,
+      "short": "Market Center & Shoppes Way",
+      "signal": {
+        "cycle": 60,
+        "split": 0.6,
+        "mainLinks": [
+          "O2",
+          "O3"
+        ],
+        "protMain": false,
+        "protSide": false
+      }
+    },
+    {
+      "id": "I5",
+      "type": "signal",
+      "name": "Williamson & Shoppes Way",
+      "x": 414,
+      "y": 283.2,
+      "short": "Williamson & Shoppes Way",
+      "signal": {
+        "cycle": 90,
+        "split": 0.65,
+        "mainLinks": [
+          "W2",
+          "W3"
+        ],
+        "protMain": false,
+        "protSide": false
+      }
+    }
+  ],
+  "links": [
+    {
+      "id": "L1",
+      "a": "W",
+      "b": "I1",
+      "name": "LPGA Blvd",
+      "lanes": 2,
+      "speed": 19.8
+    },
+    {
+      "id": "L2",
+      "a": "I1",
+      "b": "I2",
+      "name": "LPGA Blvd",
+      "lanes": 2,
+      "speed": 19.8
+    },
+    {
+      "id": "L3",
+      "a": "I2",
+      "b": "I3",
+      "name": "LPGA Blvd",
+      "lanes": 2,
+      "speed": 19.8
+    },
+    {
+      "id": "L4",
+      "a": "I3",
+      "b": "NE",
+      "name": "LPGA Blvd",
+      "lanes": 2,
+      "speed": 19.8
+    },
+    {
+      "id": "R1",
+      "a": "I95N",
+      "b": "I1",
+      "name": "I-95 Ramp (N)",
+      "lanes": 2,
+      "speed": 18
+    },
+    {
+      "id": "R2",
+      "a": "I95S",
+      "b": "I1",
+      "name": "I-95 Ramp (S)",
+      "lanes": 2,
+      "speed": 18
+    },
+    {
+      "id": "W1",
+      "a": "N",
+      "b": "I3",
+      "name": "N Williamson Blvd",
+      "lanes": 2,
+      "speed": 19.8,
+      "labelAt": 0.55
+    },
+    {
+      "id": "W2",
+      "a": "I3",
+      "b": "I5",
+      "name": "N Williamson Blvd",
+      "lanes": 2,
+      "speed": 19.8
+    },
+    {
+      "id": "W3",
+      "a": "I5",
+      "b": "S",
+      "name": "N Williamson Blvd",
+      "lanes": 2,
+      "speed": 19.8
+    },
+    {
+      "id": "O1",
+      "a": "BUC",
+      "b": "I2",
+      "name": "Gateway N Dr",
+      "lanes": 1,
+      "speed": 13.2,
+      "labelAt": 0.4
+    },
+    {
+      "id": "O2",
+      "a": "I2",
+      "b": "I4",
+      "name": "Market Center Dr",
+      "lanes": 1,
+      "speed": 13.2
+    },
+    {
+      "id": "O3",
+      "a": "I4",
+      "b": "SW",
+      "name": "Market Center Dr",
+      "lanes": 1,
+      "speed": 13.2,
+      "label": false
+    },
+    {
+      "id": "C1",
+      "a": "I4",
+      "b": "I5",
+      "name": "Shoppes Way",
+      "lanes": 1,
+      "speed": 13.2
+    }
+  ],
+  "pockets": {
+    "L2:ab": {
+      "L": 1
+    },
+    "L3:ba": {
+      "L": 1
+    },
+    "L3:ab": {
+      "L": 1
+    },
+    "L4:ba": {
+      "L": 1
+    },
+    "W1:ab": {
+      "L": 1
+    },
+    "W2:ba": {
+      "L": 1
+    },
+    "L1:ab": {
+      "L": 1
+    },
+    "L2:ba": {
+      "L": 1
+    }
+  },
+  "backdrop": {
+    "streets": [
+      [
+        [
+          90,
+          150
+        ],
+        [
+          141,
+          150
+        ],
+        [
+          150,
+          180
+        ],
+        [
+          180,
+          180
+        ]
+      ],
+      [
+        [
+          108,
+          120
+        ],
+        [
+          108,
+          174
+        ],
+        [
+          156,
+          180
+        ]
+      ],
+      [
+        [
+          144,
+          138
+        ],
+        [
+          180,
+          126
+        ],
+        [
+          204,
+          144
+        ]
+      ],
+      [
+        [
+          282,
+          72
+        ],
+        [
+          336,
+          84
+        ],
+        [
+          354,
+          120
+        ]
+      ],
+      [
+        [
+          384,
+          54
+        ],
+        [
+          420,
+          72
+        ],
+        [
+          456,
+          60
+        ],
+        [
+          480,
+          90
+        ]
+      ],
+      [
+        [
+          420,
+          72
+        ],
+        [
+          432,
+          120
+        ],
+        [
+          474,
+          126
+        ]
+      ],
+      [
+        [
+          456,
+          24
+        ],
+        [
+          462,
+          66
+        ]
+      ],
+      [
+        [
+          492,
+          90
+        ],
+        [
+          528,
+          96
+        ],
+        [
+          528,
+          132
+        ]
+      ],
+      [
+        [
+          444,
+          180
+        ],
+        [
+          510,
+          180
+        ],
+        [
+          516,
+          228
+        ]
+      ],
+      [
+        [
+          438,
+          156
+        ],
+        [
+          444,
+          180
+        ]
+      ],
+      [
+        [
+          312,
+          240
+        ],
+        [
+          360,
+          216
+        ],
+        [
+          384,
+          252
+        ]
+      ],
+      [
+        [
+          324,
+          228
+        ],
+        [
+          336,
+          282
+        ]
+      ],
+      [
+        [
+          360,
+          180
+        ],
+        [
+          396,
+          198
+        ]
+      ],
+      [
+        [
+          258,
+          360
+        ],
+        [
+          312,
+          366
+        ],
+        [
+          324,
+          420
+        ]
+      ],
+      [
+        [
+          264,
+          390
+        ],
+        [
+          264,
+          468
+        ],
+        [
+          336,
+          474
+        ]
+      ],
+      [
+        [
+          324,
+          366
+        ],
+        [
+          366,
+          360
+        ],
+        [
+          384,
+          420
+        ],
+        [
+          420,
+          432
+        ]
+      ],
+      [
+        [
+          360,
+          420
+        ],
+        [
+          360,
+          480
+        ]
+      ],
+      [
+        [
+          180,
+          282
+        ],
+        [
+          228,
+          312
+        ],
+        [
+          252,
+          360
+        ]
+      ]
+    ],
+    "blocks": [
+      [
+        [
+          252,
+          228
+        ],
+        [
+          336,
+          216
+        ],
+        [
+          360,
+          282
+        ],
+        [
+          282,
+          300
+        ]
+      ],
+      [
+        [
+          258,
+          354
+        ],
+        [
+          384,
+          354
+        ],
+        [
+          414,
+          480
+        ],
+        [
+          270,
+          486
+        ]
+      ],
+      [
+        [
+          420,
+          78
+        ],
+        [
+          528,
+          72
+        ],
+        [
+          540,
+          144
+        ],
+        [
+          444,
+          156
+        ]
+      ]
+    ],
+    "places": [
+      {
+        "x": 114,
+        "y": 142.8,
+        "text": "Buc-ee's"
+      },
+      {
+        "x": 316.8,
+        "y": 282,
+        "text": "Twin Peaks"
+      },
+      {
+        "x": 312,
+        "y": 336,
+        "text": "Ford's Garage"
+      },
+      {
+        "x": 336,
+        "y": 414,
+        "text": "Academy Sports"
+      },
+      {
+        "x": 55.2,
+        "y": 90,
+        "text": "I-95"
+      }
+    ],
+    "freeways": [
+      {
+        "points": [
+          [
+            15.6,
+            -6
+          ],
+          [
+            39.6,
+            510
+          ]
+        ],
+        "width": 18
+      }
+    ]
+  },
+  "sources": {
+    "network": "Drawn by hand by Dr. Ron Eaglin for the original LPGA Traffic Lab",
+    "demand": "Gravity model, LPGA Traffic Lab"
+  }
+}

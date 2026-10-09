@@ -25,9 +25,9 @@ Nielsen heuristics, `ux-reviewer` agent, and a look at the running window) → R
 
 | # | Task | Done when |
 |---|---|---|
-| 0.1 | ⚠️ `docs/PLAN.md`, this file, `CLAUDE.md`; LPGA page kept in `reference/` | Written 2026-10-09. **Action: Ron reads the plan and answers the open questions below** |
-| 0.2 | Solution `TrafficLabPlus.slnx`, `Directory.Build.props` (version, nullable, TreatWarningsAsErrors), `nuget.config` pointing at `C:\nuget-local` | `dotnet build` clean |
-| 0.3 | `TrafficLabPlus.Core` (net10.0), `TrafficLabPlus.App` (net10.0-windows, WPF, WebView2), `TrafficLabPlus.Tests` (xUnit) | Builds; one test runs the JS engine under Node |
+| 0.1 | ⚠️ `docs/PLAN.md`, this file, `CLAUDE.md`; LPGA page kept in `reference/` | Written 2026-10-09; Ron's five answers folded in the same day. **Action: Ron confirms the plan reads right** |
+| 0.2 | ⚠️ Solution `TrafficLabPlus.slnx`, `Directory.Build.props` (version, nullable, TreatWarningsAsErrors), `nuget.config` pointing at `C:\nuget-local` | `dotnet build` clean — 2026-10-09 |
+| 0.3 | ⚠️ `TrafficLabPlus.Core` (net10.0), `TrafficLabPlus.App` (net10.0-windows, WPF, WebView2), `TrafficLabPlus.Tests` (xUnit) | 2026-10-09: 14 tests green; `EngineTests` runs the 16 Node engine tests; `PagePlayTests` plays the page in headless Chrome |
 
 ---
 
@@ -37,16 +37,16 @@ The LPGA core is good; this phase changes what it reads, not how it drives.
 
 | # | Task | Done when |
 |---|---|---|
-| 1.1 | Split LPGA's page into `web/core/trafficlab-core.js` (no drawing) and `web/ui/` | The split page behaves as the original |
-| 1.2 | The **study JSON schema**: nodes, links, pockets, signals, zones, scenarios, challenge, plan; metres and m/s | Documented in `docs/STUDY-FORMAT.md`; validated in C# and in JS with the same messages |
-| 1.3 | Engine reads a study instead of the hard-coded `NODES`/`LINKS`/`ZONES`/`COSTS`/`BUDGET` | `samples/lpga.json` runs |
-| 1.4 | Metres instead of LPGA's 1 px = 0.6 m; drawing scales to the canvas | LPGA's constants converted once, by a test-checked table |
-| 1.5 | General intersections: 3-leg (T) and 4-leg at any angle; main-street group chosen per signal; ≥5 legs refused with a reason | Tests on a T, a skewed 4-leg and a 5-leg refusal |
-| 1.6 | Typed volumes as well as gravity weights: entering volume per zone, optional OD or turning percentages | Both drive the same OD matrix |
-| 1.7 | **The yardstick**: LPGA as data matches the original page | Same seeds, same demand → today's average delay and LOS per approach within a stated tolerance of the original |
-| 1.8 | Engine tests under Node: determinism by seed, signal phase timing, v/c and LOS thresholds, roundabout capacity, scoring | Green in `dotnet test` |
+| 1.1 | ⚠️ Split LPGA's page into `web/core/trafficlab-core.js` (no drawing) and `web/ui/` | 2026-10-09. Action: Ron compares (hand-test 1) |
+| 1.2 | ⚠️ The **study JSON schema** (format 1): nodes, links, pockets, signals, zones, scenarios, costs, budget, backdrop, sources; metres and m/s; **no plan** (pages open blank) | `docs/STUDY-FORMAT.md` written; `validate()` in the engine says what is wrong in plain words, and a page that cannot run shows that text. The C# check with the same messages comes with the C# study model (3.1) |
+| 1.3 | ⚠️ Engine reads a study (`TG.load`) instead of the hard-coded tables | `samples/lpga.json`, generated from the original page by `tools/make-lpga-study.js` (a test keeps them in step) |
+| 1.4 | ⚠️ Metres in the study; inside, the engine keeps LPGA's unit (1 u = 0.6 m) so every tuned constant is untouched, converting once at load with a 10⁻⁹ snap | LPGA's positions and speeds come back exactly (test) |
+| 1.5 | ⚠️ General intersections: T and skewed 4-leg run; main street named per signal or taken as the widest opposed pair; 5 legs refused with a reason; roundabouts that exist today | Tests on each |
+| 1.6 | ⚠️ Typed volumes (`demand.mode: volumes`, veh/h entering per road end) and a typed OD table, besides the gravity model. Turning percentages per approach: not yet — routing decides the turns | Tests: each end sends out exactly what was typed |
+| 1.7 | ⚠️ **The yardstick**: LPGA as data matches the original page | **Exactly**, not within a tolerance: same OD, same v/c on every approach, every car in the same place after 400 s (today and with a plan), same score. The original page's core is loaded straight out of `reference/` for the comparison |
+| 1.8 | ⚠️ Engine tests under Node (`tests/js/engine.test.js`, 16): determinism, signal timing, no conflicting greens, LOS thresholds, intersection shapes, demand, scoring, validation | Green in `dotnet test` |
 
-**Hand-test:** open `samples/lpga.html` (built from data) beside the original and compare.
+**Hand-test:** `docs/MANUAL-TESTING.md`, tests 1–4 (phases 0–2 together).
 
 ---
 
@@ -54,14 +54,15 @@ The LPGA core is good; this phase changes what it reads, not how it drives.
 
 | # | Task | Done when |
 |---|---|---|
-| 2.1 | `template.html` + `PageBuilder`: study + engine + UI + CSS + font → **one self-contained HTML file** | Opens from disk and from a sub-path; no network requests (checked in headless Chrome) |
-| 2.2 | The page's title, author, course, and intro built from the study (LPGA's intro dialog, generalised). The player's name box is labelled **optional**; Start works with it blank, and the printout then says "Name not given" | Tested with and without a name |
-| 2.3 | "© OpenStreetMap contributors" and "Made with TrafficLab+" on every page | |
-| 2.4 | The page **opens blank, as a puzzle**: today's network, no plan (question 1) | No plan is ever stored in a published page |
-| 2.7 | **Submit plan → printout**: the player's plan, its cost against the budget, the score and its parts, the per-approach LOS before and after, their name if given, the study and date; a print-friendly layout (Print / Save as PDF from the browser) | Printed from Chrome and Edge on one page |
-| 2.8 | US customary units on the page (mph, ft, veh/hr) | Every number on the page checked |
-| 2.5 | Light and dark, phone width (16 px gutter, no sideways scroll) | Checked in headless Chrome at 390 px and 1440 px |
-| 2.6 | Page tests: build LPGA, load it headless, run a traffic test, read the score | Green |
+| 2.1 | ⚠️ `template.html` + `PageBuilder`: study + engine + interface + CSS + Overpass fonts (OFL, inlined) → **one HTML file, ~220 KB** | Headless Chrome records **no requests** from the page; a study cannot break out of its script element (test). The sub-path check comes with publishing (7.5) |
+| 2.2 | ⚠️ The page's title, author, course and intro come from the study. The name box says **optional**; Start works with it blank and the printout then says "Name not given". The name can be added or changed later (header button, or on the printout) | Played headless with and without a name |
+| 2.3 | ⚠️ "Made with TrafficLab+" on every page; "© OpenStreetMap contributors" when `sources.osm` says the roads came from OSM |  |
+| 2.4 | ⚠️ The page **opens blank, as a puzzle**: today's network, no plan (question 1) | Test: no plan in a built page |
+| 2.5 | ⚠️ Light and dark, phone width | Played headless at 390 px dark and 1440 px light: no sideways scroll |
+| 2.6 | ⚠️ Page tests: build LPGA, play it headless (`tools/play-page.js`), buy a fix, submit, read the printout and what reaches the printer | Green |
+| 2.7 | ⚠️ **Submit plan → printout**: the plan on the map now (tested first unless it was tested exactly as it stands), its cost against the budget, the score and its parts, every approach's v/c, LOS and delay today and with the plan, the name if given, the study and date. **Print or save as PDF** — Ctrl+P prints the printout too | Chrome's PDF: one page plus two rows on a second. Action: Ron prints one (hand-test 2) |
+| 2.8 | ⚠️ US customary units on the page: road lengths in ft/mi, speeds in mph |  |
+| 2.9 | ⚠️ **UX review** (cognitive walkthrough + Nielsen) of the page and the window, 2026-10-09: 0 critical, 6 major, 8 minor | Fixed: a test is filed under the settings it started with, and says so if they changed while it ran; Submit says it hands in the plan on the map now, and how to hand in an earlier test; the name can be added or changed after Start and on the printout; Clear plan asks first, and leaving the page with a plan asks first; the window reloads a re-opened study; Ctrl+P prints the printout; how to save a PDF; the goal and LOS A–F explained; How it works reopens the instructions; over budget said when it happens; roundabouts offer no turn lanes; the retiming cost explained; the tests table explained; toolbar labels; window tooltips and a guarded Open in your browser. **Open:** which demand a submitted plan is tested at — question 6 |
 
 ---
 
@@ -149,7 +150,7 @@ Through `Eaglin.AiManager` and `Eaglin.AiManager.Wpf` (latest on the local feed:
 
 ---
 
-## Open questions for Ron — all 5 answered (asked and answered 2026-10-09)
+## Open questions for Ron — 1–5 answered 2026-10-09; 6 open
 
 1. ~~What does a published page open with?~~ **Blank, as a puzzle.** The page opens with today's
    network and no plan. The player builds a plan; when they **submit** it (run the scored test and
@@ -163,6 +164,15 @@ Through `Eaglin.AiManager` and `Eaglin.AiManager.Wpf` (latest on the local feed:
    optional:** a player may leave it blank and still play, and the page says the name is optional.
    Task 2.2.
 
+6. **Which demand is a submitted plan tested at?** (asked 2026-10-09, from the UX review) Today a plan is
+   tested at whatever demand and inflows the player has set, and the score is not adjusted for them: at 50%
+   demand a plan with no changes scores about 50, so two students' scores compare only if they tested at
+   the same demand. Options:
+   (a) **proposed:** the study names a **test demand** (e.g. "Race Week"), chosen by the author, and Submit
+   always tests at it and says so; the toolbar stays free for exploring;
+   (b) Submit tests at whatever is set, the printout says what that was (it does now), and the teacher
+   tells the class which demand to use.
+
 ---
 
 ## References
@@ -171,4 +181,6 @@ Through `Eaglin.AiManager` and `Eaglin.AiManager.Wpf` (latest on the local feed:
 |---|---|
 | `PLAN.md` | The strategy, settled decisions, architecture, what is left out |
 | `../reference/lpga-traffic-lab.html` | Ron's original LPGA Traffic Lab — the engine's source and the yardstick for task 1.7 |
+| `STUDY-FORMAT.md` | The study JSON, field by field |
+| `MANUAL-TESTING.md` | Ron's hand-tests, phase by phase |
 | `../CLAUDE.md` | How to work in this repo |

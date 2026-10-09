@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="generator" content="{{GENERATOR}}">
+<title>{{TITLE}}</title>
+<style>
+/*{{FONTS}}*/
+/*{{STYLE}}*/
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="shield" aria-hidden="true" id="brandShield"></div>
+      <div><div class="brand-title" id="brandTitle"></div><small id="brandSub"></small></div>
+    </div>
+    <div class="who" id="who"></div>
+  </header>
+
+  <div class="main">
+    <div class="mapwrap">
+      <div class="toolbar">
+        <div class="seg" id="playseg"><button id="btnPlay" aria-label="Pause">❚❚</button></div>
+        <span class="tlabel">Speed</span>
+        <div class="seg" id="speedseg" aria-label="Simulation speed"></div>
+        <div class="demand">
+          <span class="tlabel">Demand</span>
+          <input type="range" id="demand" title="100% is today's traffic. Higher is busier." min="50" max="200" step="5" value="100" aria-label="Traffic demand percent">
+          <output id="demandOut">100%</output>
+        </div>
+        <div class="seg" id="scenseg" aria-label="Demand scenario"></div>
+        <span class="tlabel">Color by</span>
+        <div class="seg" id="colorseg" aria-label="Color roads by"></div>
+        <span class="clock" id="clock">00:00</span>
+      </div>
+      <canvas id="map" aria-label="Traffic map. Click a road or intersection to inspect it."></canvas>
+      <div class="legend" id="legend"></div>
+      <div class="zoom"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">−</button><button id="zfit" aria-label="Fit map" style="font-size:11px">FIT</button></div>
+      <div class="tip" id="tip" hidden></div>
+      <div class="toast" id="toast"></div>
+    </div>
+
+    <aside class="side">
+      <section class="card" id="inspector"></section>
+      <section class="card">
+        <h2>Your plan <span id="planCount"></span></h2>
+        <div class="budget">
+          <div class="meter" id="meter"><i style="width:0"></i></div>
+          <div class="nums"><span id="spent">$0.00M spent</span><span id="left"></span></div>
+        </div>
+        <ul class="plan" id="planList"></ul>
+        <div class="row"><button class="btn small" id="btnClear">Clear plan</button></div>
+      </section>
+      <section class="card">
+        <h2>Traffic test <span id="testDemand"></span></h2>
+        <p class="hint">Runs 3 repeatable 15-minute simulations of today's network and of your plan, at the demand set above, then scores
+          your plan out of 100 (higher is better).</p>
+        <p class="hint"><b>Submit plan</b> hands in the plan on the map <i>right now</i>, at the demand set now, and makes your printout.
+          To hand in an earlier test instead, press <b>Load</b> on its row first.</p>
+        <div class="row"><button class="btn" id="btnTest">Run traffic test</button><button class="btn primary" id="btnSubmit">Submit plan</button></div>
+        <div class="progress" id="prog" hidden><i></i></div>
+        <div id="scoreBox"></div>
+        <div style="overflow-x:auto"><table class="t" id="runs"></table></div>
+      </section>
+      <p class="credit" id="credit"></p>
+    </aside>
+  </div>
+</div>
+
+<dialog id="intro">
+  <h3 id="introTitle"></h3>
+  <p id="introText"></p>
+  <p><b>Your goal:</b> cut the time drivers spend waiting, without going over the budget. Level of Service runs from
+    <b>A</b> (traffic flows freely) to <b>F</b> (jammed).</p>
+  <ol>
+    <li>Raise the <b>demand</b> slider until roads turn orange and red.</li>
+    <li>Click a <b>road</b> or <b>intersection</b> to see its volumes and the fixes you can buy.</li>
+    <li>Build a plan under the <b id="introBudget"></b>, then press <b>Run traffic test</b> to compare it against today's network.</li>
+    <li>When you are happy with it, press <b>Submit plan</b>. Your plan and its score become a printout you can print or save as a PDF.</li>
+  </ol>
+  <label for="nameIn" class="tlabel">Your name — optional</label>
+  <input type="text" id="nameIn" autocomplete="name" placeholder="First and last name (you can leave this blank)">
+  <p class="sub" style="margin-top:-6px">If you give it, your name is printed on your printout. It is not sent anywhere.</p>
+  <div class="row" style="justify-content:flex-end"><button class="btn primary" id="btnStart">Start</button></div>
+</dialog>
+
+<dialog id="reportDlg">
+  <label for="printName" class="tlabel">Name on the printout — optional</label>
+  <input type="text" id="printName" autocomplete="name" placeholder="First and last name (you can leave this blank)">
+  <div class="report" id="reportBody"></div>
+  <p class="sub" style="margin-top:12px">To save a PDF, choose <b>Save as PDF</b> (or <b>Microsoft Print to PDF</b>) as the printer in the window that opens.
+    Hand in the paper or the PDF, as your teacher asks.</p>
+  <div class="row" style="justify-content:flex-end;margin-top:4px">
+    <button class="btn primary" id="btnPrint">Print or save as PDF</button><button class="btn" id="btnCloseReport">Close</button>
+  </div>
+</dialog>
+
+<div id="printArea" class="report" aria-hidden="true"></div>
+
+<script type="application/json" id="study">{{STUDY}}</script>
+<script>
+/*{{CORE}}*/
+</script>
+<script>
+// Load the study into the engine. A study that will not load says why, in place of the page.
+(function () {
+  try { TG.load(JSON.parse(document.getElementById('study').textContent)); }
+  catch (e) {
+    document.body.innerHTML = '<div style="padding:24px;font-family:system-ui,sans-serif;max-width:640px"><h1 style="font-size:22px">This traffic study cannot run</h1><pre style="white-space:pre-wrap"></pre><p>Open the study in TrafficLab+, correct it, and publish it again.</p></div>';
+    document.querySelector('pre').textContent = e.message;
+    throw e;
+  }
+})();
+</script>
+<script>
+/*{{UI}}*/
+</script>
+</body>
+</html>
