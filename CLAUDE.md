@@ -54,10 +54,8 @@ dotnet build TrafficLabPlus.slnx
 dotnet test TrafficLabPlus.slnx          # needs node on PATH; plays the page if Chrome or Edge is installed
 node --test tests/js/engine.test.js      # the engine alone
 dotnet run --project src/TrafficLabPlus.App
-.\src\TrafficLabPlus.Appin\Debug
-et10.0-windows\TrafficLabPlus.exe --build-example out.html
-.\src\TrafficLabPlus.Appin\Debug
-et10.0-windows\TrafficLabPlus.exe --build-page study.json out.html
+.\src\TrafficLabPlus.App\bin\Debug\net10.0-windows\TrafficLabPlus.exe --build-example out.html
+.\src\TrafficLabPlus.App\bin\Debug\net10.0-windows\TrafficLabPlus.exe --build-page study.json out.html
 node tools/play-page.js out.html "Maria Gomez" shot.png   # TL_WIDTH=390 TL_DARK=1 TL_PRINT=p.pdf
 ```
 
