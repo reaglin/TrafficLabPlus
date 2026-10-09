@@ -118,6 +118,24 @@ public sealed class PreviewView : ContentControl
         }
     }
 
+    /// <summary>Runs a script in the page shown and returns its JSON result, or null if no page is shown.</summary>
+    public async Task<string?> RunScriptAsync(string script)
+    {
+        if (!_ready || _web.CoreWebView2 is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            return await _web.CoreWebView2.ExecuteScriptAsync(script);
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or System.Runtime.InteropServices.COMException)
+        {
+            return null;
+        }
+    }
+
     private void ShowProblem(string message)
     {
         _web.Visibility = Visibility.Collapsed;

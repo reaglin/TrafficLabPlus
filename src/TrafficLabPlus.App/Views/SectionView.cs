@@ -53,6 +53,34 @@ public abstract class SectionView : UserControl
         return (scroll, panel);
     }
 
+    /// <summary>An AI helper's button: says it uses AI, and opens the window that shows each proposed
+    /// change before anything is applied.</summary>
+    protected Button AiButton(string text, Func<Ai.AiWindow> window)
+    {
+        var b = new Button
+        {
+            Content = text,
+            Padding = new Thickness(10, 4, 10, 4),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(0, 4, 6, 4),
+            ToolTip = "",
+        };
+        b.ToolTipOpening += (_, _) => b.ToolTip = "Uses AI. " + Ai.TrafficAi.Shared.Status;   // read when shown: it changes once a key is set up
+        b.Click += (_, _) =>
+        {
+            Ai.AiWindow w = window();
+            w.Owner = Window.GetWindow(this);
+            if (w.ShowDialog() == true && w.Applied > 0)
+            {
+                Rebuild();
+                MessageBox.Show(Window.GetWindow(this),
+                    $"{w.Applied} change{(w.Applied == 1 ? "" : "s")} from the AI applied. Each is marked \"suggested by the AI\" under its value, and the page has been rebuilt.\n\nEdit ▸ Undo (Ctrl+Z) takes them all back in one step.",
+                    "TrafficLab+", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        };
+        return b;
+    }
+
     protected static TextBlock Title(string text) => new() { Text = text, Style = (Style)Application.Current.Resources["SectionTitle"] };
 
     protected static TextBlock Lead(string text) => new() { Text = text, Style = (Style)Application.Current.Resources["Lead"] };

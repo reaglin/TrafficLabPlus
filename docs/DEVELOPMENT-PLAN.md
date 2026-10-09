@@ -124,12 +124,15 @@ Through `Eaglin.AiManager` and `Eaglin.AiManager.Wpf` (latest on the local feed:
 
 | # | Task | Done when |
 |---|---|---|
-| 6.1 | AI settings and usage windows from `Eaglin.AiManager.Wpf`; one `AskAsync` that never throws | |
-| 6.2 | **Build the network**: fill in lanes, pockets and signal plans OSM lacks, from the student's words | Changes shown with reasons; nothing applied unseen |
-| 6.3 | **Estimate demand** from land use (OSM) and any AADT | |
-| 6.4 | **Explain and coach** after a traffic test: why an approach fails, what might help, a critique of the plan; optionally put on the page as the student's notes | |
-| 6.5 | **Write a challenge** from a teacher's request: budget, costs, allowed fixes, scenarios, goals | |
-| 6.6 | Readers that cope with what an AI actually answers (Gamify+'s `DraftReader` lesson) | Tests on real answers |
+| 6.1 | ⚠️ `Eaglin.AiManager` + `.Wpf` 1.4.1, app name `TrafficLabPlus`: Settings ▸ AI settings… and What the AI has cost…; `TrafficAi.AskAsync` never throws (no key, refused, offline, too slow — each in words); every AI button says it uses AI, what it sends and what it costs | Tried live in the window (Claude, about $0.04 an ask). Action: Ron, hand-test 13 |
+| 6.2 | ⚠️ **Build the network** — Network ▸ *Fill in with the AI…*: the student says what they know; the AI proposes changes (cycle, split, protected lefts, kind, names, lanes, speed, turn lanes), each shown as *road (ends) — setting: before → after* with its reason, all ticked; Apply makes the ticked ones as one undo, each marked "suggested by the AI"; anything the study cannot take is listed as left out, with why | Live: asked for LPGA & Williamson, the AI proposed 45 mph and said the cycle and protected lefts were already there. Tests on the reader |
+| 6.3 | ⚠️ **Estimate demand** — Traffic ▸ *Estimate traffic with the AI…*: vehicles an hour coming in at each road end with no count, from the road, the place and the student's words; FDOT counts in use are kept; using an estimate switches to typed volumes | Tests: an FDOT-counted end is never changed; nonsense values left out with why. (Land use from OSM is left for later; the AI works from the roads and the student's words) |
+| 6.4 | ⚠️ **Explain and coach** — Preview ▸ *Ask the coach about my last test…*: the window reads the page's last traffic test (`window.TL_lastTest()`, read-only, never sent by a published page) and the AI explains what failed and why and what to try, under 250 words; it changes nothing | Says what to do when there is no test yet. Putting the coach's words on the page as the student's notes: not done (D4 says optional) |
+| 6.5 | ⚠️ **Write a challenge** — Challenge ▸ *Write the challenge with the AI…*: title, subtitle, introduction, budget, prices of the fixes, demand buttons, from the instructor's request; a fix to rule out is priced above the budget | Tests: field by field, an unknown fix left out |
+| 6.6 | ⚠️ Readers that cope with what an AI actually answers: a code fence, a sentence before or after, trailing commas, a bare list, "120 s" for 120, an invented setting or id, a value out of range | 12 AI tests (no AI called); 92 tests in all |
+| 6.7 | ⚠️ **UX review** of the AI (cognitive walkthrough + Nielsen, `ux-reviewer`, plus the live window), 2026-10-09: 0 critical, 4 major, 6 minor | Fixed: Settings no longer says the AI comes later; with no key, the window has **Set up an AI now…**; what an AI key is and where to get one is said in plain words; after Apply a message says how many changed and that one Ctrl+Z takes them back; an answer with nothing usable says so and to ask again; no parser jargon or internal ids in what is shown; setting names in the form's words; the coach says it only explains; the traffic window says applying switches to typed volumes; tooltips read the AI status when shown; closing the window stops a request still running. The guides on Network, Traffic and Challenge now describe their AI buttons. Action: Ron, hand-test 13 |
+
+**Hand-test:** `docs/MANUAL-TESTING.md`, test 13.
 
 ---
 
@@ -151,10 +154,10 @@ Through `Eaglin.AiManager` and `Eaglin.AiManager.Wpf` (latest on the local feed:
 | # | Task | Done when |
 |---|---|---|
 | 8.1 | ⚠️ Name **TrafficLab+** reserved in Partner Center — done by Ron 2026-10-09. **Action when packaging starts: Ron reads Package/Identity Name, Publisher and Publisher display name from Product identity** | Identity in the manifest |
-| 8.2 | Icon: one white mark on guide-sign green with a "+" | Ron approves |
+| 8.2 | ⚠️ Icon: a traffic signal — the head with three lamps — on a backplate whose sides make the **"+"**, white on the guide-sign green, the middle lamp amber (Ron, 2026-10-09: "A streetlight with sides making a plus"). `packaging/make-icon.py` draws it, the .ico (16–256) and two variants (`resources/images/icon-candidates.png`); the program and its window use it | Action: **Ron approves** (or picks B or C from the candidates) |
 | 8.3 | `packaging/` ported from GamifyPlus; WACK | WACK passes |
-| 8.4 | Privacy policy at `softwareplus.ai/trafficlab/privacy/` (says: OSM and FDOT queries, AI calls go to the provider the user chose, GitHub publish) | Live |
-| 8.5 | `SoftwarePlus\site\trafficlab\`: summary, features, **live example pages** (LPGA and others) | Deployed with the release |
+| 8.4 | ⚠️ Privacy policy **live at https://softwareplus.ai/trafficlab/privacy/** (2026-10-09): nothing comes to us; OpenStreetMap (tiles, Nominatim, Overpass), FDOT on ArcGIS, the AI provider and GitHub, each only when used; the pages collect nothing | Action: Ron reads it; it goes in Partner Center as the privacy URL |
+| 8.5 | ⚠️ `SoftwarePlus\site\trafficlab\`: the summary page (with the icon, "Coming soon") and the privacy policy are live; feature pages and live example pages come with the release | Started 2026-10-09 |
 | 8.6 | Listing, screenshots, submit | Live on the Store |
 
 ---

@@ -14,7 +14,10 @@ the **AI** (through the shared `Eaglin.AiManager`), the program previews the pag
 **The point of the software is the web page** (Ron, 2026-10-09). The engine is JavaScript because
 it runs in the published page; C# does the map, the study, the AI, building and publishing.
 
-**Status: phases 0–5 built, 2026-10-09** (the day it started). Phase 4: the Map section finds a
+**Status: phases 0–6 built, 2026-10-09** (the day it started). Phase 6: the AI, over
+`Eaglin.AiManager` 1.4.1 — fill in the network, estimate traffic, write the challenge, coach a test;
+it only proposes (Core/Ai: prompts and a defensive reader; App/Ai: TrafficAi, AiWindow). The icon
+(packaging/make-icon.py) and the privacy policy (softwareplus.ai/trafficlab/privacy/) are done. Phase 4: the Map section finds a
 place, loads its roads from OpenStreetMap and makes a study from up to ten chosen intersections.
 Phase 5: FDOT's AADT counts fill in a Florida study's volumes (AADT × K × D, factors editable).
 Publishing (phase 7) is decided: one repository, every study unless marked "Don't publish", a
@@ -24,7 +27,7 @@ self-contained HTML file. The page opens blank as a puzzle, the name is optional
 makes the printout. Phase 3: the `.trafficlab` study file, a start screen, the sections (Map ▸ Network ▸
 Traffic ▸ Challenge ▸ Preview ▸ Publish), a network editor (drawing + forms) with the page rebuilt beside
 it after every change, undo, New study with its budget, About. 40 tests green. Everything is ⚠️ waiting
-for Ron (`docs/MANUAL-TESTING.md`, tests 1–11). Next: the AI (phase 6), then publishing (phase 7).
+for Ron (`docs/MANUAL-TESTING.md`, tests 1–14). Next: publishing (phase 7), then the Store (phase 8).
 
 ### Read these first
 

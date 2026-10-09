@@ -68,13 +68,18 @@ function Keys($text) {
 function Shot($out) {
     $proc.Refresh()
     $hw = [System.Windows.Automation.AutomationElement]::FocusedElement
+    # the program's window in front (a dialog it opened), else its main window
+    $target = $h
+    $fg = [Win2]::GetForegroundWindow(); $fgPid = 0
+    [Win2]::GetWindowThreadProcessId($fg, [ref]$fgPid) | Out-Null
+    if ($fgPid -eq $proc.Id) { $target = $fg }
     $r = New-Object Win2+RECT
-    [Win2]::GetWindowRect($h, [ref]$r) | Out-Null
+    [Win2]::GetWindowRect($target, [ref]$r) | Out-Null
     $w = $r.Right - $r.Left; $ht = $r.Bottom - $r.Top
     $bmp = New-Object System.Drawing.Bitmap $w, $ht
     $g = [System.Drawing.Graphics]::FromImage($bmp)
     $hdc = $g.GetHdc()
-    [Win2]::PrintWindow($h, $hdc, 2) | Out-Null
+    [Win2]::PrintWindow($target, $hdc, 2) | Out-Null
     $g.ReleaseHdc($hdc); $g.Dispose()
     $bmp.Save($out, [System.Drawing.Imaging.ImageFormat]::Png); $bmp.Dispose()
     Write-Output "saved $out"

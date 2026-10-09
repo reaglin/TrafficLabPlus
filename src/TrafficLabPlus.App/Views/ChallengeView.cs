@@ -23,6 +23,12 @@ public sealed class ChallengeView : SectionView
         var form = new Form(panel, s);
         form.ChipLegend();
 
+        panel.Children.Add(AiButton("Write the challenge with the AI…", () => new Ai.AiWindow(s, "Write the challenge with the AI",
+            "Describe the challenge you want players to face — the class, how hard, what they should learn. The AI proposes the title, introduction, budget, prices of the fixes and demand buttons, each with a reason; you choose which to apply.",
+            "The challenge you want",
+            "\"A sophomore lab: a tight budget so only two or three fixes fit, roundabouts too expensive, and a Race Week button at 150%.\"",
+            "trafficlab-challenge", Core.Ai.AiPrompts.Challenge, Core.Ai.AiPrompts.ReadChallenge)));
+
         form.Heading("The page");
         form.Text("Title", "The page's heading and the printout's, like \"LPGA Traffic Lab\".", () => st.Title, v => st.Title = v ?? "Traffic study", "study/title", required: true);
         form.Text("Sign letters", "Up to 5 letters for the green sign in the page's header, like LPGA. Left empty, the sign says TL+.", () => st.Short, v => st.Short = v is { Length: > 5 } ? v[..5] : v, "study/short");

@@ -82,11 +82,31 @@ public sealed class SettingsView(AppSettings settings) : SectionView
         (ScrollViewer scroll, StackPanel panel) = Column();
         Content = scroll;
         panel.Children.Add(Title("Settings"));
-        panel.Children.Add(Lead("What TrafficLab+ fills in for you, and where it keeps things. The AI's settings join these in a later version."));
+        panel.Children.Add(Lead("What TrafficLab+ fills in for you, the AI (optional), and where things are kept."));
 
         panel.Children.Add(Heading("For every new study"));
         Box(panel, "Author", "Your name, as it should appear on the pages you make.", settings.DefaultAuthor, v => settings.DefaultAuthor = v);
         Box(panel, "Course", "The class your studies are for, like \"CEN 3722\". Leave it empty if they are not for a class.", settings.DefaultCourse, v => settings.DefaultCourse = v);
+
+        panel.Children.Add(Heading("The AI  (optional)"));
+        panel.Children.Add(new TextBlock
+        {
+            Text = "TrafficLab+ can use an AI to fill in a network from what you know, estimate traffic where there are no counts, write a challenge, and coach a player's plan. "
+                   + "It uses your own key with the provider you choose (Claude, Gemini, OpenAI and others), shared with Dr. Ron Eaglin's other programs and kept on this computer. "
+                   + "The AI only proposes: nothing it says changes a study until you tick it and press Apply. Everything else works without it.",
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = Form.Res("MutedTextBrush"),
+        });
+        var status = new TextBlock { Text = Ai.TrafficAi.Shared.Status, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 0, 0) };
+        panel.Children.Add(status);
+        var aiRow = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
+        var aiSettings = new Button { Content = "AI settings…", Padding = new Thickness(10, 4, 10, 4), Margin = new Thickness(0, 0, 8, 0) };
+        aiSettings.Click += (_, _) => { Ai.TrafficAi.Shared.ShowSettings(Window.GetWindow(this)); status.Text = Ai.TrafficAi.Shared.Status; };
+        var usage = new Button { Content = "What the AI has cost…", Padding = new Thickness(10, 4, 10, 4) };
+        usage.Click += (_, _) => Ai.TrafficAi.Shared.ShowUsage(Window.GetWindow(this));
+        aiRow.Children.Add(aiSettings);
+        aiRow.Children.Add(usage);
+        panel.Children.Add(aiRow);
 
         panel.Children.Add(Heading("Where things are kept"));
         Folder(panel, "Your studies are saved here unless you choose another place:", AppSettings.StudiesFolder);

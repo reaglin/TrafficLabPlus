@@ -39,7 +39,12 @@ public partial class MainWindow : Window
         _sections["Network"] = new NetworkView();
         _sections["Traffic"] = new TrafficView();
         _sections["Challenge"] = new ChallengeView();
-        _sections["Preview"] = new PreviewHelpView();
+        _sections["Preview"] = new PreviewHelpView(async () =>
+        {
+            // the page's own read-only summary of its last test (TL_lastTest in trafficlab-ui.js)
+            string? json = await Preview.RunScriptAsync("window.TL_lastTest ? JSON.stringify(window.TL_lastTest()) : 'null'");
+            return json is null ? null : System.Text.Json.JsonSerializer.Deserialize<string>(json);
+        });
         _sections["Publish"] = new PublishView();
         _sections["Settings"] = new SettingsView(_settings);
         _sections["About"] = new AboutView();

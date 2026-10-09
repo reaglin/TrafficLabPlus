@@ -8,6 +8,8 @@
     <RootNamespace>TrafficLabPlus.App</RootNamespace>
     <!-- Declares PerMonitorV2; without it the app is not DPI aware and WACK warns. -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- The signal head on a plus (packaging/make-icon.py; plan 8.2). -->
+    <ApplicationIcon>TrafficLabPlus.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +19,7 @@
   <ItemGroup>
     <!-- About ▸ Created by Dr. Ron Eaglin (Ron, 2026-09-25): the 256 px copy from GamifyPlus. -->
     <Resource Include="Images\dr-ron-eaglin.jpg" />
+    <Resource Include="TrafficLabPlus.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,6 +29,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The one AI layer for all of Ron's programs (..\AiManager), from C:
+uget-local. App only:
+         Core has no package references. -->
+    <PackageReference Include="Eaglin.AiManager" Version="1.4.1" />
+    <PackageReference Include="Eaglin.AiManager.Wpf" Version="1.4.1" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4191.47" />
   </ItemGroup>
 

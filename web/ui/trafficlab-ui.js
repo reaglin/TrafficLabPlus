@@ -596,6 +596,17 @@ async function runTest() {
   if (runKey() !== startKey) toast('You changed the plan or the demand during the test. Those changes are not in this test.');
   return run;
 }
+// The last traffic test, for TrafficLab+'s coach (the window reads it from its preview; a published
+// page never sends it anywhere). Read-only: a copy of what the runs table shows.
+window.TL_lastTest = () => {
+  const r = S.runs[S.runs.length - 1];
+  if (!r) return null;
+  const ap = (list) => list.map(a => ({ approach: a.label, at: a.at, vc: +a.vc.toFixed(2), los: a.los, delay: a.delay == null ? null : Math.round(a.delay) }));
+  return { demandPercent: Math.round(r.demand * 100), budget: TG.BUDGET, cost: +r.cost.toFixed(2), score: r.sc.total,
+    parts: { delay: +r.sc.parts.pDelay.toFixed(1), los: +r.sc.parts.pLOS.toFixed(1), budget: +r.sc.parts.pBudget.toFixed(1), throughput: +r.sc.parts.pThru.toFixed(1) },
+    plan: r.items.map(i => i.label), avgDelayToday: Math.round(r.base.avgDelay), avgDelayPlan: Math.round(r.res.avgDelay),
+    today: ap(r.base.approaches), withPlan: ap(r.res.approaches), unserved: Math.round(r.res.unserved) };
+};
 // what makes two tests the same test: the plan, the demand and the inflow changes
 function runKey() { return JSON.stringify([S.plan, S.demand, S.zoneMult]); }
 $('btnTest').onclick = runTest;

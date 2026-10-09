@@ -85,8 +85,13 @@ public sealed class TrafficView : SectionView
         NoTrips(form, s, ends);
         Scenarios(form, s);
 
-        form.Heading("Estimates");
-        form.Note("Asking the AI for an estimate, for roads with no count, arrives in a later version of TrafficLab+.");
+        form.Heading("Estimates from the AI", "For roads with no count: the AI estimates the vehicles an hour coming in at each road end, from the kind of road, the place, what you tell it, and any counts in use (which it keeps). You see each estimate with its reason and choose which to use.");
+        form.Panel.Children.Add(AiButton("Estimate traffic with the AI…", () => new Ai.AiWindow(s, "Estimate traffic with the AI",
+            "The AI estimates the busy-hour vehicles an hour coming in at each road end that has no count. Road ends with FDOT counts in use are kept as they are."
+            + (s.Study.Demand.IsVolumes ? "" : " Applying any estimate switches How traffic is given to typed volumes; the other road ends keep today's numbers."),
+            "Anything you know about the traffic",
+            "\"Weekday evening rush. The outlet mall on Outlet Boulevard is busy; Cornerstone is a quiet back road.\"",
+            "trafficlab-traffic", Core.Ai.AiPrompts.Traffic, Core.Ai.AiPrompts.ReadTraffic, wordsOptional: true)));
     }
 
     // ------------------------------------------------------------ FDOT counts

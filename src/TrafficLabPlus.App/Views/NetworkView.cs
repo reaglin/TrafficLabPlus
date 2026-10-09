@@ -46,6 +46,11 @@ public sealed class NetworkView : SectionView
         var remove = new Button { Content = "Remove", Padding = new Thickness(10, 4, 10, 4), Margin = new Thickness(0, 0, 6, 6), ToolTip = "Remove what is chosen (Delete key). Ctrl+Z puts it back." };
         remove.Click += (_, _) => RemoveSelected();
         tools.Children.Add(remove);
+        tools.Children.Add(AiButton("Fill in with the AI…", () => new Ai.AiWindow(Session!, "Fill in the network with the AI",
+            "Tell the AI what you know about the real intersections — lanes, turn lanes, speed limits, signal timing. It proposes changes to the study, each with a reason; you choose which to apply. OpenStreetMap often lacks turn lanes and signal timing, and this is the quick way to fill them in.",
+            "What you know about the real roads",
+            "\"Williamson has dual left turns onto LPGA in both directions. The LPGA signal at Williamson runs a 120-second cycle with protected lefts on LPGA. LPGA is 45 mph.\"",
+            "trafficlab-network", Core.Ai.AiPrompts.Network, Core.Ai.AiPrompts.ReadNetwork)));
         top.Children.Add(tools);
         top.Children.Add(_modeHelp);
         top.Children.Add(_status);

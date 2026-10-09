@@ -177,3 +177,31 @@ made study you would want different.
    is kept.
 
 **What to send back:** any setting tagged wrongly, and anything the help does not answer.
+
+---
+
+## Phase 6 — the AI (2026-10-09)
+
+### Test 13 — the AI proposes, you choose
+
+1. **Settings ▸ AI settings…**: your key is already there if you set one up in another of your programs
+   (the store is shared). The line above the buttons says which provider and model will answer.
+2. Open the LPGA example. **2 Network ▸ Fill in with the AI…**. Type what you know about a real
+   intersection ("Williamson has dual lefts onto LPGA; LPGA is 45 mph") and press **Ask the AI**. In
+   10–40 seconds: the proposed changes, each with *before → after* and why, all ticked; the AI's notes;
+   anything it could not use, with why. Untick one, press **Apply**. The values say "suggested by the
+   AI"; **Ctrl+Z** takes them all back.
+3. **3 Traffic ▸ Estimate traffic with the AI…** with nothing typed: an estimate for each road end.
+4. **4 Challenge ▸ Write the challenge with the AI…**: "a tight budget, roundabouts too expensive".
+5. **5 Preview**: press **Ask the coach…** before any test — it says to run a test first. Run a traffic
+   test on the page, then ask: the coach explains your results and suggests what to try.
+6. **Settings ▸ What the AI has cost…** shows what these cost.
+
+### Test 14 — the icon and the privacy policy
+
+1. The window, the taskbar and the .exe show the new icon: a traffic signal on a "+" (the two other
+   candidates are in `resources/images/icon-candidates.png`).
+2. Read https://softwareplus.ai/trafficlab/privacy/ and https://softwareplus.ai/trafficlab/ (About ▸ the
+   link goes there).
+
+**What to send back:** which icon, and anything the policy should say differently.
