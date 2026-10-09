@@ -68,6 +68,8 @@ whether the printout is what you want students to hand in.
 5. Press **Ctrl+Z** (or Edit ▸ Undo). The cycle goes back to 120 and the page follows.
 6. Drag an intersection on the drawing a little; the page's road follows when you let go. Ctrl+Z puts it back.
 7. Try a value TrafficLab+ refuses (cycle 200). It says why beside the box and changes nothing.
+8. **File ▸ Open an example ▸ Four-Way Intersection** (or its card on the start screen). One signal, no
+   turn lanes, a $2M budget: press Busy day on the page and the side street fails. A good first puzzle.
 
 ### Test 6 — a new study, with its budget
 

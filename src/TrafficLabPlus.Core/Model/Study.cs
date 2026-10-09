@@ -69,7 +69,7 @@ public static class Origins
     /// <summary>The words a person reads beside a value.</summary>
     public static string Describe(string? origin) => origin switch
     {
-        Example => "from the LPGA example",
+        Example => "from the built-in example",
         Default => "a starting value — change it to match the real road",
         Typed => "typed by you",
         Osm => "from OpenStreetMap",

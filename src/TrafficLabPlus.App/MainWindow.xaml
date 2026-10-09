@@ -23,7 +23,9 @@
             <MenuItem Header="_File">
                 <MenuItem Header="_New study…" Command="New" InputGestureText="Ctrl+N" />
                 <MenuItem Header="_Open a study file…" Command="Open" InputGestureText="Ctrl+O" />
-                <MenuItem Header="Open the _LPGA example" Click="Example_Click" />
+                <MenuItem x:Name="ExamplesMenu" Header="Open an _example" SubmenuOpened="ExamplesMenu_Opened">
+                    <MenuItem Header="(examples)" IsEnabled="False" />
+                </MenuItem>
                 <MenuItem x:Name="RecentMenu" Header="Open _recent" SubmenuOpened="RecentMenu_Opened">
                     <MenuItem Header="(none yet)" IsEnabled="False" />
                 </MenuItem>

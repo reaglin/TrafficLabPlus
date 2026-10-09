@@ -290,16 +290,14 @@ public partial class MainWindow : Window
 
     // ---------------------------------------------------------------- files
 
-    private void OpenExample()
+    private void OpenExample(BuiltInExample example)
     {
         if (!ConfirmDiscard())
         {
             return;
         }
 
-        Study lpga = StudyJson.Read(PageBuilder.LpgaExampleJson());
-        lpga.From = new Dictionary<string, string>(StringComparer.Ordinal) { ["*"] = Origins.Example };
-        Open(new StudySession(new StudyDocument { Study = lpga }, null, isExample: true));
+        Open(new StudySession(new StudyDocument { Study = example.Study() }, null, isExample: true));
     }
 
     private void NewStudy()
@@ -492,7 +490,16 @@ public partial class MainWindow : Window
 
     private void CanRedo(object sender, CanExecuteRoutedEventArgs e) => e.CanExecute = _session?.CanRedo == true;
 
-    private void Example_Click(object sender, RoutedEventArgs e) => OpenExample();
+    private void ExamplesMenu_Opened(object sender, RoutedEventArgs e)
+    {
+        ExamplesMenu.Items.Clear();
+        foreach (BuiltInExample example in Examples.All)
+        {
+            var item = new MenuItem { Header = example.Title, ToolTip = example.Description };
+            item.Click += (_, _) => OpenExample(example);
+            ExamplesMenu.Items.Add(item);
+        }
+    }
 
     private void CloseStudy_Click(object sender, RoutedEventArgs e)
     {

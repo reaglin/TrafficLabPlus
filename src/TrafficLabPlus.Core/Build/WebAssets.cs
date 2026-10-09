@@ -15,6 +15,7 @@ public static class WebAssets
     public const string Ui = "web/ui/trafficlab-ui.js";
     public const string Style = "web/ui/trafficlab.css";
     public const string LpgaExample = "samples/lpga.json";
+    public const string FourWayExample = "samples/four-way.json";
 
     /// <summary>The fonts, inlined into every page: Overpass, an open descendant of the US
     /// highway-sign alphabet, under the SIL Open Font License (web/fonts/OFL-Overpass.txt).</summary>

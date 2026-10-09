@@ -218,6 +218,37 @@ public class StudyModelTests
         Assert.True(result["done"]!.GetValue<int>() > 50, output);
     }
 
+    public static TheoryData<string> ExampleIds => new(Examples.All.Select(e => e.Id));
+
+    [Theory]
+    [MemberData(nameof(ExampleIds))]
+    public void EveryBuiltInExampleIsSoundRunsAndBuildsAPage(string id)
+    {
+        BuiltInExample example = Examples.All.Single(e => e.Id == id);
+        Study s = example.Study();
+        Assert.Empty(StudyValidator.Check(s));
+        Assert.Equal(Origins.Example, StudyEdits.OriginOf(s, "link:anything/lanes"));
+
+        string file = Path.Combine(TempDir(), id + ".json");
+        File.WriteAllText(file, example.Json());
+        (int exit, string output) = Tools.Node("tools/engine-check.js", "run", file);
+        Assert.True(exit == 0, output);
+        Assert.Equal(0, JsonNode.Parse(output)!["unserved"]!.GetValue<double>());
+
+        string page = PageBuilder.Build(s);
+        Assert.Contains(System.Net.WebUtility.HtmlEncode(s.Title), page, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheFourWayExampleMatchesItsGenerator()
+    {
+        string before = File.ReadAllText(Path.Combine(Tools.RepoRoot, "samples", "four-way.json"));
+        (int exit, string output) = Tools.Node("tools/make-four-way.js");
+        Assert.True(exit == 0, output);
+
+        Assert.Equal(before, File.ReadAllText(Path.Combine(Tools.RepoRoot, "samples", "four-way.json")));
+    }
+
     [Fact]
     public void ANewStudyCarriesItsBudgetOntoThePage()
     {

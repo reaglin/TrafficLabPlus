@@ -12,8 +12,8 @@
     <EmbeddedResource Include="..\..\web\**\*">
       <LogicalName>web/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\..\samples\lpga.json">
-      <LogicalName>samples/lpga.json</LogicalName>
+    <EmbeddedResource Include="..\..\samples\*.json">
+      <LogicalName>samples/%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 

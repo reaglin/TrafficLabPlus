@@ -49,7 +49,8 @@ TrafficLabPlus.slnx
 │                             Network/Traffic/Challenge/Start/Info views, PreviewView (WebView2)
 ├── tests/TrafficLabPlus.Tests/  xUnit; EngineTests runs tests/js under Node; PagePlayTests plays the page
 ├── tests/js/            engine.test.js, reference.js (loads the ORIGINAL core out of reference/)
-├── samples/lpga.json    the built-in example — generated, never hand-edited: tools/make-lpga-study.js
+├── samples/             the built-in examples (Core/Model/Examples.cs) — generated, never hand-edited:
+│                        lpga.json (tools/make-lpga-study.js), four-way.json (tools/make-four-way.js)
 └── tools/               play-page.js (headless Chrome), engine-check.js (the engine for C# tests),
                          capture-window.ps1, tour-window.ps1 (UI Automation tour + PrintWindow shots;
                          sends keys only when the app is the window in front), make-lpga-study.js
