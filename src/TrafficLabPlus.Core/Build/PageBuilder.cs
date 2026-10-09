@@ -38,6 +38,15 @@ public static class PageBuilder
             .Replace("{{STUDY}}", studyText, StringComparison.Ordinal);
     }
 
+    /// <summary>Builds the page for a study. The editor's own notes on where values came from stay
+    /// in the study file; the page does not need them.</summary>
+    public static string Build(Model.Study study)
+    {
+        JsonObject json = JsonNode.Parse(Model.StudyJson.Write(study))!.AsObject();
+        json.Remove("from");
+        return Build(json.ToJsonString());
+    }
+
     /// <summary>The built-in example: Dr. Ron Eaglin's LPGA Traffic Lab, as a study.</summary>
     public static string LpgaExampleJson() => WebAssets.Text(WebAssets.LpgaExample);
 

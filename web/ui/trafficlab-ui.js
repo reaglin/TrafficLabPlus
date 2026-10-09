@@ -640,7 +640,7 @@ function printoutHTML(run) {
   const by = [ST.author ? 'Study by ' + ST.author : '', ST.course || '', ST.place || ''].filter(Boolean).join(' · ');
   return `<div class="hdr"><b>${esc(ST.title)} · Submitted plan</b><span>${S.name ? esc(S.name) : 'Name not given'}</span></div>
     <p class="sub">${by ? esc(by) + '<br>' : ''}${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ·
-      tested at ${Math.round(run.demand * 100)}% demand${Object.keys(run.zone).length ? ', with inflow changes' : ''} · 3 seeded 15-minute runs, each against today's network</p>
+      tested at ${Math.round(run.demand * 100)}% demand${(s => s ? ' (' + esc(s.k) + ')' : '')(SCEN.find(s => Math.abs(s.v - run.demand) < 0.001))}${Object.keys(run.zone).length ? ', with inflow changes' : ''} · 3 seeded 15-minute runs, each against today's network</p>
     <div class="scorebig"><b>${run.sc.total}</b><span>/ 100</span></div>
     <div class="parts">
       <span>Delay per trip (${run.sc.red >= 0 ? '−' : '+'}${Math.abs(run.sc.red * 100).toFixed(0)}% against today)</span><span>${p.pDelay.toFixed(1)} / 50</span>
@@ -718,7 +718,9 @@ $('nameIn').addEventListener('keydown', e => { if (e.key === 'Enter') $('btnStar
 // ------------------------------------------------------------ H. main loop
 newLiveSim();
 renderSpeed(); renderScen(); renderColor(); renderLegend(); renderPlan(); renderInspector(); renderWho();
-try { $('intro').showModal(); } catch (e) { /* dialogs unsupported: skip intro */ }
+// TrafficLab+ rebuilds its preview after every edit and opens it with ?nointro, so the author is
+// not shown the instructions again each time; a visitor never has it, and How it works opens them.
+if (!/[?&]nointro(&|$)/.test(location.search)) try { $('intro').showModal(); } catch (e) { /* dialogs unsupported: skip intro */ }
 let lastT = performance.now(), acc = 0, uiT = 0;
 function frame(now) {
   const dt = Math.min(0.1, (now - lastT) / 1000); lastT = now;

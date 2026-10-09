@@ -15,6 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- About ▸ Created by Dr. Ron Eaglin (Ron, 2026-09-25): the 256 px copy from GamifyPlus. -->
+    <Resource Include="Images\dr-ron-eaglin.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4191.47" />
   </ItemGroup>
 

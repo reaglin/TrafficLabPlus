@@ -31,6 +31,7 @@ unchanged; `toU()` converts once, at load, and snaps to 10⁻⁹ u so LPGA's val
 | `pockets` | | Turn lanes that exist today (below) |
 | `backdrop` | | Decoration only — never simulated (below) |
 | `sources` | | Where things came from. `osm: true` puts "© OpenStreetMap contributors" on the page and printout |
+| `from` | | For the editor: where each value came from — a key like `node:I1/cycle` or `link:L1/lanes`, and `example`, `default`, `typed`, `osm`, `fdot` or `ai`; `*` covers every value not listed. Left out of the built page |
 
 **No `plan`.** A published page always opens blank, as a puzzle (Ron, 2026-10-09).
 
@@ -94,3 +95,13 @@ LPGA's: 0.6 + 6.67/km, 0.15, 0.45, 0.35, 0.02, 0.08, 2.8.
 
 Drawn under the roads, never simulated: `streets` (polylines), `blocks` (polygons of land use), `places`
 (`{x, y, text}` labels), `freeways` (`{points, width}` mainlines passing through, like I-95).
+
+## The `.trafficlab` file
+
+What the program saves: a zip holding `study.json` (the study above), `notes.md` (the author's notes,
+never on the page) and, from phase 4, `osm.json` (the roads as OpenStreetMap gave them, so an opened
+study never asks OpenStreetMap again). Entries the program does not know are kept and written back.
+A study with a newer `format` is refused before anything is read. A plain `.json` study opens too, and
+is saved as a `.trafficlab` file.
+
+Every field the program does not know — at any level — is kept as it came and written back.

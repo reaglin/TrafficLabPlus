@@ -2,31 +2,113 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:TrafficLabPlus.App.Views"
-        Title="TrafficLab+" Width="1400" Height="900" MinWidth="900" MinHeight="600"
-        WindowStartupLocation="CenterScreen">
+        Title="TrafficLab+" Width="1440" Height="920" MinWidth="980" MinHeight="620"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource PageBrush}" Foreground="{StaticResource InkBrush}"
+        FontFamily="Segoe UI" FontSize="14">
+    <Window.CommandBindings>
+        <CommandBinding Command="New" Executed="New_Executed" />
+        <CommandBinding Command="Open" Executed="Open_Executed" />
+        <CommandBinding Command="Save" Executed="Save_Executed" CanExecute="HasStudy" />
+        <CommandBinding Command="SaveAs" Executed="SaveAs_Executed" CanExecute="HasStudy" />
+        <CommandBinding Command="Undo" Executed="Undo_Executed" CanExecute="CanUndo" />
+        <CommandBinding Command="Redo" Executed="Redo_Executed" CanExecute="CanRedo" />
+    </Window.CommandBindings>
+    <Window.InputBindings>
+        <KeyBinding Command="SaveAs" Key="S" Modifiers="Ctrl+Shift" />
+    </Window.InputBindings>
+
     <DockPanel>
-        <!-- Phase 0–2: one strip and the preview. The study editor, the map and publishing
-             arrive in phases 3–7 (docs/DEVELOPMENT-PLAN.md). -->
-        <Border DockPanel.Dock="Top" Padding="12,8" BorderThickness="0,0,0,1" BorderBrush="#D3DAD6" Background="#EEF1EF">
-            <DockPanel LastChildFill="True">
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <Button x:Name="OpenStudyButton" Content="Open a study file…" Padding="10,4" Margin="0,0,8,0"
-                            Click="OpenStudy_Click"
-                            ToolTip="A study is the file that describes a network: its roads, signals, traffic and budget. For now, studies are JSON files; making one in the program arrives in a later version." />
-                    <Button x:Name="ExampleButton" Content="Show the LPGA example" Padding="10,4" Margin="0,0,8,0"
-                            Click="Example_Click"
-                            ToolTip="The LPGA Blvd corridor at I-95 in Daytona Beach: a finished example study, built into TrafficLab+" />
-                    <Button x:Name="BrowserButton" Content="Open in your browser" Padding="10,4" IsEnabled="False"
-                            Click="Browser_Click"
-                            ToolTip="Open the same page in your web browser, as a visitor would see it" />
+        <Menu DockPanel.Dock="Top" Background="{StaticResource PanelBrush}" Padding="4,2">
+            <MenuItem Header="_File">
+                <MenuItem Header="_New study…" Command="New" InputGestureText="Ctrl+N" />
+                <MenuItem Header="_Open a study file…" Command="Open" InputGestureText="Ctrl+O" />
+                <MenuItem Header="Open the _LPGA example" Click="Example_Click" />
+                <MenuItem x:Name="RecentMenu" Header="Open _recent" SubmenuOpened="RecentMenu_Opened">
+                    <MenuItem Header="(none yet)" IsEnabled="False" />
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="_Save" Command="Save" InputGestureText="Ctrl+S" />
+                <MenuItem Header="Save _as…" Command="SaveAs" InputGestureText="Ctrl+Shift+S" />
+                <MenuItem x:Name="CloseMenu" Header="_Close the study" Click="CloseStudy_Click" />
+                <Separator />
+                <MenuItem Header="E_xit" Click="Exit_Click" />
+            </MenuItem>
+            <MenuItem Header="_Edit">
+                <MenuItem Header="_Undo" Command="Undo" InputGestureText="Ctrl+Z" />
+                <MenuItem Header="_Redo" Command="Redo" InputGestureText="Ctrl+Y" />
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_Start screen: what TrafficLab+ is for" Click="StartScreen_Click" />
+                <MenuItem Header="_About TrafficLab+" Click="About_Click" />
+            </MenuItem>
+        </Menu>
+
+        <!-- The sections down the left, in the order the work happens. -->
+        <Border DockPanel.Dock="Left" Width="190" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,1,0">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Margin="14,12,14,10">
+                    <TextBlock x:Name="StudyName" FontWeight="SemiBold" TextWrapping="Wrap" Text="No study open" />
+                    <TextBlock x:Name="SaveState" Foreground="{StaticResource MutedTextBrush}" FontSize="12" TextWrapping="Wrap" />
                 </StackPanel>
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock x:Name="StudyTitle" FontSize="16" FontWeight="SemiBold" />
-                    <TextBlock x:Name="StudyNote" Foreground="#5D6B65" TextWrapping="Wrap"
-                               Text="This is the page exactly as it will be published. Try it as a visitor would: change the demand, click a road, build a plan, submit it. (Making your own study, and publishing it, arrive in later versions.)" />
+                <StackPanel x:Name="Nav" KeyboardNavigation.DirectionalNavigation="Cycle">
+                    <RadioButton x:Name="NavStart" Style="{StaticResource SectionButton}" Content="Start" Tag="Start" Checked="Section_Checked"
+                                 ToolTip="What TrafficLab+ is for, and the ways in" />
+                    <RadioButton x:Name="NavMap" Style="{StaticResource SectionButton}" Content="1  Map" Tag="Map" Checked="Section_Checked"
+                                 ToolTip="Find the intersection on a map (next version)" />
+                    <RadioButton x:Name="NavNetwork" Style="{StaticResource SectionButton}" Content="2  Network" Tag="Network" Checked="Section_Checked"
+                                 ToolTip="The roads and intersections: lanes, speeds, signals, turn lanes" />
+                    <RadioButton x:Name="NavTraffic" Style="{StaticResource SectionButton}" Content="3  Traffic" Tag="Traffic" Checked="Section_Checked"
+                                 ToolTip="How many vehicles, where they come in and go out" />
+                    <RadioButton x:Name="NavChallenge" Style="{StaticResource SectionButton}" Content="4  Challenge" Tag="Challenge" Checked="Section_Checked"
+                                 ToolTip="The words on the page, the budget, what each fix costs" />
+                    <RadioButton x:Name="NavPreview" Style="{StaticResource SectionButton}" Content="5  Preview" Tag="Preview" Checked="Section_Checked"
+                                 ToolTip="The page, full size, exactly as it will be published" />
+                    <RadioButton x:Name="NavPublish" Style="{StaticResource SectionButton}" Content="6  Publish" Tag="Publish" Checked="Section_Checked"
+                                 ToolTip="Save the page as a file (publishing to the web comes later)" />
+                    <Border Height="1" Background="{StaticResource LineBrush}" Margin="14,8" />
+                    <RadioButton x:Name="NavSettings" Style="{StaticResource SectionButton}" Content="Settings" Tag="Settings" Checked="Section_Checked" />
+                    <RadioButton x:Name="NavAbout" Style="{StaticResource SectionButton}" Content="About" Tag="About" Checked="Section_Checked" />
                 </StackPanel>
             </DockPanel>
         </Border>
-        <views:PreviewView x:Name="Preview" />
+
+        <DockPanel>
+            <!-- What stops the page from running, in the engine's own words; each one takes you to it. -->
+            <Border x:Name="ProblemsBar" DockPanel.Dock="Top" Visibility="Collapsed" Background="{StaticResource WarnBackBrush}"
+                    BorderBrush="{StaticResource WarnLineBrush}" BorderThickness="0,0,0,2" Padding="16,8">
+                <StackPanel>
+                    <TextBlock x:Name="ProblemsTitle" FontWeight="SemiBold" TextWrapping="Wrap" />
+                    <ItemsControl x:Name="ProblemsList" />
+                </StackPanel>
+            </Border>
+
+            <Grid x:Name="Work">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="EditorColumn" Width="580" MinWidth="0" />
+                    <ColumnDefinition x:Name="SplitterColumn" Width="Auto" />
+                    <ColumnDefinition x:Name="PreviewColumn" Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <ContentControl x:Name="SectionHost" Grid.Column="0" Background="{StaticResource PanelBrush}" Focusable="False" />
+                <GridSplitter x:Name="Splitter" Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="{StaticResource LineBrush}"
+                              ToolTip="Drag to share the room between the form and the page" />
+
+                <DockPanel x:Name="PreviewPane" Grid.Column="2">
+                    <Border DockPanel.Dock="Top" Padding="12,6" Background="{StaticResource PageBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1">
+                        <DockPanel>
+                            <Button x:Name="BrowserButton" DockPanel.Dock="Right" Content="Open in your browser" Padding="10,3" IsEnabled="False"
+                                    Click="Browser_Click" ToolTip="Open the same page in your web browser, as a player would see it" />
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock FontWeight="SemiBold" Text="The page, exactly as players will see it" />
+                                <TextBlock x:Name="PreviewState" Foreground="{StaticResource MutedTextBrush}" FontSize="12" TextWrapping="Wrap"
+                                           Text="Rebuilt after every change. Try it as a player would: build a plan, run a test, submit it." />
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+                    <views:PreviewView x:Name="Preview" />
+                </DockPanel>
+            </Grid>
+        </DockPanel>
     </DockPanel>
 </Window>

@@ -62,7 +62,7 @@ The LPGA core is good; this phase changes what it reads, not how it drives.
 | 2.6 | ⚠️ Page tests: build LPGA, play it headless (`tools/play-page.js`), buy a fix, submit, read the printout and what reaches the printer | Green |
 | 2.7 | ⚠️ **Submit plan → printout**: the plan on the map now (tested first unless it was tested exactly as it stands), its cost against the budget, the score and its parts, every approach's v/c, LOS and delay today and with the plan, the name if given, the study and date. **Print or save as PDF** — Ctrl+P prints the printout too | Chrome's PDF: one page plus two rows on a second. Action: Ron prints one (hand-test 2) |
 | 2.8 | ⚠️ US customary units on the page: road lengths in ft/mi, speeds in mph |  |
-| 2.9 | ⚠️ **UX review** (cognitive walkthrough + Nielsen) of the page and the window, 2026-10-09: 0 critical, 6 major, 8 minor | Fixed: a test is filed under the settings it started with, and says so if they changed while it ran; Submit says it hands in the plan on the map now, and how to hand in an earlier test; the name can be added or changed after Start and on the printout; Clear plan asks first, and leaving the page with a plan asks first; the window reloads a re-opened study; Ctrl+P prints the printout; how to save a PDF; the goal and LOS A–F explained; How it works reopens the instructions; over budget said when it happens; roundabouts offer no turn lanes; the retiming cost explained; the tests table explained; toolbar labels; window tooltips and a guarded Open in your browser. **Open:** which demand a submitted plan is tested at — question 6 |
+| 2.9 | ⚠️ **UX review** (cognitive walkthrough + Nielsen) of the page and the window, 2026-10-09: 0 critical, 6 major, 8 minor | Fixed: a test is filed under the settings it started with, and says so if they changed while it ran; Submit says it hands in the plan on the map now, and how to hand in an earlier test; the name can be added or changed after Start and on the printout; Clear plan asks first, and leaving the page with a plan asks first; the window reloads a re-opened study; Ctrl+P prints the printout; how to save a PDF; the goal and LOS A–F explained; How it works reopens the instructions; over budget said when it happens; roundabouts offer no turn lanes; the retiming cost explained; the tests table explained; toolbar labels; window tooltips and a guarded Open in your browser. Question 6 answered (b): the printout says the demand it was tested at, and names the button when it matches one ("150% demand (Race Week)") |
 
 ---
 
@@ -70,16 +70,16 @@ The LPGA core is good; this phase changes what it reads, not how it drives.
 
 | # | Task | Done when |
 |---|---|---|
-| 3.1 | `.trafficlab` study file (zip: `study.json`, OSM extract, notes); New / Open / Save / Recent | Round-trips; a newer-format file is refused, not half-read |
-| 3.2 | Start screen: what TrafficLab+ is, the steps, Open the LPGA example / New study / Continue. **LPGA is built in** as the example | |
-| 3.3 | Sections in the order the work happens: **Map ▸ Network ▸ Traffic ▸ Challenge ▸ Preview ▸ Publish**, plus Settings and About | |
-| 3.4 | Network editor: nodes, links, lanes, pockets, signal timing — every field explained in plain words, with where its value came from (OSM tag / default / typed / AI) | |
-| 3.5 | **Preview**: the built page in WebView2, rebuilt on every change | What the window shows is the file that will be published |
-| 3.6 | About: "Created by Dr. Ron Eaglin" card and the link to softwareplus.ai/trafficlab/ | |
-| 3.7 | UX review of every screen | Recorded here with the fixes |
-| 3.8 | **New study asks for the budget** the simulation will use (with LPGA's $5M as the suggestion and a line on what it means) | The budget is on the page and in the score |
+| 3.1 | ⚠️ `.trafficlab` study file (zip: `study.json`, `notes.md`, later `osm.json`; unknown entries and fields kept); New / Open / Save / Save as / Recent; a plain `.json` study opens too. C# study model with the engine's check in the same words (`StudyValidator`) | Tests: LPGA read and written again is identical; unknown fields kept; a newer format refused before anything is read; damaged file refused in words; save swaps in a whole file; the C# check gives **exactly** the page's messages over 23 studies (run through the engine under Node). Action: Ron, hand-test 6 |
+| 3.2 | ⚠️ Start screen: what TrafficLab+ is, the four steps, Open the LPGA example / New study / Open a study file, and **Continue where you left off** (recent studies). **LPGA is built in** as the example | Action: Ron, hand-test 5 |
+| 3.3 | ⚠️ Sections in the order the work happens: **Start, 1 Map ▸ 2 Network ▸ 3 Traffic ▸ 4 Challenge ▸ 5 Preview ▸ 6 Publish**, plus Settings and About. Map says it arrives in phase 4 and what to do meanwhile; Publish saves the page as a file until phase 7. A yellow bar lists what stops the page running, in the engine's words; each line goes to the thing to fix. Undo/redo of every change (Ctrl+Z also from a box with nothing of its own to undo); unsaved changes asked about before they are lost | Looked at in the running window (PrintWindow). Action: Ron, hand-tests 5–8 |
+| 3.4 | ⚠️ Network editor: a drawing (click to choose, drag to move; add intersection, road end, road; remove) and a form for what is chosen — kind, names, signal cycle and split, main-street roads, protected lefts, lanes, speed in mph, position in feet, turn lanes that exist today — every field explained, out-of-range values refused beside the box, and **where each value came from** (LPGA example / starting value / typed; OSM and AI from phases 4 and 6). Traffic section (one total or typed volumes per road end, showing the engine's own veh/h per end; trips that do not happen; the demand buttons) and Challenge section (the page's words, budget, prices of the fixes, notes) | Tests on every edit (removing leaves nothing dangling, roads that cannot be built say why, kinds get what they need, turn lanes set and cleared) and on the veh/h shown against the engine's. Action: Ron, hand-tests 5–7 |
+| 3.5 | ⚠️ **Preview**: the built page in WebView2, rebuilt half a second after every change; the first showing opens with the page's instructions, a rebuild goes straight to the map (`?nointro`) | What the window shows is the file that will be published (Documents\TrafficLabPlus\Preview). Action: Ron, hand-test 5 |
+| 3.6 | ⚠️ About: "Created by Dr. Ron Eaglin" card with the picture, the link to softwareplus.ai/trafficlab/, the credits (traffic model, OSM, Overpass font) | Action: Ron looks (hand-test 8) |
+| 3.7 | ⚠️ **UX review** (cognitive walkthrough + Nielsen, `ux-reviewer`, plus the running window captured with PrintWindow), 2026-10-09: 1 critical, 3 major, 6 minor | Fixed: a value still being typed is now saved by Ctrl+S, Save, Close and Save the page (it was lost); Ctrl+Z after a change undoes the study, not just the box; **renaming a street renames it everywhere** (every road with that name, and the intersections and road ends named after it — one undo); the add-road message points to the form below; Esc and a second click leave an Add mode; Delete removes only from the drawing; the signal count in New study selects its layout; the budget box takes 3.5, $3.5M, 3.5 million or 3,500,000; the saved page is named after the title and its messages open over the window; road-end help fits typed volumes; "players" on the page, "students" for who hands it in; Help names the start screen. Also from looking: drawing labels no longer pile up or run off the edge; the page's instructions do not reopen on every rebuild. **Not done:** the engine's own words in the yellow bar ("road segment", ids) — they must change in the page's check and the window's together; a later round. Action: Ron, hand-tests 5–8 |
+| 3.8 | ⚠️ **New study asks for the budget** (LPGA's $5M suggested, with a line on what it means), with a title, place, a starting layout — one signal, a T, or 2–10 signals along a main street — and author/course (defaults in Settings). Starting demand is moderately busy today and past capacity on "Busy day" | Test: the budget is in the built page; every starting layout passes the check and runs in the engine with every trip routed. Action: Ron, hand-test 6 |
 
-**Hand-test:** open the LPGA example, change a signal's cycle, watch the preview change.
+**Hand-test:** `docs/MANUAL-TESTING.md`, tests 5–8.
 
 ---
 
@@ -102,7 +102,7 @@ The LPGA core is good; this phase changes what it reads, not how it drives.
 
 | # | Task | Done when |
 |---|---|---|
-| 5.1 | Traffic section: entering volume per zone, scenarios (Today, a future year, an event) with multipliers, typed in a table that explains veh/hr | |
+| 5.1 | Traffic section: entering volume per zone, scenarios (Today, a future year, an event) with multipliers, typed in a table that explains veh/hr | Built early, with phase 3 (3.4); what phase 5 adds is FDOT and the AADT conversion |
 | 5.2 | **FDOT AADT lookup** from FDOT's open data for each road in a Florida study, with the count year and station | LPGA's roads return counts |
 | 5.3 | AADT → peak-hour volume with **K** and **D** factors (FDOT defaults, editable, explained) | |
 | 5.4 | Outside Florida, the lookup says so and offers typing or the AI | |
@@ -150,7 +150,7 @@ Through `Eaglin.AiManager` and `Eaglin.AiManager.Wpf` (latest on the local feed:
 
 ---
 
-## Open questions for Ron — 1–5 answered 2026-10-09; 6 open
+## Open questions for Ron — all 6 answered (2026-10-09)
 
 1. ~~What does a published page open with?~~ **Blank, as a puzzle.** The page opens with today's
    network and no plan. The player builds a plan; when they **submit** it (run the scored test and
@@ -164,7 +164,9 @@ Through `Eaglin.AiManager` and `Eaglin.AiManager.Wpf` (latest on the local feed:
    optional:** a player may leave it blank and still play, and the page says the name is optional.
    Task 2.2.
 
-6. **Which demand is a submitted plan tested at?** (asked 2026-10-09, from the UX review) Today a plan is
+6. ~~Which demand is a submitted plan tested at?~~ **(b), answered by Ron 2026-10-09:** a plan is tested at
+   whatever the player has set, the printout says what that was (and names the demand button when it
+   matches one), and the teacher tells the class which demand to use. Task 2.9. The question as asked: today a plan is
    tested at whatever demand and inflows the player has set, and the score is not adjusted for them: at 50%
    demand a plan with no changes scores about 50, so two students' scores compare only if they tested at
    the same demand. Options:
