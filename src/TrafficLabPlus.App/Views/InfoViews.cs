@@ -11,26 +11,6 @@ using TrafficLabPlus.Core.Model;
 
 namespace TrafficLabPlus.App.Views;
 
-/// <summary>Map: finding the intersection on a map arrives in phase 4. Until then it says so, and
-/// what to do instead.</summary>
-public sealed class MapView(Action goToNetwork) : SectionView
-{
-    public override void Rebuild()
-    {
-        (ScrollViewer scroll, StackPanel panel) = Column();
-        Content = scroll;
-        panel.Children.Add(Title("Map"));
-        panel.Children.Add(Lead("This is where you will find a real intersection on a map of the world and bring in its roads — lanes, speed limits, signals — from OpenStreetMap. That arrives in the next version of TrafficLab+."));
-        panel.Children.Add(Lead("For now, a new study starts from a simple layout (one signal, a T, or a row of signals along a main street). Shape it to match your real intersection in Network: drag the intersections into place, name the streets, and set the lanes, speeds and signal timing. The page on the right follows every change."));
-        if (Session is not null)
-        {
-            var go = new Button { Content = "Go to Network", Style = (Style)Application.Current.Resources["Primary"], HorizontalAlignment = HorizontalAlignment.Left };
-            go.Click += (_, _) => goToNetwork();
-            panel.Children.Add(go);
-        }
-    }
-}
-
 /// <summary>Publish: GitHub Pages arrives in phase 7. Until then the page can be saved as a file.</summary>
 public sealed class PublishView : SectionView
 {
@@ -202,7 +182,8 @@ public sealed class AboutView : SectionView
         foreach (string line in new[]
                  {
                      "The traffic model: car-following (the Intelligent Driver Model), fixed-time signals, roundabouts by the Highway Capacity Manual's entry capacity, and v/c and level of service by HCM thresholds. A teaching model — planning-level, not an engineering analysis.",
-                     "Road data (from the next version): © OpenStreetMap contributors, under the Open Database License.",
+                     "Map, roads and place search: © OpenStreetMap contributors, under the Open Database License (openstreetmap.org/copyright). Roads come from the Overpass API and searches from Nominatim.",
+                     "The map uses Leaflet, © Volodymyr Agafonkin and CloudMade, under the BSD 2-Clause License.",
                      "The pages use the Overpass typeface by Delve Withrington, Dave Bailey and Thomas Jockin, under the SIL Open Font License.",
                  })
         {

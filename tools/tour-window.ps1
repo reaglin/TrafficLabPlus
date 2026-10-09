@@ -3,6 +3,7 @@
 #   invoke:<name>   press the button or menu item with this automation name
 #   select:<name>   select the radio button / list item with this name (a section on the left)
 #   type:<name>=<text>   set a text box's value (then Tab is sent so it commits)
+#   toggle:<name>   tick or untick a check box
 #   expand:<name>   open a drop-down list, so its items can be selected
 #   wait:<ms>       wait
 #   shot:<file.png> capture the window
@@ -92,6 +93,7 @@ try {
                 $e.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern).SetValue($text)
                 Keys "{TAB}"
             }
+            'toggle' { (Find $rest ([System.Windows.Automation.AutomationElement]::IsTogglePatternAvailableProperty)).GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern).Toggle() }
             'expand' { (Find $rest ([System.Windows.Automation.AutomationElement]::IsExpandCollapsePatternAvailableProperty)).GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern).Expand() }
             'keys' { Keys $rest }
             'wait' { Start-Sleep -Milliseconds ([int]$rest) }

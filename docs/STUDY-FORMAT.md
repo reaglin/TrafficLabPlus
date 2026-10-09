@@ -99,8 +99,10 @@ Drawn under the roads, never simulated: `streets` (polylines), `blocks` (polygon
 ## The `.trafficlab` file
 
 What the program saves: a zip holding `study.json` (the study above), `notes.md` (the author's notes,
-never on the page) and, from phase 4, `osm.json` (the roads as OpenStreetMap gave them, so an opened
-study never asks OpenStreetMap again). Entries the program does not know are kept and written back.
+never on the page) and, for a study made from the map, `osm.json`: `box` (south, west, north, east),
+`fetched` (the date), `junctions` (the chosen junction ids, `j` + the lowest OSM node id in the
+junction) and `overpass` (Overpass's answer as it came), so an opened study never asks OpenStreetMap
+again. Entries the program does not know are kept and written back.
 A study with a newer `format` is refused before anything is read. A plain `.json` study opens too, and
 is saved as a `.trafficlab` file.
 

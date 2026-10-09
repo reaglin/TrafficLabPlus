@@ -11,6 +11,8 @@ namespace TrafficLabPlus.App;
 /// TrafficLabPlus.exe --build-page &lt;study.json&gt; &lt;page.html&gt;
 /// TrafficLabPlus.exe --build-example &lt;page.html&gt;      (the built-in LPGA example)
 /// TrafficLabPlus.exe --new-study &lt;signals&gt; &lt;study.json&gt;  (a starting network, as New study makes it)
+/// TrafficLabPlus.exe --osm-junctions &lt;overpass.json&gt; &lt;out.txt&gt;   (the junctions found in an Overpass answer)
+/// TrafficLabPlus.exe --osm-study &lt;overpass.json&gt; &lt;study.json&gt; &lt;junction id&gt;…
 /// TrafficLabPlus.exe &lt;study.trafficlab&gt;                (opens it)
 /// </code>
 /// </summary>
@@ -44,6 +46,16 @@ public partial class App : Application
                     return 0;
                 case "--new-study" when args.Length == 3 && int.TryParse(args[1], out int signals):
                     File.WriteAllText(args[2], StudyJson.Write(StudyTemplates.Create(new NewStudyRequest { Title = "New study", Signals = signals })));
+                    return 0;
+                case "--osm-junctions" when args.Length == 3:
+                    File.WriteAllLines(args[2], Core.Osm.OsmJunctions.Find(Core.Osm.OsmData.Parse(File.ReadAllText(args[1])))
+                        .Select(j => $"{j.Id}	{j.Lat:0.000000},{j.Lon:0.000000}	{(j.IsSignal ? "signal" : j.IsRoundabout ? "roundabout" : "-")}	{j.Label}"));
+                    return 0;
+                case "--osm-study" when args.Length >= 4:
+                    Core.Osm.OsmStudy made = Core.Osm.NetworkFromOsm.Build(Core.Osm.OsmData.Parse(File.ReadAllText(args[1])),
+                        new Core.Osm.OsmStudyRequest { Junctions = args[3..], Title = "From OpenStreetMap" });
+                    File.WriteAllText(args[2], StudyJson.Write(made.Study));
+                    File.WriteAllLines(args[2] + ".notes.txt", made.Notes);
                     return 0;
                 default:
                     return 2;

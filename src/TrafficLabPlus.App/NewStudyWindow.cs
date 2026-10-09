@@ -26,9 +26,14 @@ public sealed class NewStudyWindow : Window
     private readonly TextBox _course = new() { Padding = new Thickness(3) };
     private readonly TextBlock _error = new() { Foreground = Form.Res("ErrorBrush"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0) };
 
-    public NewStudyWindow(AppSettings settings)
+    /// <param name="fromMap">The roads come from the map: no starting layout to choose, and the
+    /// window says how many intersections it is made from.</param>
+    public NewStudyWindow(AppSettings settings, int fromMap = 0, string? place = null, string? title = null)
     {
+        FromMap = fromMap > 0;
         Title = "New study — TrafficLab+";
+        _place.Text = place ?? "";
+        _title.Text = title ?? "";
         Width = 600;
         SizeToContent = SizeToContent.Height;
         MaxHeight = SystemParameters.WorkArea.Height - 40;
@@ -54,23 +59,28 @@ public sealed class NewStudyWindow : Window
         p.Children.Add(new TextBlock { Text = "A new traffic study", Style = (Style)Application.Current.Resources["SectionTitle"] });
         p.Children.Add(new TextBlock
         {
-            Text = "A study becomes one web page: a live simulation of your intersection that players fix on a budget. It starts from a simple layout that you then shape to match the real roads in Network — every name, lane, speed and signal timing can be changed afterwards. (Bringing in the real roads from a map arrives in the next version.)",
+            Text = FromMap
+                ? $"A study becomes one web page: a live simulation that players fix on a budget. This one is made from the {fromMap} intersection{(fromMap == 1 ? "" : "s")} you chose on the map, with their roads from OpenStreetMap. Everything can be changed afterwards in Network, Traffic and Challenge."
+                : "A study becomes one web page: a live simulation of your intersection that players fix on a budget. It starts from a simple layout that you then shape to match the real roads in Network — every name, lane, speed and signal timing can be changed afterwards. (Or start from the real roads: Map, on the left.)",
             Style = (Style)Application.Current.Resources["Lead"],
         });
 
         Field(p, "_Title", _title, "The page's heading, like \"Nova Road Traffic Lab\".");
-        Field(p, "_Place", _place, "Where it is, like \"Daytona Beach, Florida\". Optional.");
+        Field(p, "_Place", _place, FromMap ? "Where it is, like \"Daytona Beach, Florida\" — filled in from your search; check it if you moved the map. Optional." : "Where it is, like \"Daytona Beach, Florida\". Optional.");
 
-        p.Children.Add(new TextBlock { Text = "Starting layout", FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 10, 0, 2) });
-        p.Children.Add(_four);
-        p.Children.Add(_tee);
-        var row = new StackPanel { Orientation = Orientation.Horizontal };
-        row.Children.Add(_row);
-        row.Children.Add(_count);
-        p.Children.Add(row);
-        p.Children.Add(Help("Pick the closest; you can add and remove intersections and roads later. Signals are laid out a quarter mile apart."));
-        Field(p, "_Main street", _main, "The street the signals are on.");
-        Field(p, "C_ross street", _cross, "The street that crosses it. With more than one signal they are numbered (Cross Street 1, 2…); rename each in Network.");
+        if (!FromMap)
+        {
+            p.Children.Add(new TextBlock { Text = "Starting layout", FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 10, 0, 2) });
+            p.Children.Add(_four);
+            p.Children.Add(_tee);
+            var row = new StackPanel { Orientation = Orientation.Horizontal };
+            row.Children.Add(_row);
+            row.Children.Add(_count);
+            p.Children.Add(row);
+            p.Children.Add(Help("Pick the closest; you can add and remove intersections and roads later. Signals are laid out a quarter mile apart."));
+            Field(p, "_Main street", _main, "The street the signals are on.");
+            Field(p, "C_ross street", _cross, "The street that crosses it. With more than one signal they are numbered (Cross Street 1, 2…); rename each in Network.");
+        }
 
         p.Children.Add(new Label { Content = "_Budget for a player's plan", Target = _budget, Padding = new Thickness(0), Margin = new Thickness(0, 10, 0, 2), FontWeight = FontWeights.SemiBold });
         var money = new StackPanel { Orientation = Orientation.Horizontal };
@@ -97,6 +107,8 @@ public sealed class NewStudyWindow : Window
     }
 
     public NewStudyRequest? Request { get; private set; }
+
+    public bool FromMap { get; }
 
     private void Create()
     {

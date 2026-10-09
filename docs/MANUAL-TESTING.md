@@ -103,3 +103,37 @@ whether the printout is what you want students to hand in.
 
 **What to send back:** anything that surprised you, anything you had to think about, and whether a
 student could shape a real intersection with this before the map arrives (phase 4).
+
+---
+
+## Phase 4 — the map and OpenStreetMap (2026-10-09)
+
+These need the internet: the map, the search and the roads come from OpenStreetMap.
+
+### Test 9 — LPGA & Williamson from the map
+
+1. On the start screen press **New study from the map** (or **1 Map** on the left — it works with no
+   study open).
+2. Search **LPGA Boulevard, Daytona Beach** and pick a result. (Searching for a crossing by its two
+   street names finds nothing — OpenStreetMap's search does not do crossings; step 3 does.)
+3. Drag and zoom until the stretch from I-95 to Williamson fills the map, then **Load the roads
+   shown on the map**. Dots appear: green for a signal, grey for none on OpenStreetMap.
+4. Type **Williamson** in *Find by street name*, tick **LPGA Boulevard & Williamson Boulevard**. It
+   turns yellow with a **1** on the map.
+5. **Make the study from this intersection…**, keep or change the title, budget 2, Create. A message
+   lists what to check; the study opens in Network with the real roads: LPGA with 3 lanes each way,
+   Williamson with 2, the turn lanes OpenStreetMap shows, and "Where this came from: from
+   OpenStreetMap" under them. The page on the right says **Intersection overview** and credits
+   OpenStreetMap at the bottom.
+
+### Test 10 — the LPGA corridor, saved and reopened
+
+1. In the Map, choose the five intersections of your LPGA lab along the corridor (the east I-95 ramp
+   terminal, Outlet, Williamson, Williamson & Cornerstone, Cornerstone & Outlet) and make the study.
+   Use the arrows beside a chosen one to change the order.
+2. Compare it with the LPGA example — `docs/OSM-LPGA-COMPARISON.md` lists what should differ and why.
+3. Save it, close TrafficLab+, open the study again and go to **1 Map**: it shows the roads saved with
+   the study, without loading them again.
+
+**What to send back:** whether a student could find their intersection this way, and what in the
+made study you would want different.

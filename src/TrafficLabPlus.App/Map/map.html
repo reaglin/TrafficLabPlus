@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TrafficLab+ map</title>
+<!-- The map inside TrafficLab+'s Map section (not a published page). Leaflet is bundled with the
+     program; the map tiles come from OpenStreetMap, credited in the corner as its policy asks. -->
+<link rel="stylesheet" href="leaflet/leaflet.css">
+<style>
+  html, body, #map { height: 100%; margin: 0; }
+  body { font-family: "Segoe UI", system-ui, sans-serif; }
+  .jn { border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.45); box-sizing: border-box; }
+  .jn.sig { background: #0f6b4a; }
+  .jn.rab { background: #fff; border: 4px solid #0f6b4a; }
+  .jn.plain { background: #5d6b65; }
+  .jn.chosen { background: #e2a400; border-color: #17201c; color: #17201c; font: 600 12px/18px "Segoe UI", sans-serif; text-align: center; }
+  .box { stroke-dasharray: 6 6; }
+</style>
+</head>
+<body>
+<div id="map" role="application" aria-label="Map. Click a dot to choose that intersection."></div>
+<script src="leaflet/leaflet.js"></script>
+<script>
+'use strict';
+const send = (m) => window.chrome && window.chrome.webview && window.chrome.webview.postMessage(m);
+const map = L.map('map', { zoomControl: true }).setView([39.5, -98.35], 4);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+}).addTo(map);
+
+let junctions = [], chosen = [], layer = L.layerGroup().addTo(map), boxLayer = null;
+
+function icon(j) {
+  const n = chosen.indexOf(j.id);
+  if (n >= 0) return L.divIcon({ className: 'jn chosen', html: String(n + 1), iconSize: [22, 22] });
+  const kind = j.roundabout ? 'rab' : j.signal ? 'sig' : 'plain';
+  return L.divIcon({ className: 'jn ' + kind, iconSize: [16, 16] });
+}
+
+function draw() {
+  layer.clearLayers();
+  for (const j of junctions) {
+    const m = L.marker([j.lat, j.lon], { icon: icon(j), keyboard: false, title: j.label, zIndexOffset: chosen.includes(j.id) ? 1000 : 0 });
+    const kind = j.roundabout ? ' — roundabout' : j.signal ? ' — signal' : ' — no signal on OpenStreetMap';
+    m.bindTooltip(j.label + kind + (chosen.includes(j.id) ? ' (chosen ' + (chosen.indexOf(j.id) + 1) + ')' : ''), { direction: 'top', offset: [0, -8] });
+    m.on('click', () => send({ kind: 'toggle', id: j.id }));
+    m.addTo(layer);
+  }
+}
+
+function report() {
+  const b = map.getBounds();
+  send({ kind: 'view', s: b.getSouth(), w: b.getWest(), n: b.getNorth(), e: b.getEast(), zoom: map.getZoom() });
+}
+map.on('moveend', report);
+
+window.chrome && window.chrome.webview && window.chrome.webview.addEventListener('message', (ev) => {
+  const m = ev.data;
+  if (m.cmd === 'goto') {
+    if (m.box) map.fitBounds([[m.box[0], m.box[1]], [m.box[2], m.box[3]]], { maxZoom: 17 });
+    else map.setView([m.lat, m.lon], m.zoom || 16);
+  } else if (m.cmd === 'junctions') {
+    junctions = m.list; chosen = m.chosen || [];
+    if (boxLayer) boxLayer.remove();
+    boxLayer = m.box ? L.rectangle([[m.box[0], m.box[1]], [m.box[2], m.box[3]]], { className: 'box', color: '#0f6b4a', weight: 2, fill: false, interactive: false }).addTo(map) : null;
+    draw();
+  } else if (m.cmd === 'chosen') {
+    chosen = m.ids; draw();
+  } else if (m.cmd === 'focus') {
+    const j = junctions.find(x => x.id === m.id);
+    if (j) map.panTo([j.lat, j.lon]);
+  }
+});
+report();
+send({ kind: 'ready' });
+</script>
+</body>
+</html>

@@ -9,6 +9,7 @@ using Microsoft.Win32;
 using TrafficLabPlus.App.Views;
 using TrafficLabPlus.Core.Build;
 using TrafficLabPlus.Core.Model;
+using TrafficLabPlus.Core.Osm;
 
 namespace TrafficLabPlus.App;
 
@@ -33,8 +34,8 @@ public partial class MainWindow : Window
     public MainWindow(string? openPath = null)
     {
         InitializeComponent();
-        _sections["Start"] = new StartView(OpenExample, NewStudy, OpenStudy, OpenFile, () => _recent.Load());
-        _sections["Map"] = new MapView(() => NavNetwork.IsChecked = true);
+        _sections["Start"] = new StartView(OpenExample, () => Go(NavMap), NewStudy, OpenStudy, OpenFile, () => _recent.Load());
+        _sections["Map"] = new MapView(MakeFromMap);
         _sections["Network"] = new NetworkView();
         _sections["Traffic"] = new TrafficView();
         _sections["Challenge"] = new ChallengeView();
@@ -136,7 +137,8 @@ public partial class MainWindow : Window
     private void ShowStudyState()
     {
         bool open = _session is not null;
-        foreach (RadioButton nav in new[] { NavMap, NavNetwork, NavTraffic, NavChallenge, NavPreview, NavPublish })
+        // the map needs no study: it is where one starts
+        foreach (RadioButton nav in new[] { NavNetwork, NavTraffic, NavChallenge, NavPreview, NavPublish })
         {
             nav.IsEnabled = open;
         }
@@ -316,6 +318,61 @@ public partial class MainWindow : Window
         var session = new StudySession(new StudyDocument { Study = StudyTemplates.Create(dialog.Request) }, null, isExample: false);
         session.MarkUnsaved();
         Open(session);
+    }
+
+    /// <summary>The Map section's last step: name the study, set its budget, build it from the chosen
+    /// intersections and open it, with OpenStreetMap's answer kept inside it.</summary>
+    private Task MakeFromMap(OsmCache cache)
+    {
+        var map = (MapView)_sections["Map"];
+        string? first = map.Junctions.FirstOrDefault(j => j.Id == cache.Junctions.FirstOrDefault())?.Label;
+        string? title = first is null ? null : (cache.Junctions.Count == 1 ? first : first.Split(" & ")[0]) + " Traffic Lab";
+        var dialog = new NewStudyWindow(_settings, cache.Junctions.Count, map.Area, title) { Owner = this };
+        if (dialog.ShowDialog() != true || dialog.Request is not { } r || !ConfirmDiscard())
+        {
+            return Task.CompletedTask;
+        }
+
+        OsmStudy made;
+        try
+        {
+            made = NetworkFromOsm.Build(OsmData.Parse(cache.Overpass), new OsmStudyRequest
+            {
+                Junctions = cache.Junctions,
+                Title = r.Title,
+                Place = r.Place,
+                Author = r.Author,
+                Course = r.Course,
+                Budget = r.Budget,
+            });
+        }
+        catch (Exception ex) when (ex is ArgumentException or StudyFormatException)
+        {
+            MessageBox.Show(this, "The study could not be made: " + ex.Message, "TrafficLab+", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return Task.CompletedTask;
+        }
+
+        var doc = new StudyDocument { Study = made.Study };
+        doc.Attachments[OsmCache.Entry] = cache.ToBytes();
+        if (made.Notes.Count > 0)
+        {
+            doc.Notes = "Made from OpenStreetMap " + cache.Fetched + ". Things to check:" + Environment.NewLine
+                        + string.Join(Environment.NewLine, made.Notes.Select(n => "- " + n)) + Environment.NewLine;
+        }
+
+        var session = new StudySession(doc, null, isExample: false);
+        session.MarkUnsaved();
+        Open(session);
+        int signals = made.Study.Nodes.Count(n => n.Type != StudyNode.End);
+        MessageBox.Show(this,
+            $"Made \"{made.Study.Title}\": {signals} intersection{(signals == 1 ? "" : "s")}, {made.Study.Links.Count} roads, with lanes, turn lanes, speeds and names from OpenStreetMap where it has them." + Environment.NewLine + Environment.NewLine
+            + "Each road that leaves the study stops at a road end: an edge of the study, where cars come in and go out." + Environment.NewLine + Environment.NewLine
+            + (made.Notes.Count > 0 ? "Things to check:" + Environment.NewLine + string.Join(Environment.NewLine, made.Notes.Take(5).Select(n => "• " + n))
+                + (made.Notes.Count > 5 ? Environment.NewLine + $"…and {made.Notes.Count - 5} more" : "")
+                + Environment.NewLine + "(All of them are kept in Challenge ▸ Your notes.)" + Environment.NewLine + Environment.NewLine : "")
+            + "Signal timing and traffic volumes start at plain values: set them in Network and Traffic. Then save the study (Ctrl+S).",
+            "TrafficLab+", MessageBoxButton.OK, MessageBoxImage.Information);
+        return Task.CompletedTask;
     }
 
     private void OpenStudy()

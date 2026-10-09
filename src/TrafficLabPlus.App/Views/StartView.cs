@@ -11,7 +11,7 @@ namespace TrafficLabPlus.App.Views;
 /// ways in — the built-in examples first (LPGA, then the four-way intersection), because seeing a finished page is the quickest way to
 /// understand what a study becomes.
 /// </summary>
-public sealed class StartView(Action<BuiltInExample> example, Action newStudy, Action open, Action<string> openRecent, Func<IReadOnlyList<string>> recent) : SectionView
+public sealed class StartView(Action<BuiltInExample> example, Action fromMap, Action newStudy, Action open, Action<string> openRecent, Func<IReadOnlyList<string>> recent) : SectionView
 {
     public override void Rebuild()
     {
@@ -25,7 +25,7 @@ public sealed class StartView(Action<BuiltInExample> example, Action newStudy, A
 
         string[] steps =
         [
-            "Start a study — from a simple layout now; from a map of the real roads in the next version.",
+            "Start a study — find your intersection on the map and bring in its real roads, or start from a simple layout.",
             "Shape the network: streets, lanes, speeds, the signal timing and turn lanes that exist today.",
             "Set the traffic, and the challenge: how many vehicles, the budget, what each fix costs.",
             "Check the page on the right as you go — it is exactly the page that will be published. Save it as a file; publishing to the web and handing in the link come in a later version.",
@@ -48,7 +48,8 @@ public sealed class StartView(Action<BuiltInExample> example, Action newStudy, A
             ways.Children.Add(Way("Open the " + ex.Title + " example", ex.Description + " Play it, change it, save your own copy.", () => example(ex), primary: ex == Examples.All[0]));
         }
 
-        ways.Children.Add(Way("New study…", "Name it, pick a starting layout and set the budget players get.", newStudy));
+        ways.Children.Add(Way("New study from the map", "Find your intersection, bring in its roads from OpenStreetMap, choose up to ten intersections.", fromMap));
+        ways.Children.Add(Way("New study from a layout…", "One signal, a T, or a row of signals that you shape to match the real roads.", newStudy));
         ways.Children.Add(Way("Open a study file…", "A .trafficlab file you or someone else saved.", open));
         panel.Children.Add(ways);
 

@@ -30,6 +30,8 @@ const S = {
   sim: null
 };
 const ST = TG.STUDY;
+// one intersection is an intersection, not a corridor (Ron, 2026-10-09)
+const SINGLE = ST.nodes.filter(n => n.type !== 'end').length === 1;
 const SCEN = ((ST.demand && ST.demand.scenarios) || [{ name: 'Today', mult: 1.0 }]).map(s => ({ k: s.name, v: s.mult }));
 // US customary on the page (Ron, 2026-10-09); the study is in metres
 const FT_PER_M = 3.28084;
@@ -408,7 +410,7 @@ function overviewHTML() {
   const rows = net.dirList.filter(d => net.nodes[d.to].ctrl !== 'end').map(d => ({ d, vc: d.vc, dl: TG.dirDelay(d) }))
     .sort((a, b) => S.colorMode === 'vc' ? b.vc - a.vc : (b.dl || 0) - (a.dl || 0)).slice(0, 6);
   const un = S.sim.analysis.unserved;
-  return `<h2>Corridor overview</h2>
+  return `<h2>${SINGLE ? 'Intersection' : 'Corridor'} overview</h2>
     <p class="hint">Click any road or intersection on the map to inspect it and buy improvements. Worst approaches right now:</p>
     ${un > 0 ? `<p class="warn">${Math.round(un)} veh/h cannot reach their destination with this plan.</p>` : ''}
     <table class="t"><tr><th>Approach</th><th>At</th><th style="text-align:right">v/c</th><th style="text-align:right">Delay</th></tr>
@@ -662,7 +664,7 @@ function printoutHTML(run) {
     </table>
     <div><b>Every approach</b> <span class="sub">v/c with its LOS, and the delay measured from the simulated cars</span>
     <table class="t"><tr><th>Approach</th><th>At</th><th style="text-align:right">v/c today</th><th style="text-align:right">v/c plan</th><th style="text-align:right">Delay today</th><th style="text-align:right">Delay plan</th></tr>${appr}</table></div>
-    <p class="sub">Made with TrafficLab+. A teaching model: planning-level v/c and a simulated corridor, not an engineering analysis.${ST.sources && ST.sources.osm ? ' Road data © OpenStreetMap contributors.' : ''}</p>`;
+    <p class="sub">Made with TrafficLab+. A teaching model: planning-level v/c and a simulated ${SINGLE ? 'intersection' : 'corridor'}, not an engineering analysis.${ST.sources && ST.sources.osm ? ' Road data © OpenStreetMap contributors.' : ''}</p>`;
 }
 let printed = null;   // the run on the printout now
 function showPrintout(run) {
