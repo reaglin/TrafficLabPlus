@@ -1,0 +1,1661 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>LPGA Traffic Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;800&family=Overpass+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one-screen engineering console — live map on the left, inspector/plan/test stack on the right; stacks on phones.
+   Overpass is an open descendant of the US highway-sign alphabet (FHWA "Highway Gothic"). */
+:root {
+  --bg: #eef1ef;         /* console ground, faint green-grey */
+  --panel: #ffffff;
+  --ink: #17201c;
+  --muted: #5d6b65;
+  --line: #d3dad6;
+  --sign: #0f6b4a;       /* guide-sign green (accent) */
+  --sign-ink: #ffffff;
+  --amber: #e2a400;      /* signal amber, used sparingly */
+  --map-bg: #e7ebe8;
+  --map-block: #dcd5c3;
+  --map-local: #9ec9d1;
+  --pave: #b9c0c1;
+  --pave-edge: #8f989a;
+  --mark: #ffffff;
+  --label: #23302b;
+  --halo: rgba(240,243,241,.92);
+  --chip: #eef3f0;
+  --los-a: #2e9e5b; --los-b: #84bd3f; --los-c: #e0c52c; --los-d: #f09a2a; --los-e: #e2542b; --los-f: #a8172a;
+  --font-d: "Overpass", "Highway Gothic", "Arial Narrow", system-ui, sans-serif;
+  --font-m: "Overpass Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #131917; --panel: #1b2320; --ink: #e5ece8; --muted: #93a39c; --line: #2c3833;
+  --sign: #2f9b72; --sign-ink: #06110c; --amber: #f2b81c;
+  --map-bg: #182019; --map-block: #2a2a22; --map-local: #2d5b63; --pave: #3c4446; --pave-edge: #566063;
+  --mark: #d9dedb; --label: #dbe5e0; --halo: rgba(20,27,24,.9); --chip: #222c28; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #131917; --panel: #1b2320; --ink: #e5ece8; --muted: #93a39c; --line: #2c3833;
+  --sign: #2f9b72; --sign-ink: #06110c; --amber: #f2b81c;
+  --map-bg: #182019; --map-block: #2a2a22; --map-local: #2d5b63; --pave: #3c4446; --pave-edge: #566063;
+  --mark: #d9dedb; --label: #dbe5e0; --halo: rgba(20,27,24,.9); --chip: #222c28; color-scheme: dark }
+
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-d); font-size: 14px; line-height: 1.4; }
+* { box-sizing: border-box; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+.app { display: grid; grid-template-rows: auto 1fr; height: 100%; padding-inline: 16px; padding-block: 10px; gap: 10px; }
+header.top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.shield { background: var(--sign); color: var(--sign-ink); border-radius: 6px; padding: 4px 10px 2px; font-weight: 800; letter-spacing: .02em; font-size: 20px; border: 2px solid var(--sign-ink); box-shadow: 0 0 0 2px var(--sign); }
+.brand small { color: var(--muted); font-size: 12px; max-width: 30ch; line-height: 1.25; }
+.who { margin-left: auto; color: var(--muted); font-size: 13px; }
+.who b { color: var(--ink); }
+
+.main { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 12px; min-height: 0; }
+.mapwrap { position: relative; background: var(--map-bg); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-height: 360px; display: flex; flex-direction: column; }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 8px 10px; border-bottom: 1px solid var(--line); background: var(--panel); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 4px 9px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--sign); color: var(--sign-ink); font-weight: 600; }
+.tlabel { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.demand { display: flex; align-items: center; gap: 8px; }
+.demand input[type=range] { width: 120px; accent-color: var(--sign); }
+.demand output { font-family: var(--font-m); font-weight: 600; min-width: 4ch; }
+.clock { font-family: var(--font-m); font-size: 12px; color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+canvas#map { flex: 1; width: 100%; min-height: 0; display: block; touch-action: none; cursor: grab; }
+.legend { position: absolute; left: 10px; bottom: 10px; display: flex; gap: 2px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 7px; padding: 5px 7px; font-size: 11px; }
+.legend span.sw { width: 22px; height: 10px; border-radius: 2px; display: inline-block; }
+.legend .lt { color: var(--muted); margin-right: 6px; text-transform: uppercase; letter-spacing: .06em; }
+.legend .ln { font-family: var(--font-m); width: 22px; text-align: center; display: inline-block; font-size: 10px; }
+.zoom { position: absolute; right: 10px; bottom: 10px; display: flex; flex-direction: column; gap: 4px; }
+.zoom button { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); font-weight: 700; }
+.zonectl-layer { position: absolute; inset: 0; pointer-events: none; }
+.zonectl { position: absolute; left: 0; top: 0; width: 34px; display: flex; flex-direction: column; align-items: stretch; pointer-events: auto;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 7px; box-shadow: 0 1px 4px rgba(0,0,0,.18); overflow: hidden; }
+.zonectl button { border: 0; background: transparent; font-size: 10px; line-height: 1; padding: 4px 0 3px; color: var(--sign); }
+.zonectl button:hover { background: var(--chip); }
+.zonectl output { font-family: var(--font-m); font-size: 10px; text-align: center; padding: 1px 0; border-block: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.zonectl.changed { border-color: var(--amber); box-shadow: 0 0 0 1px var(--amber); }
+.zonectl.changed output { font-weight: 600; }
+.glyph { flex: none; margin-top: -4px; }
+.tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--line); border-radius: 7px; padding: 6px 8px; font-size: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.15); max-width: 240px; }
+.toast { position: absolute; top: 56px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 6px 12px; border-radius: 999px; font-size: 13px; opacity: 0; transition: opacity .25s; pointer-events: none; }
+.toast.on { opacity: .92; }
+
+aside.side { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow-y: auto; padding-right: 2px; }
+section.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+section.card h2 { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); font-weight: 600; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.insp-title { font-size: 19px; font-weight: 800; line-height: 1.15; text-wrap: balance; margin: 0; }
+.sub { color: var(--muted); font-size: 12.5px; margin: 0; }
+.hint { color: var(--muted); font-size: 13px; margin: 0; }
+table.t { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+table.t th { text-align: left; font-weight: 600; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; padding: 3px 4px; border-bottom: 1px solid var(--line); }
+table.t td { padding: 5px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.t td.n { font-family: var(--font-m); text-align: right; white-space: nowrap; }
+table.t tr.click { cursor: pointer; }
+table.t tr.click:hover td { background: var(--chip); }
+.los { display: inline-block; min-width: 22px; text-align: center; border-radius: 4px; font-weight: 800; font-size: 12px; padding: 1px 4px 0; color: #fff; }
+.los.A { background: var(--los-a); } .los.B { background: var(--los-b); color: #10210a; } .los.C { background: var(--los-c); color: #2a2400; }
+.los.D { background: var(--los-d); color: #2a1600; } .los.E { background: var(--los-e); } .los.F { background: var(--los-f); }
+.opt { display: flex; align-items: flex-start; gap: 8px; padding: 7px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--chip); }
+.opt input { margin-top: 3px; accent-color: var(--sign); }
+.opt label { flex: 1; cursor: pointer; }
+.opt .cost { font-family: var(--font-m); font-size: 12px; color: var(--muted); white-space: nowrap; }
+.opt.disabled { opacity: .55; }
+.opt.disabled label { cursor: default; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.row > label { font-size: 12.5px; color: var(--muted); min-width: 92px; }
+.row input[type=range] { flex: 1; accent-color: var(--sign); min-width: 100px; }
+.row output { font-family: var(--font-m); font-size: 12.5px; min-width: 7ch; text-align: right; }
+select { border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; background: var(--panel); }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 7px; padding: 6px 11px; font-weight: 600; }
+.btn.primary { background: var(--sign); color: var(--sign-ink); border-color: var(--sign); }
+.btn.small { padding: 3px 8px; font-size: 12px; }
+.btn:disabled { opacity: .5; cursor: default; }
+.budget { display: flex; flex-direction: column; gap: 4px; }
+.meter { height: 10px; background: var(--chip); border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
+.meter > i { display: block; height: 100%; background: var(--sign); transition: width .3s; }
+.meter.over > i { background: var(--los-f); }
+.budget .nums { display: flex; justify-content: space-between; font-family: var(--font-m); font-size: 12px; }
+ul.plan { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+ul.plan li { display: flex; gap: 8px; align-items: baseline; font-size: 12.5px; padding: 4px 0; border-bottom: 1px dashed var(--line); }
+ul.plan li span:first-child { flex: 1; }
+ul.plan li .cost { font-family: var(--font-m); color: var(--muted); }
+ul.plan li button { border: 0; background: transparent; color: var(--muted); font-size: 15px; line-height: 1; padding: 0 2px; }
+.progress { height: 6px; background: var(--chip); border-radius: 999px; overflow: hidden; }
+.progress > i { display: block; height: 100%; width: 0; background: var(--amber); }
+.scorebig { display: flex; align-items: baseline; gap: 10px; }
+.scorebig b { font-size: 40px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.scorebig span { color: var(--muted); font-size: 13px; }
+.parts { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; font-size: 12.5px; }
+.parts span:nth-child(even) { font-family: var(--font-m); text-align: right; }
+.warn { color: var(--los-e); font-size: 12.5px; margin: 0; font-weight: 600; }
+tr.best td { background: color-mix(in srgb, var(--sign) 12%, transparent); }
+
+dialog { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--ink); max-width: min(560px, calc(100vw - 32px)); padding: 20px; }
+dialog::backdrop { background: rgba(10,16,13,.55); }
+dialog h3 { margin: 0 0 6px; font-size: 22px; font-weight: 800; }
+dialog p, dialog li { font-size: 14px; line-height: 1.5; }
+dialog ol { padding-left: 20px; margin: 8px 0; }
+dialog input[type=text] { width: 100%; border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; background: var(--bg); margin: 6px 0 12px; }
+.report { display: flex; flex-direction: column; gap: 10px; }
+.report .hdr { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; border-bottom: 2px solid var(--sign); padding-bottom: 6px; flex-wrap: wrap; }
+.report .hdr b { font-size: 18px; }
+
+@media (max-width: 900px) {
+  .app { height: auto; }
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .mapwrap { height: 70vh; min-height: 420px; }
+  aside.side { overflow: visible; }
+  .clock { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="shield" aria-hidden="true">LPGA</div>
+      <div><div style="font-weight:800;font-size:17px;line-height:1.1">LPGA Traffic Lab</div><small>Fix the LPGA Blvd / I-95 / Williamson corridor on a $5M budget</small></div>
+    </div>
+    <div class="who" id="who"></div>
+  </header>
+
+  <div class="main">
+    <div class="mapwrap">
+      <div class="toolbar">
+        <div class="seg" id="playseg"><button id="btnPlay" aria-label="Pause">❚❚</button></div>
+        <div class="seg" id="speedseg" aria-label="Simulation speed"></div>
+        <div class="demand">
+          <span class="tlabel">Demand</span>
+          <input type="range" id="demand" min="50" max="200" step="5" value="100" aria-label="Traffic demand percent">
+          <output id="demandOut">100%</output>
+        </div>
+        <div class="seg" id="scenseg" aria-label="Demand scenario"></div>
+        <div class="seg" id="colorseg" aria-label="Color roads by"></div>
+        <span class="clock" id="clock">00:00</span>
+      </div>
+      <canvas id="map" aria-label="Traffic map. Click a road or intersection to inspect it."></canvas>
+      <div class="legend" id="legend"></div>
+      <div class="zoom"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">−</button><button id="zfit" aria-label="Fit map" style="font-size:11px">FIT</button></div>
+      <div class="tip" id="tip" hidden></div>
+      <div class="toast" id="toast"></div>
+    </div>
+
+    <aside class="side">
+      <section class="card" id="inspector"></section>
+      <section class="card">
+        <h2>Your plan <span id="planCount"></span></h2>
+        <div class="budget">
+          <div class="meter" id="meter"><i style="width:0"></i></div>
+          <div class="nums"><span id="spent">$0.00M spent</span><span id="left">$5.00M left</span></div>
+        </div>
+        <ul class="plan" id="planList"></ul>
+        <div class="row"><button class="btn small" id="btnClear">Clear plan</button></div>
+      </section>
+      <section class="card">
+        <h2>Traffic test <span id="testDemand"></span></h2>
+        <p class="hint">Runs 3 seeded 15-minute simulations of today's network and of your plan at the current demand, then scores the plan.</p>
+        <div class="row"><button class="btn primary" id="btnTest">Run traffic test</button><button class="btn" id="btnReport" disabled>Score report</button></div>
+        <div class="progress" id="prog" hidden><i></i></div>
+        <div id="scoreBox"></div>
+        <div style="overflow-x:auto"><table class="t" id="runs"></table></div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<dialog id="intro">
+  <h3>LPGA Traffic Lab</h3>
+  <p>This is the LPGA Blvd corridor at I-95 in Daytona Beach. Cars follow a real car-following model, signals cycle through their phases, and each road is shaded by its Level of Service (LOS A–F).</p>
+  <ol>
+    <li>Raise the <b>demand</b> slider until roads turn orange and red.</li>
+    <li>Click a <b>road</b> or <b>intersection</b> to see its volumes and the fixes you can buy.</li>
+    <li>Build a plan under the <b>$5M budget</b>, then press <b>Run traffic test</b> to compare it against today's network.</li>
+  </ol>
+  <label for="nameIn" class="tlabel">Your name (shown on your score report)</label>
+  <input type="text" id="nameIn" autocomplete="name" placeholder="First and last name">
+  <div class="row" style="justify-content:flex-end"><button class="btn primary" id="btnStart">Start</button></div>
+</dialog>
+
+<dialog id="reportDlg"><div class="report" id="reportBody"></div>
+  <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" id="btnCloseReport">Close</button></div>
+</dialog>
+
+<script>/* =====================================================================
+   GRIDLOCK GAMBIT — SIMULATION CORE
+   ---------------------------------------------------------------------
+   This file has NO drawing code. It holds:
+     1. DATA      – the road network (nodes, links, zones) as plain objects
+     2. BUILD     – turns DATA + the player's plan into lanes, paths, signals
+     3. ROUTING   – shortest paths for every origin/destination pair
+     4. SIGNALS   – fixed-time signal controller (phases, yellow, all-red)
+     5. VEHICLES  – Intelligent Driver Model (IDM) car-following
+     6. SIM STEP  – spawning, moving, turning, gap acceptance, roundabouts
+     7. ANALYSIS  – planning-level volume/capacity (v/c) and Level of Service
+   Keeping the model separate from the picture is the #1 lesson for
+   building an educational game: you can test the engineering without
+   ever opening a browser.
+   Units: 1 px = 0.6 m.  Speeds in px/s (33 px/s ≈ 20 m/s ≈ 45 mph).
+   ===================================================================== */
+(function (root) {
+'use strict';
+
+// ---------- tunable constants (students: try changing these!) ----------
+const C = {
+  M_PER_PX: 0.6,
+  CAR_LEN: 8,        // px  (~4.8 m)
+  S0: 3.5,           // px  minimum jam gap
+  T_HEAD: 1.2,       // s   desired time headway
+  A_MAX: 2.6,        // px/s² comfortable acceleration
+  B_COMF: 3.4,       // px/s² comfortable braking
+  B_MAX: 7.5,        // px/s² hardest braking a driver will use for a light
+  LANE_W: 6,         // px  drawn lane width
+  MED: 5,            // px  half-median (room for a left-turn pocket)
+  POCKET_LEN: 84,    // px  turn-lane storage (~7 cars)
+  TURN_SPEED: 13,    // px/s (~17 mph)
+  RING_SPEED: 12,    // px/s
+  RAB_R: 17,         // px  roundabout circulating radius
+  YELLOW: 3, ALLRED: 1,
+  SAT: 1800,         // veh/hr/lane saturation flow
+  DT: 0.1            // s simulation step
+};
+
+// =====================================================================
+// 1. DATA
+// =====================================================================
+// Signal nodes list which links are the "main street" (phase group A).
+const NODES = {
+  W:    { type: 'end', x: 8,   y: 562, name: 'LPGA Blvd (west)' },
+  I95N: { type: 'end', x: 52,  y: 300, name: 'I-95 north ramps' },
+  I95S: { type: 'end', x: 70,  y: 790, name: 'I-95 south ramps' },
+  NE:   { type: 'end', x: 995, y: 92,  name: 'LPGA Blvd (east)' },
+  N:    { type: 'end', x: 556, y: 4,   name: 'N Williamson Blvd (north)' },
+  S:    { type: 'end', x: 798, y: 836, name: 'N Williamson Blvd (south)' },
+  BUC:  { type: 'end', x: 358, y: 206, name: "Gateway N Dr / Buc-ee's" },
+  SW:   { type: 'end', x: 398, y: 836, name: 'Market Center Dr (south) / Academy' },
+  I1: { type: 'signal', x: 96,  y: 514, name: 'LPGA & I-95 Ramps',         groupA: ['L1', 'L2'], C: 100, split: 0.62, protA: true },
+  I2: { type: 'signal', x: 407, y: 342, name: 'LPGA & Market Center',      groupA: ['L2', 'L3'], C: 90,  split: 0.60, protA: true },
+  I3: { type: 'signal', x: 625, y: 237, name: 'LPGA & Williamson',         groupA: ['L3', 'L4'], C: 120, split: 0.56, protA: true, protB: true },
+  I4: { type: 'signal', x: 477, y: 531, name: 'Market Center & Shoppes Way', groupA: ['O2', 'O3'], C: 60, split: 0.60 },
+  I5: { type: 'signal', x: 690, y: 472, name: 'Williamson & Shoppes Way',  groupA: ['W2', 'W3'], C: 90,  split: 0.65 }
+};
+
+// lanes = through lanes in EACH direction. speed in px/s.
+const LINKS = [
+  { id: 'L1', a: 'W',    b: 'I1', name: 'LPGA Blvd',         lanes: 2, speed: 33 },
+  { id: 'L2', a: 'I1',   b: 'I2', name: 'LPGA Blvd',         lanes: 2, speed: 33 },
+  { id: 'L3', a: 'I2',   b: 'I3', name: 'LPGA Blvd',         lanes: 2, speed: 33 },
+  { id: 'L4', a: 'I3',   b: 'NE', name: 'LPGA Blvd',         lanes: 2, speed: 33 },
+  { id: 'R1', a: 'I95N', b: 'I1', name: 'I-95 Ramp (N)',     lanes: 2, speed: 30 },
+  { id: 'R2', a: 'I95S', b: 'I1', name: 'I-95 Ramp (S)',     lanes: 2, speed: 30 },
+  { id: 'W1', a: 'N',    b: 'I3', name: 'N Williamson Blvd', lanes: 2, speed: 33 },
+  { id: 'W2', a: 'I3',   b: 'I5', name: 'N Williamson Blvd', lanes: 2, speed: 33 },
+  { id: 'W3', a: 'I5',   b: 'S',  name: 'N Williamson Blvd', lanes: 2, speed: 33 },
+  { id: 'O1', a: 'BUC',  b: 'I2', name: 'Gateway N Dr',      lanes: 1, speed: 22 },
+  { id: 'O2', a: 'I2',   b: 'I4', name: 'Market Center Dr',  lanes: 1, speed: 22 },
+  { id: 'O3', a: 'I4',   b: 'SW', name: 'Market Center Dr',  lanes: 1, speed: 22 },
+  { id: 'C1', a: 'I4',   b: 'I5', name: 'Shoppes Way',       lanes: 1, speed: 22 }
+];
+
+// Turn lanes that already exist today (free, cannot be removed)
+const EXISTING_POCKETS = {
+  'L2:ab': { L: 1 }, 'L3:ba': { L: 1 },            // LPGA at Market Center
+  'L3:ab': { L: 1 }, 'L4:ba': { L: 1 }, 'W1:ab': { L: 1 }, 'W2:ba': { L: 1 },  // LPGA & Williamson
+  'L1:ab': { L: 1 }, 'L2:ba': { L: 1 }             // LPGA at I-95
+};
+
+// Trip generation weights (relative). OD volume ∝ P(o)·P(d)  (gravity model)
+const ZONES = { W: 700, I95N: 950, I95S: 950, NE: 900, N: 550, S: 650, BUC: 480, SW: 430 };
+const NO_TRIPS = [['I95N', 'I95S']];   // freeway-to-freeway trips stay on I-95
+const BASE_TOTAL = 3800;               // total veh/hr entering at 100% demand
+
+// Costs ($ millions)
+const COSTS = {
+  addLane: (len) => +(0.6 + len * 0.004).toFixed(2),
+  oneWay: 0.15, pocketL: 0.45, pocketR: 0.35,
+  retime: 0.02, protL: 0.08, roundabout: 2.8
+};
+const BUDGET = 5.0;
+
+// =====================================================================
+// helpers
+// =====================================================================
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const mod = (a, n) => ((a % n) + n) % n;
+function compass(ux, uy) { return Math.abs(ux) >= Math.abs(uy) ? (ux > 0 ? 'EB' : 'WB') : (uy > 0 ? 'SB' : 'NB'); }
+function emptyPlan() { return { links: {}, pockets: {}, signals: {}, roundabouts: {} }; }
+function clonePlan(p) { return JSON.parse(JSON.stringify(p)); }
+
+function losFromVC(vc) { return vc <= 0.6 ? 'A' : vc <= 0.7 ? 'B' : vc <= 0.8 ? 'C' : vc <= 0.9 ? 'D' : vc <= 1.0 ? 'E' : 'F'; }
+function losFromDelay(d) { return d <= 10 ? 'A' : d <= 20 ? 'B' : d <= 35 ? 'C' : d <= 55 ? 'D' : d <= 80 ? 'E' : 'F'; }
+
+// =====================================================================
+// 2. BUILD — plan → network
+// =====================================================================
+function signalSettings(plan, id) {
+  const n = NODES[id]; const s = plan.signals[id] || {};
+  return { C: s.C || n.C, split: s.split != null ? s.split : n.split,
+    protA: s.protA != null ? s.protA : !!n.protA, protB: s.protB != null ? s.protB : !!n.protB };
+}
+
+function buildNetwork(plan) {
+  const net = { nodes: {}, dirs: {}, dirList: [], plan, lanesAll: [] };
+  for (const id in NODES) {
+    const N = NODES[id];
+    net.nodes[id] = { id, ...N, inDirs: [], outDirs: [], paths: [], moves: {},
+      ctrl: N.type === 'end' ? 'end' : (plan.roundabouts[id] ? 'rab' : 'sig'), ringVeh: [] };
+  }
+  const trim = (n) => n.ctrl === 'end' ? 0 : n.ctrl === 'rab' ? C.RAB_R + 13 : 19;
+
+  for (const L of LINKS) {
+    const ov = plan.links[L.id] || {};
+    let nAB = L.lanes + (ov.addLane ? 1 : 0), nBA = nAB;
+    let oneWay = false;
+    if (ov.oneWay === 'ab') { nAB += nBA; nBA = 0; oneWay = true; }
+    if (ov.oneWay === 'ba') { nBA += nAB; nAB = 0; oneWay = true; }
+    makeDir(L, L.a, L.b, nAB, 'ab', oneWay);
+    makeDir(L, L.b, L.a, nBA, 'ba', oneWay);
+  }
+
+  function makeDir(L, from, to, n, tag, oneWay) {
+    if (n <= 0) return;
+    const A = net.nodes[from], B = net.nodes[to];
+    const dx = B.x - A.x, dy = B.y - A.y, D = Math.hypot(dx, dy);
+    const ux = dx / D, uy = dy / D, t0 = trim(A), t1 = trim(B);
+    const d = { id: L.id + ':' + tag, link: L, from, to, n, ux, uy, nx: -uy, ny: ux,
+      x0: A.x + ux * t0, y0: A.y + uy * t0, len: D - t0 - t1, speed: L.speed,
+      med: oneWay ? -n * C.LANE_W / 2 : C.MED, lanes: [], pocketL: null, pocketR: null,
+      heading: compass(ux, uy), delays: [], vol: 0, vc: 0 };
+    d.label = `${L.name} ${d.heading}`;
+    for (let i = 0; i < n; i++) d.lanes.push(makeLane(d, i, 0, 'main'));
+    const pk = { ...(EXISTING_POCKETS[d.id] || {}), ...(plan.pockets[d.id] || {}) };
+    if (B.ctrl !== 'end') {
+      if (pk.L) d.pocketL = makeLane(d, -1, Math.max(0, d.len - C.POCKET_LEN), 'L');
+      if (pk.R) d.pocketR = makeLane(d, n, Math.max(0, d.len - C.POCKET_LEN), 'R');
+    }
+    net.dirs[d.id] = d; net.dirList.push(d);
+    A.outDirs.push(d); B.inDirs.push(d);
+  }
+  function makeLane(d, idx, start, kind) {
+    const lane = { id: d.id + '#' + idx, dir: d, idx, kind, start, len: d.len,
+      off: d.med + (idx + 0.5) * C.LANE_W, veh: [], incoming: 0 };
+    net.lanesAll.push(lane); return lane;
+  }
+
+  // movements, groups, opposing approaches, signal plans, ring geometry
+  for (const id in net.nodes) {
+    const node = net.nodes[id];
+    if (node.ctrl === 'end') continue;
+    for (const d of node.inDirs) {
+      node.moves[d.id] = {};
+      for (const e of node.outDirs) {
+        if (e.link === d.link) continue;                      // no U-turns
+        const cross = d.ux * e.uy - d.uy * e.ux, dot = d.ux * e.ux + d.uy * e.uy;
+        node.moves[d.id][e.id] = dot > 0.82 ? 'T' : (cross > 0 ? 'R' : 'L');
+      }
+      d.group = (NODES[id].groupA || []).includes(d.link.id) ? 'A' : 'B';
+      let best = null, bd = -0.55;
+      for (const o of node.inDirs) { if (o === d) continue; const dot = d.ux * o.ux + d.uy * o.uy; if (dot < bd) { bd = dot; best = o; } }
+      d.opp = best;
+    }
+    if (node.ctrl === 'sig') node.sig = makeSignal(signalSettings(plan, id));
+    if (node.ctrl === 'rab') {
+      const R = C.RAB_R, L = 2 * Math.PI * R;
+      node.ringLen = L; node.entryS = {}; node.exitS = {};
+      for (const d of node.inDirs) node.entryS[d.id] = mod(-(Math.atan2(-d.uy, -d.ux) - 0.38) * R, L);
+      for (const e of node.outDirs) node.exitS[e.id] = mod(-(Math.atan2(e.uy, e.ux) + 0.38) * R, L);
+    }
+  }
+  return net;
+}
+
+// =====================================================================
+// 4. SIGNALS — fixed-time, 2 or 3 phases
+// =====================================================================
+function makeSignal(s) {
+  // phase order: [A-left] A [B-left] B   (leading protected lefts)
+  const nPh = 2 + (s.protA ? 1 : 0) + (s.protB ? 1 : 0);
+  const G = s.C - nPh * (C.YELLOW + C.ALLRED);
+  const gLA = s.protA ? Math.max(7, Math.round(0.14 * G)) : 0;
+  const gLB = s.protB ? Math.max(7, Math.round(0.12 * G)) : 0;
+  const rem = G - gLA - gLB;
+  const gA = Math.max(8, Math.round(rem * s.split)), gB = Math.max(8, rem - gA);
+  const phases = [];
+  if (s.protA) phases.push({ grp: 'A', leftOnly: true, g: gLA });
+  phases.push({ grp: 'A', g: gA });
+  if (s.protB) phases.push({ grp: 'B', leftOnly: true, g: gLB });
+  phases.push({ grp: 'B', g: gB });
+  const cycle = phases.reduce((t, p) => t + p.g + C.YELLOW + C.ALLRED, 0);
+  return { phases, cycle, settings: s };
+}
+// returns 'G' protected green, 'P' permitted (must yield), 'Y' yellow, 'R' red
+function phaseAllows(p, d, m) {
+  if (d.group !== p.grp) return 'R';
+  if (p.leftOnly) return m === 'L' ? 'G' : 'R';
+  return m === 'L' ? 'P' : 'G';
+}
+function sigState(node, t, d, m) {
+  const S = node.sig; let tt = mod(t, S.cycle);
+  for (const p of S.phases) {
+    if (tt < p.g) return phaseAllows(p, d, m); tt -= p.g;
+    if (tt < C.YELLOW) return phaseAllows(p, d, m) === 'R' ? 'R' : 'Y'; tt -= C.YELLOW;
+    if (tt < C.ALLRED) return 'R'; tt -= C.ALLRED;
+  }
+  return 'R';
+}
+// effective green ratios for analysis
+function greenRatios(sig) {
+  const r = { A: 0, B: 0, AL: 0, BL: 0 };
+  for (const p of sig.phases) { const g = (p.g + C.YELLOW - 2) / sig.cycle; if (p.leftOnly) r[p.grp + 'L'] += g; else r[p.grp] += g; }
+  return r;
+}
+
+// =====================================================================
+// 3. ROUTING — Dijkstra over directed links (states = dirs)
+// =====================================================================
+function computeRoutes(net) {
+  const routes = {};
+  const ends = Object.keys(NODES).filter(k => NODES[k].type === 'end');
+  const PEN = { L: 12, R: 5, T: 0 };
+  for (const o of ends) {
+    routes[o] = {};
+    const dist = new Map(), prev = new Map(), open = [];
+    for (const d of net.nodes[o].outDirs) { dist.set(d, d.len / d.speed); prev.set(d, null); open.push(d); }
+    while (open.length) {
+      open.sort((a, b) => dist.get(a) - dist.get(b));
+      const d = open.shift(); const node = net.nodes[d.to];
+      if (node.ctrl === 'end') continue;
+      for (const e of node.outDirs) {
+        const m = node.moves[d.id][e.id]; if (!m) continue;
+        const c = dist.get(d) + e.len / e.speed + PEN[m] + 8;
+        if (!dist.has(e) || c < dist.get(e)) { if (!dist.has(e)) open.push(e); dist.set(e, c); prev.set(e, d); }
+      }
+    }
+    for (const t of ends) {
+      if (t === o) continue;
+      let best = null, bc = Infinity;
+      for (const d of net.nodes[t].inDirs) if (dist.has(d) && dist.get(d) < bc) { bc = dist.get(d); best = d; }
+      if (!best) { routes[o][t] = null; continue; }
+      const r = []; for (let d = best; d; d = prev.get(d)) r.unshift(d);
+      routes[o][t] = r;
+    }
+  }
+  return routes;
+}
+
+function odMatrix(demandMult, zoneMult) {
+  zoneMult = zoneMult || {};
+  const ids = Object.keys(ZONES), P = {}; let pairs = [], sum = 0;
+  for (const z of ids) P[z] = ZONES[z];
+  for (const o of ids) for (const d of ids) {
+    if (o === d || NO_TRIPS.some(([a, b]) => (a === o && b === d) || (a === d && b === o))) continue;
+    const w = P[o] * P[d]; pairs.push({ o, d, w }); sum += w;
+  }
+  return pairs.map(p => ({ o: p.o, d: p.d,
+    v: BASE_TOTAL * p.w / sum * demandMult * (zoneMult[p.o] ?? 1) }));   // zone multiplier = upstream change to INFLOW only
+}
+
+// =====================================================================
+// 7. ANALYSIS — planning-level v/c, the "macroscopic" half of the hybrid
+// =====================================================================
+function analyze(net, routes, od) {
+  for (const d of net.dirList) { d.vol = 0; d.mv = { L: 0, T: 0, R: 0 }; d.vc = 0; }
+  let unserved = 0;
+  const movVol = {}; // node -> "in>out" -> vol
+  for (const p of od) {
+    const r = routes[p.o][p.d];
+    if (!r) { unserved += p.v; continue; }
+    for (let i = 0; i < r.length; i++) {
+      const d = r[i]; d.vol += p.v;
+      if (i < r.length - 1) {
+        const node = net.nodes[d.to], m = node.moves[d.id][r[i + 1].id];
+        d.mv[m] += p.v;
+        (movVol[node.id] = movVol[node.id] || {})[d.id + '>' + r[i + 1].id] = p.v + ((movVol[node.id] || {})[d.id + '>' + r[i + 1].id] || 0);
+      }
+    }
+  }
+  for (const d of net.dirList) {
+    const node = net.nodes[d.to];
+    if (node.ctrl === 'end') { d.vc = d.vol / (d.n * 1900); d.capInfo = 'free-flow exit'; continue; }
+    if (node.ctrl === 'sig') {
+      const g = greenRatios(node.sig), gr = g[d.group];
+      const vo = d.opp ? d.opp.mv.T + d.opp.mv.R : 0, no = d.opp ? d.opp.n : 1;
+      let capL = d.opp ? Math.max(0, C.SAT * gr * (1 - vo / (C.SAT * no * gr))) * 0.9 + 2 * 3600 / node.sig.cycle : C.SAT * gr * 0.95;
+      capL += C.SAT * 0.95 * g[d.group + 'L'];
+      let main = d.mv.T, vcs = [];
+      if (d.pocketL) vcs.push(d.mv.L / Math.max(capL, 1)); else main += d.mv.L * Math.min(8, (C.SAT * gr) / Math.max(capL, 60));
+      if (d.pocketR) vcs.push(d.mv.R / (C.SAT * 0.85 * gr + 150)); else main += d.mv.R * 1.15;
+      vcs.push(main / (d.n * C.SAT * gr));
+      d.vc = Math.max(...vcs); d.gr = gr;
+    } else { // roundabout: HCM 6th ed. single-lane entry capacity
+      const L = node.ringLen, circ = {}; for (const x of node.inDirs) circ[x.id] = 0;
+      const mv = movVol[node.id] || {};
+      for (const key in mv) {
+        const [i, o] = key.split('>'); const s0 = node.entryS[i], len = mod(node.exitS[o] - s0, L);
+        for (const k of node.inDirs) { if (k.id === i) continue; const pos = mod(node.entryS[k.id] - s0, L); if (pos > 0 && pos < len) circ[k.id] += mv[key]; }
+      }
+      const cap = 1130 * Math.exp(-0.001 * circ[d.id]);
+      d.vc = (d.mv.L + d.mv.T + d.mv.R) / cap; d.circ = circ[d.id];
+    }
+  }
+  return { unserved, movVol };
+}
+
+// =====================================================================
+// 5. VEHICLES — Intelligent Driver Model
+// =====================================================================
+function idm(v, v0, gap, dv) {
+  if (gap === Infinity) return C.A_MAX * (1 - Math.pow(v / v0, 4));
+  const sStar = C.S0 + Math.max(0, v * C.T_HEAD + v * dv / (2 * Math.sqrt(C.A_MAX * C.B_COMF)));
+  const g = Math.max(gap, 0.05);
+  return C.A_MAX * (1 - Math.pow(v / v0, 4) - (sStar / g) * (sStar / g));
+}
+
+// =====================================================================
+// 6. SIMULATION
+// =====================================================================
+function createSim(plan, opts) {
+  opts = opts || {};
+  const net = buildNetwork(plan);
+  const routes = computeRoutes(net);
+  const sim = { net, routes, plan, t: 0, rng: mulberry32(opts.seed || 12345), veh: [], nextId: 1,
+    demandMult: opts.demandMult || 1, zoneMult: opts.zoneMult || {}, backlog: {}, arrivals: [],
+    warmup: opts.warmup || 0, m: { lost: 0, done: 0, spawned: 0, delaySum: 0, lostTrips: 0 } };
+  for (const z in ZONES) sim.backlog[z] = [];
+  sim.setDemand = (mult, zoneMult) => { sim.demandMult = mult; if (zoneMult) sim.zoneMult = zoneMult; refreshDemand(sim); };
+  refreshDemand(sim);
+  return sim;
+}
+function refreshDemand(sim) {
+  sim.od = odMatrix(sim.demandMult, sim.zoneMult);
+  sim.analysis = analyze(sim.net, sim.routes, sim.od);
+  sim.arrivals = sim.od.map(p => ({ ...p, lam: p.v / 3600, next: sim.t + (-Math.log(1 - sim.rng()) * 3600 / Math.max(p.v, 1e-6)) }));
+}
+
+function laneHasRoomAtStart(lane) {
+  const last = lane.veh[lane.veh.length - 1];
+  return !last || last.pos - C.CAR_LEN > C.S0 + 1 + lane.incoming * (C.CAR_LEN + C.S0);
+}
+function insertSorted(lane, v) {
+  let i = lane.veh.length; while (i > 0 && lane.veh[i - 1].pos < v.pos) i--;
+  lane.veh.splice(i, 0, v); return i;
+}
+function removeFrom(arr, v) { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); }
+
+// movement the vehicle will make at the end of route[ri]
+function moveAt(sim, v, ri) {
+  const r = v.route; if (ri >= r.length - 1) return 'X';
+  return sim.net.nodes[r[ri].to].moves[r[ri].id][r[ri + 1].id];
+}
+// pick a lane when entering dir (route index ri) — turners go to their side
+function chooseLane(dir, m) {
+  if (m === 'L') return dir.lanes[0];
+  if (m === 'R') return dir.lanes[dir.n - 1];
+  let best = dir.lanes[0], bc = Infinity;
+  for (const l of dir.lanes) { const c = l.veh.length + l.incoming; if (c < bc) { bc = c; best = l; } }
+  return best;
+}
+function desiredLaneIdx(dir, m) { return m === 'L' ? 0 : m === 'R' ? dir.n - 1 : -1; }
+
+function getPath(node, fromLane, toLane, m) {
+  const key = fromLane.id + '>' + toLane.id;
+  let p = node.paths.find(q => q.key === key); if (p) return p;
+  const a = fromLane.dir, b = toLane.dir;
+  const P0 = { x: a.x0 + a.ux * a.len + a.nx * fromLane.off, y: a.y0 + a.uy * a.len + a.ny * fromLane.off };
+  const P3 = { x: b.x0 + b.nx * toLane.off, y: b.y0 + b.ny * toLane.off };
+  const dist = Math.hypot(P3.x - P0.x, P3.y - P0.y), k = dist * 0.42;
+  const P1 = { x: P0.x + a.ux * k, y: P0.y + a.uy * k }, P2 = { x: P3.x - b.ux * k, y: P3.y - b.uy * k };
+  const pts = [], cum = [0];
+  for (let i = 0; i <= 16; i++) {
+    const t = i / 16, u = 1 - t;
+    pts.push({ x: u*u*u*P0.x + 3*u*u*t*P1.x + 3*u*t*t*P2.x + t*t*t*P3.x, y: u*u*u*P0.y + 3*u*u*t*P1.y + 3*u*t*t*P2.y + t*t*t*P3.y });
+    if (i) cum.push(cum[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
+  }
+  p = { key, node, from: a, fromLane, to: b, toLane, m, pts, cum, len: cum[16], veh: [] };
+  node.paths.push(p); return p;
+}
+
+// --- conflict checks for permitted movements -------------------------
+function canStop(v, dist) { return dist > (v.v * v.v) / (2 * C.B_MAX) || v.v < 3; }
+function oppClear(sim, node, d, myTarget) {
+  const o = d.opp; if (!o) return true;
+  // an opposing RIGHT turn only conflicts if we both squeeze into a 1-lane exit
+  const rightOK = (w) => w.m === 'R' && w.route[w.ri + 1] === myTarget && myTarget.n >= 2;
+  const st = sigState(node, sim.t, o, 'T');
+  if (st !== 'R') {
+    for (const lane of o.lanes.concat(o.pocketR ? [o.pocketR] : [])) {
+      for (const w of lane.veh) {
+        if (w.m === 'L' || rightOK(w)) continue;
+        const dist = o.len - w.pos;
+        if (dist > w.v * 4.5 + 14) break;
+        if (st === 'G' || !canStop(w, dist)) return false;
+      }
+    }
+  }
+  for (const p of node.paths) if (p.from === o && p.m !== 'L' && p.veh.length && !(p.m === 'R' && p.to === myTarget && myTarget.n >= 2)) return false;
+  return true;
+}
+function rtorClear(sim, node, d, target) {
+  for (const l of target.lanes) if (l.incoming > 0) return false;
+  for (const x of node.inDirs) {
+    if (x === d) continue;
+    for (const lane of x.lanes) for (const w of lane.veh) {
+      const dist = x.len - w.pos; if (dist > w.v * 4 + 16) break;
+      if (w.route[w.ri + 1] === target && sigState(node, sim.t, x, w.m) !== 'R') return false;
+    }
+  }
+  return true;
+}
+function ringClear(node, s) {
+  const L = node.ringLen;
+  for (const r of node.ringVeh) {
+    const up = mod(s - r.s, L), ahead = mod(r.s - s, L);
+    if (up < 22 + r.v * 0.8 || ahead < C.CAR_LEN + 3) return false;
+  }
+  return node.ringVeh.length < Math.floor(L / (C.CAR_LEN + C.S0)) - 1;
+}
+
+// may the front vehicle on `lane` enter the node now?
+function mayEnter(sim, v, lane) {
+  const d = lane.dir, node = sim.net.nodes[d.to], next = v.route[v.ri + 1];
+  const dist = d.len - v.pos;
+  if (node.ctrl === 'rab') return ringClear(node, node.entryS[d.id]) && dist < 6;
+  const st = sigState(node, sim.t, d, v.m);
+  if (st === 'G') return true;
+  if (st === 'P') return oppClear(sim, node, d, next);
+  if (st === 'Y') {
+    if (v.m === 'L') return dist < 4 && oppClear(sim, node, d, next);      // "sneaker" on yellow
+    return !canStop(v, dist);                                         // dilemma zone: can't stop, go
+  }
+  if (v.m === 'R' && v.v < 0.5 && dist < 3) return rtorClear(sim, node, d, next); // right on red
+  return false;
+}
+
+function trySpawn(sim) {
+  for (const a of sim.arrivals) {
+    while (a.next <= sim.t) {
+      a.next += -Math.log(1 - sim.rng()) / Math.max(a.lam, 1e-9);
+      const route = sim.routes[a.o][a.d];
+      if (!route) { if (sim.t >= sim.warmup) sim.m.lostTrips++; continue; }
+      sim.backlog[a.o].push({ route, tSpawn: sim.t, wait: 0 });
+      if (sim.t >= sim.warmup) sim.m.spawned++;
+    }
+  }
+  for (const z in sim.backlog) {
+    const q = sim.backlog[z];
+    let tries = 0;
+    while (q.length && tries++ < 3) {
+      const b = q[0], dir = b.route[0];
+      const v = { id: sim.nextId++, route: b.route, ri: 0, pos: 0, v: dir.speed * 0.8, tSpawn: b.tSpawn,
+        tripLost: b.wait, dirLost: 0, lat: null, hue: (sim.nextId * 47) % 360, stopped: 0 };
+      v.m = moveAt(sim, v, 0);
+      const lane = chooseLane(dir, v.m);
+      if (!laneHasRoomAtStart(lane)) break;
+      const last = lane.veh[lane.veh.length - 1];
+      if (last) v.v = Math.min(v.v, last.v + 2);
+      v.lane = lane; v.lat = lane.off; lane.veh.push(v); sim.veh.push(v); q.shift();
+    }
+    for (const b of q) b.wait += C.DT;
+  }
+}
+
+function enterDirFromNode(sim, v, lane, posOver) {
+  v.ri++; v.m = moveAt(sim, v, v.ri);
+  v.pos = Math.max(0, posOver); v.lane = lane; v.path = null; v.ring = null;
+  const i = insertSorted(lane, v);
+  const lead = lane.veh[i - 1]; if (lead && v.pos > lead.pos - C.CAR_LEN - 0.5) v.pos = Math.max(0, lead.pos - C.CAR_LEN - 0.5);
+}
+function recordDirDelay(sim, v, d) {
+  d.delays.push({ t: sim.t, d: v.dirLost }); v.dirLost = 0;
+  while (d.delays.length && d.delays[0].t < sim.t - 300) d.delays.shift();
+}
+
+function step(sim) {
+  const dt = C.DT, net = sim.net;
+  trySpawn(sim);
+  const measuring = sim.t >= sim.warmup;
+
+  // ----- lanes (front to back) -----
+  for (const lane of net.lanesAll) {
+    const d = lane.dir, node = net.nodes[d.to];
+    for (let i = 0; i < lane.veh.length; i++) {
+      const v = lane.veh[i], lead = lane.veh[i - 1];
+      const dist = d.len - v.pos;
+      let v0 = d.speed;
+      if ((v.m === 'L' || v.m === 'R') && dist < 50) v0 = Math.min(v0, C.TURN_SPEED + dist * 0.25);
+      if (node.ctrl === 'rab' && dist < 60) v0 = Math.min(v0, 9 + dist * 0.3);
+      let gap = Infinity, dv = 0;
+      if (lead) { gap = lead.pos - C.CAR_LEN - v.pos; dv = v.v - lead.v; }
+      // must stop at pocket entrance if pocket is full (spillback blocks the through lane)
+      let wantPocket = null;
+      if (lane.kind === 'main') {
+        if (v.m === 'L' && d.pocketL && lane.idx === 0) wantPocket = d.pocketL;
+        if (v.m === 'R' && d.pocketR && lane.idx === d.n - 1) wantPocket = d.pocketR;
+      }
+      if (wantPocket) {
+        const ps = wantPocket.start - v.pos;
+        if (ps <= 0.5) {
+          const pl = wantPocket.veh[wantPocket.veh.length - 1];
+          if (!pl || pl.pos - C.CAR_LEN - C.S0 > v.pos) {   // move into pocket
+            lane.veh.splice(i, 1); i--; v.lane = wantPocket; insertSorted(wantPocket, v); continue;
+          }
+          gap = Math.min(gap, C.S0 * 0.6); dv = v.v;
+        } else if (ps < 80) {
+          const pl = wantPocket.veh[wantPocket.veh.length - 1];
+          if (pl && pl.pos - C.CAR_LEN - C.S0 < wantPocket.start + 1 && ps + C.S0 < gap) { gap = ps + C.S0; dv = v.v; }
+        }
+      }
+      // node entry: only the front vehicle of the lane decides
+      let go = true;
+      if (!lead && node.ctrl !== 'end') {
+        if (dist < 120) {
+          go = mayEnter(sim, v, lane);
+          // also need room in the exit lane (don't block the box)
+          const nd = v.route[v.ri + 1];
+          if (go) { const m2 = moveAt(sim, v, v.ri + 1); v._tgt = pickOutLane(nd, v.m, m2, lane.kind === 'main' ? lane.idx : (lane.kind === 'L' ? 0 : 99)); go = laneHasRoomAtStart(v._tgt); }
+          if (!go && dist + C.S0 - 1 < gap) { gap = Math.max(0, dist + C.S0 - 1); dv = v.v; }
+        }
+      }
+      let a = idm(v.v, v0, gap, dv);
+      a = Math.max(a, -C.B_MAX * 1.6);
+      v.v = Math.max(0, v.v + a * dt);
+      let np = v.pos + v.v * dt;
+      if (lead) np = Math.min(np, lead.pos - C.CAR_LEN - 0.3);
+      v.pos = Math.max(v.pos, np);
+      const lost = dt * Math.max(0, 1 - v.v / d.speed);
+      v.dirLost += lost; v.tripLost += lost; if (measuring) sim.m.lost += lost;
+
+      // optional lane change to reach the turning side
+      if (lane.kind === 'main' && d.n > 1 && v.pos > 12 && dist > C.POCKET_LEN * 0.6) {
+        const want = desiredLaneIdx(d, v.m);
+        if (want >= 0 && want !== lane.idx) {
+          const tl = d.lanes[lane.idx + Math.sign(want - lane.idx)];
+          if (tryLaneChange(v, lane, tl)) { i--; continue; }
+        }
+      }
+
+      // reached the stop line?
+      if (v.pos >= d.len - 0.5 && !lead) {
+        if (node.ctrl === 'end') {
+          lane.veh.splice(i, 1); i--; finishTrip(sim, v); continue;
+        }
+        if (go) {
+          lane.veh.splice(i, 1); i--;
+          recordDirDelay(sim, v, d);
+          const nd = v.route[v.ri + 1];
+          const tgt = v._tgt || pickOutLane(nd, v.m, moveAt(sim, v, v.ri + 1), lane.idx);
+          tgt.incoming++;
+          if (node.ctrl === 'rab') {
+            v.lane = null; v.ring = node; v.s = node.entryS[d.id]; v.tgt = tgt;
+            v.ringLeft = mod(node.exitS[nd.id] - v.s, node.ringLen); v.v = Math.min(v.v, C.RING_SPEED);
+            node.ringVeh.push(v);
+          } else {
+            const p = getPath(node, lane, tgt, v.m);
+            v.lane = null; v.path = p; v.pos = 0; v.tgt = tgt; p.veh.push(v);
+          }
+        } else v.pos = Math.min(v.pos, d.len - 0.5);
+      }
+    }
+  }
+
+  // ----- intersection paths -----
+  for (const id in net.nodes) {
+    const node = net.nodes[id];
+    for (const p of node.paths) {
+      for (let i = 0; i < p.veh.length; i++) {
+        const v = p.veh[i], lead = p.veh[i - 1];
+        let gap = Infinity, dv = 0;
+        if (lead) { gap = lead.pos - C.CAR_LEN - v.pos; dv = v.v - lead.v; }
+        else { const last = p.toLane.veh[p.toLane.veh.length - 1]; if (last) { gap = (p.len - v.pos) + last.pos - C.CAR_LEN; dv = v.v - last.v; } }
+        const v0 = p.m === 'T' ? p.to.speed : C.TURN_SPEED + 4;
+        v.v = Math.max(0, v.v + Math.max(idm(v.v, v0, gap, dv), -C.B_MAX * 1.6) * dt);
+        v.pos += v.v * dt;
+        const lost = dt * Math.max(0, 1 - v.v / p.from.speed);
+        v.dirLost += lost; v.tripLost += lost; if (measuring) sim.m.lost += lost;
+        if (v.pos >= p.len) {
+          p.veh.splice(i, 1); i--; p.toLane.incoming--;
+          addLostToPrev(sim, v, p.from);
+          enterDirFromNode(sim, v, p.toLane, v.pos - p.len);
+        }
+      }
+    }
+    // ----- roundabout ring -----
+    if (node.ctrl === 'rab') {
+      const L = node.ringLen;
+      for (const v of node.ringVeh) {
+        let gap = Infinity, dv = 0;
+        for (const w of node.ringVeh) { if (w === v) continue; const g = mod(w.s - v.s, L) - C.CAR_LEN; if (g > -C.CAR_LEN / 2 && g < gap) { gap = Math.max(g, 0.05); dv = v.v - w.v; } }
+        if (v.ringLeft < 30 && !laneHasRoomAtStartIgnoring(v.tgt, 1)) { const g = Math.max(0, v.ringLeft - 1); if (g < gap) { gap = g; dv = v.v; } }
+        v._a = idm(v.v, C.RING_SPEED, gap, dv);
+      }
+      for (let i = 0; i < node.ringVeh.length; i++) {
+        const v = node.ringVeh[i];
+        v.v = Math.max(0, v.v + Math.max(v._a, -C.B_MAX * 1.6) * dt);
+        const ds = Math.min(v.v * dt, Math.max(0, v.ringLeft));
+        v.s = mod(v.s + ds, L); v.ringLeft -= ds;
+        const ref = v.route[v.ri].speed, lost = dt * Math.max(0, 1 - v.v / ref);
+        v.dirLost += lost; v.tripLost += lost; if (measuring) sim.m.lost += lost;
+        if (v.ringLeft <= 0.2) {
+          node.ringVeh.splice(i, 1); i--; v.tgt.incoming--;
+          addLostToPrev(sim, v, v.route[v.ri]);
+          enterDirFromNode(sim, v, v.tgt, 0);
+        }
+      }
+    }
+  }
+  // backlog delay
+  if (measuring) for (const z in sim.backlog) sim.m.lost += sim.backlog[z].length * dt;
+  sim.t += dt;
+}
+function addLostToPrev(sim, v, d) { if (v.dirLost > 0) { const last = d.delays[d.delays.length - 1]; if (last) last.d += v.dirLost; v.dirLost = 0; } }
+function laneHasRoomAtStartIgnoring(lane, own) {
+  const last = lane.veh[lane.veh.length - 1];
+  return !last || last.pos - C.CAR_LEN > C.S0 + 1 + Math.max(0, lane.incoming - own) * (C.CAR_LEN + C.S0);
+}
+function pickOutLane(dir, m, m2, fromIdx) {
+  // preference order: lane nearest the turn (or best for the NEXT turn), then the others
+  const idx = dir.lanes.map(l => l.idx);
+  let pref;
+  if (m === 'R') pref = dir.n - 1; else if (m === 'L') pref = 0;
+  else if (m2 === 'L') pref = 0; else if (m2 === 'R') pref = dir.n - 1;
+  else pref = Math.min(dir.n - 1, Math.max(0, fromIdx ?? 0));
+  idx.sort((a, b) => Math.abs(a - pref) - Math.abs(b - pref));
+  for (const i of idx) if (laneHasRoomAtStart(dir.lanes[i])) return dir.lanes[i];
+  return dir.lanes[pref];
+}
+function tryLaneChange(v, from, to) {
+  // need gaps ahead and behind in the target lane
+  let ahead = null, behind = null;
+  for (const w of to.veh) { if (w.pos >= v.pos) ahead = w; else { behind = w; break; } }
+  if (ahead && ahead.pos - C.CAR_LEN - v.pos < C.S0 + v.v * 0.6) return false;
+  if (behind && v.pos - C.CAR_LEN - behind.pos < C.S0 + behind.v * 0.9) return false;
+  removeFrom(from.veh, v); v.lane = to; insertSorted(to, v); return true;
+}
+function finishTrip(sim, v) {
+  removeFrom(sim.veh, v);
+  if (sim.t >= sim.warmup) { sim.m.done++; sim.m.delaySum += v.tripLost; }
+}
+function cleanup(sim) { // keep sim.veh in sync (vehicles finished are removed in finishTrip)
+}
+
+// average measured delay per approach (last 5 min)
+function dirDelay(d) { if (!d.delays.length) return null; let s = 0; for (const x of d.delays) s += x.d; return s / d.delays.length; }
+
+// count of vehicles currently stuck in entry backlogs
+function backlogCount(sim) { let n = 0; for (const z in sim.backlog) n += sim.backlog[z].length; return n; }
+
+// =====================================================================
+// TEST RUN — deterministic (seeded) evaluation used for scoring
+// =====================================================================
+// Runs the same plan with several random seeds and averages — one seed is
+// too noisy to compare plans fairly (a great lesson in its own right).
+const SEEDS = [777, 1234, 4242];
+function evaluate(plan, opts, onProgress) {
+  const warm = opts.warmup ?? 180, meas = opts.measure ?? 720, seeds = opts.seeds || SEEDS;
+  const per = (warm + meas) / C.DT, total = per * seeds.length;
+  let si = 0, k = 0, sim = null; const results = [];
+  return new Promise(resolve => {
+    function chunk() {
+      const t0 = Date.now();
+      while (Date.now() - t0 < 30 && si < seeds.length) {
+        if (!sim) sim = createSim(plan, { seed: seeds[si], demandMult: opts.demandMult, zoneMult: opts.zoneMult, warmup: warm });
+        for (let j = 0; j < 200 && k < per; j++, k++) step(sim);
+        if (k >= per) { results.push(summarize(sim, meas)); sim = null; k = 0; si++; }
+      }
+      if (onProgress) onProgress((si * per + k) / total);
+      if (si < seeds.length) setTimeout(chunk, 0); else resolve(average(results));
+    }
+    chunk();
+  });
+}
+function evaluateSync(plan, opts) {
+  const warm = opts.warmup ?? 180, meas = opts.measure ?? 720, seeds = opts.seeds || SEEDS;
+  const results = seeds.map(seed => {
+    const sim = createSim(plan, { seed, demandMult: opts.demandMult, zoneMult: opts.zoneMult, warmup: warm });
+    const total = (warm + meas) / C.DT; for (let k = 0; k < total; k++) step(sim);
+    return summarize(sim, meas);
+  });
+  return average(results);
+}
+function average(rs) {
+  const out = { ...rs[0] };
+  for (const k in out) if (typeof out[k] === 'number') out[k] = rs.reduce((s, r) => s + r[k], 0) / rs.length;
+  out.runs = rs.map(r => r.avgDelay);
+  return out;
+}
+function summarize(sim, meas) {
+  const m = sim.m;
+  const demand = sim.od.reduce((s, p) => s + p.v, 0);
+  const expected = demand * meas / 3600;
+  const vcs = sim.net.dirList.filter(d => sim.net.nodes[d.to].ctrl !== 'end').map(d => d.vc);
+  const worstVC = Math.max(...vcs);
+  return {
+    avgDelay: m.lost / Math.max(1, m.done),
+    done: m.done, expected, throughput: Math.min(1.2, m.done / Math.max(1, expected)),
+    vehHrsLost: m.lost / 3600,
+    worstVC, worstLOS: losFromVC(worstVC),
+    shareOK: vcs.filter(v => v <= 0.9).length / vcs.length,
+    unserved: sim.analysis.unserved, backlog: backlogCount(sim), inNetwork: sim.veh.length
+  };
+}
+
+// =====================================================================
+// PLAN COSTING & SCORING
+// =====================================================================
+function planItems(plan) {
+  const items = [];
+  for (const id in plan.links) {
+    const L = LINKS.find(l => l.id === id), o = plan.links[id];
+    const net0 = null;
+    const len = Math.hypot(NODES[L.b].x - NODES[L.a].x, NODES[L.b].y - NODES[L.a].y);
+    if (o.addLane) items.push({ key: `lane:${id}`, label: `Add through lane — ${L.name} (${NODES[L.a].name.split(' (')[0]} ↔ ${NODES[L.b].name.split(' (')[0]})`, cost: COSTS.addLane(len) });
+    if (o.oneWay) items.push({ key: `ow:${id}`, label: `One-way ${L.name} toward ${NODES[o.oneWay === 'ab' ? L.b : L.a].name}`, cost: COSTS.oneWay });
+  }
+  for (const did in plan.pockets) {
+    const p = plan.pockets[did], [lid, tag] = did.split(':'); const L = LINKS.find(l => l.id === lid);
+    const to = NODES[tag === 'ab' ? L.b : L.a];
+    const A = NODES[tag === 'ab' ? L.a : L.b];
+    const hd = compass(to.x - A.x, to.y - A.y);
+    const ex = EXISTING_POCKETS[did] || {};
+    if (p.L && !ex.L) items.push({ key: `pl:${did}`, label: `Left-turn lane — ${L.name} ${hd} at ${to.name}`, cost: COSTS.pocketL });
+    if (p.R && !ex.R) items.push({ key: `pr:${did}`, label: `Right-turn lane — ${L.name} ${hd} at ${to.name}`, cost: COSTS.pocketR });
+  }
+  for (const id in plan.signals) {
+    const s = plan.signals[id], n = NODES[id];
+    if ((s.C && s.C !== n.C) || (s.split != null && Math.abs(s.split - n.split) > 1e-6)) items.push({ key: `rt:${id}`, label: `Retime signal — ${n.name}`, cost: COSTS.retime });
+    if (s.protA && !n.protA) items.push({ key: `pa:${id}`, label: `Protected left (main street) — ${n.name}`, cost: COSTS.protL });
+    if (s.protB && !n.protB) items.push({ key: `pb:${id}`, label: `Protected left (side street) — ${n.name}`, cost: COSTS.protL });
+    if ((s.protA === false && n.protA) || (s.protB === false && n.protB)) items.push({ key: `pr0:${id}`, label: `Remove protected left phase — ${n.name}`, cost: COSTS.retime });
+  }
+  for (const id in plan.roundabouts) if (plan.roundabouts[id]) items.push({ key: `rb:${id}`, label: `Convert to roundabout — ${NODES[id].name}`, cost: COSTS.roundabout });
+  return items;
+}
+function planCost(plan) { return +planItems(plan).reduce((s, i) => s + i.cost, 0).toFixed(2); }
+
+function score(result, baseline, cost) {
+  const red = (baseline.avgDelay - result.avgDelay) / Math.max(1, baseline.avgDelay);
+  const pDelay = 50 * Math.max(0, Math.min(1, red / 0.4));
+  const pLOS = 25 * result.shareOK;
+  const pBudget = cost <= BUDGET ? 15 * (1 - cost / BUDGET) : 0;
+  const pThru = 10 * Math.min(1, result.throughput);
+  let s = pDelay + pLOS + pBudget + pThru - result.unserved / 8;   // stranded trips are heavily penalized
+  if (cost > BUDGET) s *= 0.5;
+  return { total: Math.max(0, Math.round(s)), red, parts: { pDelay, pLOS, pBudget, pThru } };
+}
+
+const API = { C, EXISTING_POCKETS, NODES, LINKS, ZONES, COSTS, BUDGET, emptyPlan, clonePlan, buildNetwork, computeRoutes,
+  createSim, step, sigState, mayEnter, analyze, odMatrix, evaluate, evaluateSync, planItems, planCost, score,
+  losFromVC, losFromDelay, dirDelay, backlogCount, signalSettings, refreshDemand, mod };
+if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.TG = API;
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>/* =====================================================================
+   LPGA TRAFFIC LAB — USER INTERFACE & RENDERING
+   ---------------------------------------------------------------------
+   Everything here READS the simulation in core.js (window.TG) and draws
+   it, or EDITS the player's plan and asks core.js to rebuild.
+   Sections:  A. state   B. canvas view & theme   C. drawing
+              D. hit-testing & input   E. inspector panels
+              F. plan / budget   G. traffic test & scoring   H. main loop
+   ===================================================================== */
+(function () {
+'use strict';
+const C = TG.C;
+const $ = (id) => document.getElementById(id);
+const fmt$ = (m) => '$' + m.toFixed(2) + 'M';
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// ---------------------------------------------------------------- A. state
+const S = {
+  plan: TG.emptyPlan(),
+  demand: 1.0,
+  zoneMult: {},
+  colorMode: 'vc',          // 'vc' (planning) | 'delay' (simulated)
+  speed: 2, paused: false,
+  sel: null,                // {type:'link'|'node', id}
+  hover: null,
+  name: '',
+  runs: [], baseCache: {}, testing: false,
+  sim: null
+};
+const SCEN = [{ k: 'Today', v: 1.0 }, { k: '2035', v: 1.25 }, { k: 'Race Week', v: 1.5 }];
+
+function newLiveSim() {
+  S.sim = TG.createSim(S.plan, { seed: (Math.random() * 1e9) | 0, demandMult: S.demand, zoneMult: S.zoneMult });
+  for (let i = 0; i < 900; i++) TG.step(S.sim);    // 90 s warm-up so the map never starts empty
+}
+
+// ---------------------------------------------------- B. canvas view & theme
+const cv = $('map'), ctx = cv.getContext('2d');
+const WORLD = { w: 1000, h: 840 };
+const view = { s: 1, ox: 0, oy: 0, fit: true };
+let theme = {};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement);
+  for (const k of ['map-bg', 'map-block', 'map-local', 'pave', 'pave-edge', 'mark', 'label', 'halo', 'sign', 'amber', 'ink', 'muted',
+    'los-a', 'los-b', 'los-c', 'los-d', 'los-e', 'los-f', 'font-d', 'font-m']) theme[k] = cs.getPropertyValue('--' + k).trim();
+}
+readTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme);
+new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+function resize() {
+  const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  cv.width = Math.max(1, Math.round(r.width * dpr)); cv.height = Math.max(1, Math.round(r.height * dpr));
+  if (view.fit) fitView();
+}
+function fitView() {
+  const r = cv.getBoundingClientRect();
+  view.s = Math.min(r.width / WORLD.w, r.height / WORLD.h) * 0.98;
+  view.ox = (r.width - WORLD.w * view.s) / 2; view.oy = (r.height - WORLD.h * view.s) / 2; view.fit = true;
+}
+new ResizeObserver(resize).observe(cv);
+const toWorld = (sx, sy) => ({ x: (sx - view.ox) / view.s, y: (sy - view.oy) / view.s });
+
+// ---------------------------------------------------------------- C. drawing
+const LOS_KEYS = { A: 'los-a', B: 'los-b', C: 'los-c', D: 'los-d', E: 'los-e', F: 'los-f' };
+function dirLOS(d) {
+  const net = S.sim.net;
+  if (S.colorMode === 'vc') return TG.losFromVC(d.vc);
+  if (net.nodes[d.to].ctrl === 'end') return null;
+  const dd = TG.dirDelay(d); return dd == null ? null : TG.losFromDelay(dd);
+}
+function losColor(l) { return l ? theme[LOS_KEYS[l]] : theme['pave']; }
+
+// decorative local streets (the blue "secondary" roads) – traced loosely from the map
+const LOCAL = [
+  [[150, 250], [235, 250], [250, 300], [300, 300]], [[180, 200], [180, 290], [260, 300]], [[240, 230], [300, 210], [340, 240]],
+  [[470, 120], [560, 140], [590, 200]], [[640, 90], [700, 120], [760, 100], [800, 150]], [[700, 120], [720, 200], [790, 210]],
+  [[760, 40], [770, 110]], [[820, 150], [880, 160], [880, 220]], [[740, 300], [850, 300], [860, 380]], [[730, 260], [740, 300]],
+  [[520, 400], [600, 360], [640, 420]], [[540, 380], [560, 470]], [[600, 300], [660, 330]], [[430, 600], [520, 610], [540, 700]],
+  [[440, 650], [440, 780], [560, 790]], [[540, 610], [610, 600], [640, 700], [700, 720]], [[600, 700], [600, 800]], [[300, 470], [380, 520], [420, 600]]
+];
+const BLOCKS = [[[420, 380], [560, 360], [600, 470], [470, 500]], [[430, 590], [640, 590], [690, 800], [450, 810]], [[700, 130], [880, 120], [900, 240], [740, 260]]];
+const POIS = [
+  { x: 190, y: 238, t: "Buc-ee's" }, { x: 528, y: 470, t: 'Twin Peaks' }, { x: 520, y: 560, t: "Ford's Garage" },
+  { x: 560, y: 690, t: 'Academy Sports' }, { x: 92, y: 150, t: 'I-95' }
+];
+
+function draw(dtReal) {
+  const dpr = window.devicePixelRatio || 1, W = cv.width / dpr, H = cv.height / dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = theme['map-bg']; ctx.fillRect(0, 0, W, H);
+  ctx.setTransform(dpr * view.s, 0, 0, dpr * view.s, dpr * view.ox, dpr * view.oy);
+  const net = S.sim.net, t = S.sim.t;
+
+  // land use + local streets
+  ctx.fillStyle = theme['map-block']; ctx.globalAlpha = 0.55;
+  for (const b of BLOCKS) { ctx.beginPath(); b.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fill(); }
+  ctx.globalAlpha = 1; ctx.strokeStyle = theme['map-local']; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (const l of LOCAL) { ctx.beginPath(); l.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke(); }
+
+  // I-95 mainline (passes under LPGA)
+  ctx.strokeStyle = theme['pave-edge']; ctx.lineWidth = 30; ctx.lineCap = 'butt';
+  ctx.beginPath(); ctx.moveTo(26, -10); ctx.lineTo(66, 850); ctx.stroke();
+  ctx.strokeStyle = theme['pave']; ctx.lineWidth = 26; ctx.stroke();
+  ctx.strokeStyle = theme['mark']; ctx.lineWidth = 1; ctx.setLineDash([8, 10]); ctx.stroke(); ctx.setLineDash([]);
+
+  // pavement: each direction from node center to node center
+  for (const d of net.dirList) {
+    const A = net.nodes[d.from], B = net.nodes[d.to];
+    const o = d.med + d.n * C.LANE_W / 2, w = d.n * C.LANE_W + 2;
+    ctx.strokeStyle = theme['pave-edge']; ctx.lineWidth = w + 2; ctx.lineCap = 'butt';
+    seg(A.x + d.nx * o, A.y + d.ny * o, B.x + d.nx * o, B.y + d.ny * o);
+  }
+  for (const d of net.dirList) {
+    const A = net.nodes[d.from], B = net.nodes[d.to];
+    const o = d.med + d.n * C.LANE_W / 2, w = d.n * C.LANE_W + 2;
+    ctx.strokeStyle = theme['pave']; ctx.lineWidth = w;
+    seg(A.x + d.nx * o, A.y + d.ny * o, B.x + d.nx * o, B.y + d.ny * o);
+    // median strip for two-way roads
+    if (d.med > 0) { ctx.strokeStyle = theme['map-bg']; ctx.globalAlpha = 0.5; ctx.lineWidth = d.med * 2 - 2; seg(d.x0, d.y0, d.x0 + d.ux * d.len, d.y0 + d.uy * d.len); ctx.globalAlpha = 1; }
+  }
+  // intersections
+  for (const id in net.nodes) {
+    const n = net.nodes[id]; if (n.ctrl === 'end') continue;
+    ctx.fillStyle = theme['pave'];
+    ctx.beginPath(); ctx.arc(n.x, n.y, n.ctrl === 'rab' ? C.RAB_R + 7 : 22, 0, 7); ctx.fill();
+    if (n.ctrl === 'rab') {
+      ctx.fillStyle = theme['map-bg']; ctx.beginPath(); ctx.arc(n.x, n.y, C.RAB_R - 5, 0, 7); ctx.fill();
+      ctx.fillStyle = theme['los-a']; ctx.globalAlpha = 0.35; ctx.beginPath(); ctx.arc(n.x, n.y, C.RAB_R - 7, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+    }
+  }
+  // LOS shading over the lanes + pockets + markings
+  const pulse = 0.55 + 0.25 * Math.sin(performance.now() / 260);
+  for (const d of net.dirList) {
+    const los = dirLOS(d), col = losColor(los);
+    const ex = d.x0 + d.ux * d.len, ey = d.y0 + d.uy * d.len;
+    ctx.strokeStyle = col; ctx.globalAlpha = los === 'F' ? pulse : 0.62;
+    const o = d.med + d.n * C.LANE_W / 2;
+    ctx.lineWidth = d.n * C.LANE_W - 0.6; seg(d.x0 + d.nx * o, d.y0 + d.ny * o, ex + d.nx * o, ey + d.ny * o);
+    for (const p of [d.pocketL, d.pocketR]) if (p) {
+      ctx.lineWidth = C.LANE_W - 0.6; ctx.globalAlpha = 1; ctx.strokeStyle = theme['pave'];
+      lseg(p, p.start, p.len); ctx.globalAlpha = 0.62; ctx.strokeStyle = col; lseg(p, p.start, p.len);
+    }
+    ctx.globalAlpha = 1;
+    // lane lines
+    ctx.strokeStyle = theme['mark']; ctx.lineWidth = 0.6; ctx.setLineDash([4, 5]);
+    for (let i = 1; i < d.n; i++) { const off = d.med + i * C.LANE_W; seg(d.x0 + d.nx * off, d.y0 + d.ny * off, ex + d.nx * off, ey + d.ny * off); }
+    ctx.setLineDash([]);
+    if (d.pocketL) { ctx.strokeStyle = theme['mark']; ctx.lineWidth = 0.7; const off = d.med; seg(d.x0 + d.ux * d.pocketL.start + d.nx * off, d.y0 + d.uy * d.pocketL.start + d.ny * off, ex + d.nx * off, ey + d.ny * off); }
+    if (d.pocketR) { ctx.strokeStyle = theme['mark']; ctx.lineWidth = 0.7; const off = d.med + d.n * C.LANE_W; seg(d.x0 + d.ux * d.pocketR.start + d.nx * off, d.y0 + d.uy * d.pocketR.start + d.ny * off, ex + d.nx * off, ey + d.ny * off); }
+    // stop bar
+    if (net.nodes[d.to].ctrl !== 'end') {
+      const a = d.med - (d.pocketL ? C.LANE_W : 0), b = d.med + (d.n + (d.pocketR ? 1 : 0)) * C.LANE_W;
+      ctx.strokeStyle = theme['mark']; ctx.lineWidth = net.nodes[d.to].ctrl === 'rab' ? 0.8 : 1.4;
+      if (net.nodes[d.to].ctrl === 'rab') ctx.setLineDash([1.5, 1.5]);
+      seg(ex + d.nx * a, ey + d.ny * a, ex + d.nx * b, ey + d.ny * b); ctx.setLineDash([]);
+    }
+  }
+
+  // signal heads: through/right ball on the right edge, left arrow on the left edge
+  const blink = Math.floor(performance.now() / 450) % 2 === 0;
+  for (const id in net.nodes) {
+    const n = net.nodes[id]; if (n.ctrl !== 'sig') continue;
+    for (const d of n.inDirs) {
+      const ex = d.x0 + d.ux * (d.len + 2.5), ey = d.y0 + d.uy * (d.len + 2.5);
+      const st = TG.sigState(n, t, d, 'T');
+      const r = d.med + d.n * C.LANE_W + (d.pocketR ? C.LANE_W : 0) + 2.5;
+      dot(ex + d.nx * r, ey + d.ny * r, 2.3, st === 'G' ? theme['los-a'] : st === 'Y' ? theme['amber'] : theme['los-f']);
+      const sl = TG.sigState(n, t, d, 'L'), l = d.med - (d.pocketL ? C.LANE_W : 0) - 0.5;
+      if (sl === 'P') { if (blink) arrow(ex + d.nx * l, ey + d.ny * l, d, theme['amber']); }   // flashing yellow arrow = permitted
+      else arrow(ex + d.nx * l, ey + d.ny * l, d, sl === 'G' ? theme['los-a'] : sl === 'Y' ? theme['amber'] : theme['los-f']);
+    }
+  }
+
+  // vehicles
+  const k = Math.min(1, dtReal * 6);
+  for (const v of S.sim.veh) drawCar(v, k);
+
+  // entry backlogs (cars that cannot get onto the network)
+  ctx.font = `700 10px ${theme['font-m']}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const z in S.sim.backlog) {
+    const q = S.sim.backlog[z].length; if (q < 3) continue;
+    const n = net.nodes[z]; const tx = Math.min(985, Math.max(15, n.x)), ty = Math.min(828, Math.max(12, n.y));
+    ctx.fillStyle = theme['los-f']; roundRect(tx - 16, ty - 7, 32, 14, 7); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.fillText('+' + q, tx, ty + 0.5);
+  }
+
+  // labels
+  drawLabels(net);
+
+  // selection outline
+  if (S.sel || S.hover) for (const it of [S.hover, S.sel]) {
+    if (!it) continue;
+    ctx.strokeStyle = it === S.sel ? theme['amber'] : theme['ink']; ctx.globalAlpha = it === S.sel ? 0.9 : 0.35; ctx.lineWidth = 2.2; ctx.setLineDash(it === S.sel ? [] : [3, 3]);
+    if (it.type === 'node') { const n = net.nodes[it.id]; ctx.beginPath(); ctx.arc(n.x, n.y, n.ctrl === 'end' ? 12 : 30, 0, 7); ctx.stroke(); }
+    else { const L = TG.LINKS.find(l => l.id === it.id), A = net.nodes[L.a], B = net.nodes[L.b]; ctx.lineWidth = 34; ctx.globalAlpha *= 0.35; ctx.lineCap = 'round'; seg(A.x, A.y, B.x, B.y); }
+    ctx.globalAlpha = 1; ctx.setLineDash([]);
+  }
+  // compass last: it switches the canvas to screen coordinates
+  compassRose(dpr, W, H);
+}
+function compassRose(dpr, W, H) {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const cx = W - 44, cy = H - 168, r = 26;
+  ctx.fillStyle = theme['halo']; ctx.strokeStyle = theme['pave-edge']; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(cx, cy, r + 9, 0, 7); ctx.fill(); ctx.stroke();
+  // 8 thin ticks, 4 long points
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * (r - 4), cy + Math.sin(a) * (r - 4)); ctx.lineTo(cx + Math.cos(a) * (r + 2), cy + Math.sin(a) * (r + 2)); ctx.stroke(); }
+  const point = (a, len, fill) => { ctx.fillStyle = fill; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len);
+    ctx.lineTo(cx + Math.cos(a + Math.PI / 2) * 4.5, cy + Math.sin(a + Math.PI / 2) * 4.5); ctx.lineTo(cx + Math.cos(a - Math.PI / 2) * 4.5, cy + Math.sin(a - Math.PI / 2) * 4.5); ctx.closePath(); ctx.fill(); };
+  point(Math.PI / 2, r - 8, theme['muted']); point(0, r - 8, theme['muted']); point(Math.PI, r - 8, theme['muted']);
+  point(-Math.PI / 2, r - 2, theme['los-f']);                                  // north needle
+  ctx.font = `800 11px ${theme['font-d']}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = theme['ink'];
+  ctx.fillText('N', cx, cy - r - 1); ctx.fillText('S', cx, cy + r + 2); ctx.fillText('E', cx + r + 2, cy + 1); ctx.fillText('W', cx - r - 2, cy + 1);
+}
+function seg(x0, y0, x1, y1) { ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); }
+function lseg(lane, a, b) { const d = lane.dir; seg(d.x0 + d.ux * a + d.nx * lane.off, d.y0 + d.uy * a + d.ny * lane.off, d.x0 + d.ux * b + d.nx * lane.off, d.y0 + d.uy * b + d.ny * lane.off); }
+function dot(x, y, r, c) { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); }
+function arrow(x, y, d, c) {
+  // small left-pointing arrow (relative to travel direction)
+  ctx.fillStyle = c; ctx.beginPath();
+  const lx = -d.nx, ly = -d.ny;                // left of travel
+  ctx.moveTo(x + lx * 2.6, y + ly * 2.6); ctx.lineTo(x - d.ux * 1.8 - lx * 1.2, y - d.uy * 1.8 - ly * 1.2); ctx.lineTo(x + d.ux * 1.8 - lx * 1.2, y + d.uy * 1.8 - ly * 1.2);
+  ctx.closePath(); ctx.fill();
+}
+function roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+const CAR_COLORS = ['#f4f5f2', '#2b3a4a', '#9aa3a8', '#7a2a2a', '#1f5f8b', '#c9c2b0', '#3d5a40'];
+function carPose(v, k) {
+  if (v.lane) {
+    const d = v.lane.dir; if (v.lat == null) v.lat = v.lane.off; v.lat += (v.lane.off - v.lat) * k;
+    return { x: d.x0 + d.ux * v.pos + d.nx * v.lat, y: d.y0 + d.uy * v.pos + d.ny * v.lat, hx: d.ux, hy: d.uy };
+  }
+  if (v.path) {
+    const p = v.path; let i = 1; while (i < p.cum.length - 1 && p.cum[i] < v.pos) i++;
+    const a = p.pts[i - 1], b = p.pts[i], f = Math.min(1, Math.max(0, (v.pos - p.cum[i - 1]) / Math.max(0.01, p.cum[i] - p.cum[i - 1])));
+    const hx = b.x - a.x, hy = b.y - a.y, hl = Math.hypot(hx, hy) || 1;
+    v.lat = null; return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f, hx: hx / hl, hy: hy / hl };
+  }
+  if (v.ring) {
+    const n = v.ring, th = -v.s / C.RAB_R; v.lat = null;
+    return { x: n.x + C.RAB_R * Math.cos(th), y: n.y + C.RAB_R * Math.sin(th), hx: Math.sin(th), hy: -Math.cos(th) };
+  }
+  return null;
+}
+function drawCar(v, k) {
+  const p = carPose(v, k); if (!p) return;
+  ctx.save(); ctx.translate(p.x, p.y); ctx.transform(p.hx, p.hy, -p.hy, p.hx, 0, 0);
+  ctx.fillStyle = CAR_COLORS[v.id % CAR_COLORS.length];
+  roundRect(-C.CAR_LEN + 0.6, -2.1, C.CAR_LEN - 1.2, 4.2, 1.2); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = 0.4; ctx.stroke();
+  if (v.v < 2) { ctx.fillStyle = '#ff2a2a'; ctx.fillRect(-C.CAR_LEN + 0.6, -2, 0.9, 1.1); ctx.fillRect(-C.CAR_LEN + 0.6, 0.9, 0.9, 1.1); }
+  ctx.restore();
+}
+function drawLabels(net) {
+  const done = new Set();
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const L of TG.LINKS) {
+    const A = net.nodes[L.a], B = net.nodes[L.b];
+    const key = L.name + (L.id === 'L4' || L.id === 'W3' || L.id === 'O3' || L.id === 'R1' || L.id === 'R2' ? '' : L.id);
+    if (done.has(key) && L.name !== 'I-95 Ramp (N)') continue; done.add(key);
+    let ang = Math.atan2(B.y - A.y, B.x - A.x); if (ang > Math.PI / 2) ang -= Math.PI; if (ang < -Math.PI / 2) ang += Math.PI;
+    const t = L.id === 'W1' ? 0.55 : L.id === 'O1' ? 0.4 : 0.5;
+    const mx = A.x + (B.x - A.x) * t, my = A.y + (B.y - A.y) * t;
+    const nx = -Math.sin(ang), ny = Math.cos(ang), off = -26;
+    const big = /LPGA|Williamson/.test(L.name);
+    if (!big && !['O2', 'C1', 'O1', 'R1', 'R2'].includes(L.id)) continue;
+    ctx.save(); ctx.translate(mx + nx * off, my + ny * off); ctx.rotate(ang);
+    ctx.font = `${big ? 800 : 600} ${big ? 12 : 10}px ${theme['font-d']}`;
+    ctx.lineWidth = 3.5; ctx.strokeStyle = theme['halo']; ctx.strokeText(L.name, 0, 0);
+    ctx.fillStyle = theme['label']; ctx.fillText(L.name, 0, 0); ctx.restore();
+  }
+  ctx.font = `600 10px ${theme['font-d']}`;
+  for (const p of POIS) {
+    ctx.lineWidth = 3; ctx.strokeStyle = theme['halo']; ctx.strokeText(p.t, p.x, p.y);
+    ctx.fillStyle = theme['muted']; ctx.fillText(p.t, p.x, p.y);
+  }
+}
+
+// ---------------------------------------------- inflow controls on the map
+const zoneBox = document.createElement('div'); zoneBox.className = 'zonectl-layer';
+document.querySelector('.mapwrap').appendChild(zoneBox);
+const zoneEls = {};
+for (const z in TG.ZONES) {
+  const el = document.createElement('div'); el.className = 'zonectl';
+  el.innerHTML = `<button data-z="${z}" data-d="1" aria-label="More traffic entering from ${esc(TG.NODES[z].name)}">▲</button><output></output><button data-z="${z}" data-d="-1" aria-label="Less traffic entering from ${esc(TG.NODES[z].name)}">▼</button>`;
+  el.querySelectorAll('button').forEach(b => b.onclick = (e) => { e.stopPropagation(); bumpZone(z, +b.dataset.d * 0.1); });
+  zoneBox.appendChild(el); zoneEls[z] = el;
+}
+function bumpZone(z, delta) {
+  const m = Math.round(Math.min(3, Math.max(0, (S.zoneMult[z] ?? 1) + delta)) * 10) / 10;
+  if (m === 1) delete S.zoneMult[z]; else S.zoneMult[z] = m;
+  S.sim.setDemand(S.demand, S.zoneMult); renderPlan();
+  if (!S.sel || (S.sel.type === 'node' && S.sel.id === z)) renderInspector();
+}
+function placeZoneControls() {
+  const net = S.sim.net, top = cv.offsetTop, cw = cv.clientWidth, ch = cv.clientHeight;
+  for (const z in zoneEls) {
+    const n = net.nodes[z], d = n.outDirs[0] || n.inDirs[0], el = zoneEls[z];
+    const ux = d.from === z ? d.ux : -d.ux, uy = d.from === z ? d.uy : -d.uy;
+    const wx = n.x + ux * 46 + (-uy) * 30, wy = n.y + uy * 46 + ux * 30;        // a little inside, beside the inbound lanes
+    const sx = Math.min(cw - 22, Math.max(22, wx * view.s + view.ox)), sy = Math.min(ch - 34, Math.max(34, wy * view.s + view.oy));
+    el.style.transform = `translate(${(sx - 17).toFixed(0)}px, ${(top + sy - 30).toFixed(0)}px)`;
+    const m = S.zoneMult[z] ?? 1, out = el.querySelector('output');
+    const vph = S.sim.od.filter(p => p.o === z).reduce((s, p) => s + p.v, 0);
+    const txt = Math.round(m * 100) + '%'; if (out.textContent !== txt) out.textContent = txt;
+    el.title = `${TG.NODES[z].name}: ${Math.round(vph)} veh/h entering`;
+    el.classList.toggle('changed', m !== 1);
+  }
+}
+
+// ------------------------------------------------- D. hit-testing & input
+function hit(w) {
+  const net = S.sim.net; let best = null, bd = 26;
+  for (const id in net.nodes) { const n = net.nodes[id]; const d = Math.hypot(w.x - n.x, w.y - n.y); const lim = n.ctrl === 'end' ? 14 : 28; if (d < lim && d < bd) { bd = d; best = { type: 'node', id }; } }
+  if (best) return best;
+  bd = 14;
+  for (const L of TG.LINKS) {
+    const A = net.nodes[L.a], B = net.nodes[L.b];
+    const dx = B.x - A.x, dy = B.y - A.y, t = Math.max(0, Math.min(1, ((w.x - A.x) * dx + (w.y - A.y) * dy) / (dx * dx + dy * dy)));
+    const d = Math.hypot(w.x - (A.x + dx * t), w.y - (A.y + dy * t)); if (d < bd) { bd = d; best = { type: 'link', id: L.id }; }
+  }
+  return best;
+}
+let drag = null;
+cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, ox: view.ox, oy: view.oy, moved: false }; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointermove', e => {
+  const r = cv.getBoundingClientRect();
+  if (drag) {
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (Math.abs(dx) + Math.abs(dy) > 4) drag.moved = true;
+    if (drag.moved) { view.ox = drag.ox + dx; view.oy = drag.oy + dy; view.fit = false; cv.style.cursor = 'grabbing'; }
+    return;
+  }
+  const w = toWorld(e.clientX - r.left, e.clientY - r.top), h = hit(w);
+  S.hover = h; cv.style.cursor = h ? 'pointer' : 'grab';
+  showTip(h, e.clientX - r.left, e.clientY - r.top);
+});
+cv.addEventListener('pointerup', e => {
+  const r = cv.getBoundingClientRect();
+  if (drag && !drag.moved) { const h = hit(toWorld(e.clientX - r.left, e.clientY - r.top)); S.sel = h; renderInspector(); }
+  drag = null; cv.style.cursor = 'grab';
+});
+cv.addEventListener('pointerleave', () => { S.hover = null; $('tip').hidden = true; });
+cv.addEventListener('wheel', e => { e.preventDefault(); const r = cv.getBoundingClientRect(); zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.15 : 1 / 1.15); }, { passive: false });
+function zoomAt(sx, sy, f) {
+  const w = toWorld(sx, sy); view.s = Math.min(6, Math.max(0.3, view.s * f));
+  view.ox = sx - w.x * view.s; view.oy = sy - w.y * view.s; view.fit = false;
+}
+$('zin').onclick = () => { const r = cv.getBoundingClientRect(); zoomAt(r.width / 2, r.height / 2, 1.35); };
+$('zout').onclick = () => { const r = cv.getBoundingClientRect(); zoomAt(r.width / 2, r.height / 2, 1 / 1.35); };
+$('zfit').onclick = fitView;
+
+function showTip(h, x, y) {
+  const tip = $('tip');
+  if (!h) { tip.hidden = true; return; }
+  const net = S.sim.net; let html = '';
+  if (h.type === 'node') {
+    const n = net.nodes[h.id];
+    html = `<b>${esc(n.name)}</b><br>` + (n.ctrl === 'end' ? 'Trips start and end here' : n.ctrl === 'rab' ? 'Roundabout' : `Signal · ${n.sig.cycle}s cycle`);
+  } else {
+    const L = TG.LINKS.find(l => l.id === h.id);
+    html = `<b>${esc(L.name)}</b>`;
+    for (const d of net.dirList.filter(d => d.link === L)) {
+      const los = TG.losFromVC(d.vc), dd = TG.dirDelay(d);
+      html += `<br>${d.heading} · ${Math.round(d.vol)} veh/h · v/c ${d.vc.toFixed(2)} <span class="los ${los}">${los}</span>` + (dd != null && net.nodes[d.to].ctrl !== 'end' ? ` · ${dd.toFixed(0)}s delay` : '');
+    }
+  }
+  tip.innerHTML = html; tip.hidden = false;
+  const r = cv.getBoundingClientRect();
+  tip.style.left = Math.min(x + 14, r.width - 250) + 'px'; tip.style.top = (y + 60) + 'px';
+}
+
+// ------------------------------------------------------ E. inspector panels
+function turnHeading(d, k) { const h = { EB: ['NB', 'SB'], WB: ['SB', 'NB'], NB: ['WB', 'EB'], SB: ['EB', 'WB'] }[d.heading]; return k === 'L' ? h[0] : h[1]; }
+function approachName(d) { return `${d.link.name} ${d.heading}`; }
+function losChip(l) { return l ? `<span class="los ${l}">${l}</span>` : '–'; }
+function renderInspector() {
+  const box = $('inspector'), net = S.sim.net;
+  if (!S.sel) { box.innerHTML = overviewHTML(); bindOverview(); return; }
+  if (S.sel.type === 'link') box.innerHTML = linkHTML(S.sel.id);
+  else if (net.nodes[S.sel.id].ctrl === 'end') box.innerHTML = zoneHTML(S.sel.id);
+  else box.innerHTML = nodeHTML(S.sel.id);
+  box.querySelectorAll('[data-act]').forEach(el => el.addEventListener(el.type === 'range' ? 'input' : 'change', onAct));
+  box.querySelectorAll('button[data-act]').forEach(el => el.addEventListener('click', onAct));
+  const back = box.querySelector('#backBtn'); if (back) back.onclick = () => { S.sel = null; renderInspector(); };
+}
+function overviewHTML() {
+  const net = S.sim.net;
+  const rows = net.dirList.filter(d => net.nodes[d.to].ctrl !== 'end').map(d => ({ d, vc: d.vc, dl: TG.dirDelay(d) }))
+    .sort((a, b) => S.colorMode === 'vc' ? b.vc - a.vc : (b.dl || 0) - (a.dl || 0)).slice(0, 6);
+  const un = S.sim.analysis.unserved;
+  return `<h2>Corridor overview</h2>
+    <p class="hint">Click any road or intersection on the map to inspect it and buy improvements. Worst approaches right now:</p>
+    ${un > 0 ? `<p class="warn">${Math.round(un)} veh/h cannot reach their destination with this plan.</p>` : ''}
+    <table class="t"><tr><th>Approach</th><th>At</th><th style="text-align:right">v/c</th><th style="text-align:right">Delay</th></tr>
+    ${rows.map(r => `<tr class="click" data-node="${r.d.to}"><td>${esc(approachName(r.d))}</td><td>${esc(net.nodes[r.d.to].name.replace('LPGA & ', '').replace(' & ', '/'))}</td>
+      <td class="n">${r.vc.toFixed(2)} ${losChip(TG.losFromVC(r.vc))}</td><td class="n">${r.dl == null ? '–' : r.dl.toFixed(0) + 's'}</td></tr>`).join('')}
+    </table>
+    <p class="sub">v/c is the planning estimate (volume ÷ capacity). Delay is measured from the simulated cars over the last 5 minutes.</p>`;
+}
+function bindOverview() { $('inspector').querySelectorAll('tr[data-node]').forEach(tr => tr.onclick = () => { S.sel = { type: 'node', id: tr.dataset.node }; renderInspector(); }); }
+
+function linkHTML(id) {
+  const L = TG.LINKS.find(l => l.id === id), net = S.sim.net, ov = S.plan.links[id] || {};
+  const A = TG.NODES[L.a], B = TG.NODES[L.b];
+  const len = Math.hypot(B.x - A.x, B.y - A.y), cost = TG.COSTS.addLane(len);
+  const dirs = net.dirList.filter(d => d.link === L);
+  const short = (n) => n.name.replace(/ \(.*\)/, '');
+  return `<h2>Road segment <button class="btn small" id="backBtn">Overview</button></h2>
+   <p class="insp-title">${esc(L.name)}</p>
+   <p class="sub">${esc(short(A))} ↔ ${esc(short(B))} · ${Math.round(len * C.M_PER_PX)} m · ${Math.round(L.speed * C.M_PER_PX * 2.237)} mph</p>
+   <table class="t"><tr><th>Direction</th><th style="text-align:right">Lanes</th><th style="text-align:right">veh/h</th><th style="text-align:right">v/c</th><th style="text-align:right">Delay</th></tr>
+   ${dirs.map(d => { const dd = TG.dirDelay(d); return `<tr><td>${d.heading} toward ${esc(short(TG.NODES[d.to]))}</td><td class="n">${d.n}</td><td class="n">${Math.round(d.vol)}</td><td class="n">${d.vc.toFixed(2)} ${losChip(TG.losFromVC(d.vc))}</td><td class="n">${dd == null || net.nodes[d.to].ctrl === 'end' ? '–' : dd.toFixed(0) + 's'}</td></tr>`; }).join('')}
+   </table>
+   <div class="opt"><input type="checkbox" id="o-lane" data-act="addLane" data-id="${id}" ${ov.addLane ? 'checked' : ''} ${L.lanes >= 3 ? 'disabled' : ''}>
+     <label for="o-lane"><b>Add a through lane</b> in each direction<br><span class="sub">More capacity along the segment. Intersections still meter the flow.</span></label><span class="cost">${fmt$(cost)}</span></div>
+   <div class="row"><label for="o-ow">Traffic flow</label>
+     <select id="o-ow" data-act="oneWay" data-id="${id}">
+       <option value="" ${!ov.oneWay ? 'selected' : ''}>Two-way (today)</option>
+       <option value="ab" ${ov.oneWay === 'ab' ? 'selected' : ''}>One-way toward ${esc(short(B))}</option>
+       <option value="ba" ${ov.oneWay === 'ba' ? 'selected' : ''}>One-way toward ${esc(short(A))}</option>
+     </select><span class="cost sub">${fmt$(TG.COSTS.oneWay)}</span></div>
+   <p class="sub">One-way conversion puts every lane in one direction. Trips that relied on the other direction must reroute, or they get stranded.</p>`;
+}
+function zoneHTML(id) {
+  const n = TG.NODES[id], net = S.sim.net, m = S.zoneMult[id] ?? 1;
+  const gen = S.sim.od.filter(p => p.o === id).reduce((s, p) => s + p.v, 0), att = S.sim.od.filter(p => p.d === id).reduce((s, p) => s + p.v, 0);
+  return `<h2>Trip zone <button class="btn small" id="backBtn">Overview</button></h2>
+   <p class="insp-title">${esc(n.name)}</p>
+   <p class="sub">Cars enter and leave the model here. Trips between zones follow a gravity model: bigger zones exchange more trips.</p>
+   <table class="t"><tr><td>Entering here</td><td class="n">${Math.round(gen)} veh/h</td></tr><tr><td>Leaving here</td><td class="n">${Math.round(att)} veh/h</td></tr>
+   <tr><td>Cars waiting to enter</td><td class="n">${S.sim.backlog[id].length}</td></tr></table>
+   <div class="row"><label for="z-m">Inflow</label><input type="range" id="z-m" min="0" max="300" step="10" value="${Math.round(m * 100)}" data-act="zone" data-id="${id}"><output id="z-mo">${Math.round(m * 100)}%</output></div>
+   <p class="sub">Inflow is traffic entering the map here. Raise it to model an upstream change, such as a new subdivision on Williamson or a holiday surge at Buc-ee's. You can also use the ▲ ▼ controls beside each road edge on the map. Inflow changes are free: they change the problem, not your plan.</p>`;
+}
+// Outlined arrow like a pavement-marking sketch: travel in the approach direction,
+// then turn. Drawn heading east, then rotated to the approach's real heading.
+function turnGlyph(d, k) {
+  const R = 'M4 12 L38 12 L38 32 L44 32 L34 42 L24 32 L30 32 L30 20 L4 20 Z';           // east, then right (south)
+  const L = 'M4 36 L38 36 L38 16 L44 16 L34 6 L24 16 L30 16 L30 28 L4 28 Z';             // east, then left (north)
+  const deg = Math.atan2(d.uy, d.ux) * 180 / Math.PI;
+  return `<svg class="glyph" viewBox="0 0 48 48" width="34" height="34" aria-hidden="true"><g transform="rotate(${deg.toFixed(1)} 24 24)">
+    <path d="${k === 'R' ? R : L}" fill="var(--panel)" stroke="var(--ink)" stroke-width="3.2" stroke-linejoin="miter"/></g></svg>`;
+}
+function nodeHTML(id) {
+  const net = S.sim.net, node = net.nodes[id], N = TG.NODES[id];
+  const s = TG.signalSettings(S.plan, id), rab = !!S.plan.roundabouts[id];
+  const ex = TG.EXISTING_POCKETS;
+  const appr = node.inDirs.map(d => {
+    const pk = S.plan.pockets[d.id] || {}, e = ex[d.id] || {}, dd = TG.dirDelay(d);
+    const opt = (k, label, cost) => {
+      const existing = !!e[k], on = existing || !!pk[k];
+      return `<div class="opt ${existing ? 'disabled' : ''}"><input type="checkbox" id="pk-${d.id}-${k}" data-act="pocket" data-id="${d.id}" data-k="${k}" ${on ? 'checked' : ''} ${existing || rab ? 'disabled' : ''}>
+        ${turnGlyph(d, k)}<label for="pk-${d.id}-${k}">${label}${existing ? ' <span class="sub">(exists today)</span>' : ''}</label><span class="cost">${existing ? '' : fmt$(cost)}</span></div>`;
+    };
+    return `<tr><td colspan="4" style="border-bottom:0;padding-bottom:0"><b>${esc(approachName(d))}</b> <span class="sub">${d.group === 'A' ? 'main street' : 'side street'}</span></td></tr>
+      <tr><td class="sub">L ${Math.round(d.mv.L)} · T ${Math.round(d.mv.T)} · R ${Math.round(d.mv.R)}</td><td class="n">${d.vc.toFixed(2)} ${losChip(TG.losFromVC(d.vc))}</td><td class="n">${dd == null ? '–' : dd.toFixed(0) + 's'}</td></tr>
+      <tr><td colspan="4"><div style="display:grid;gap:4px">${opt('L', `Add left-turn lane<br><span class="sub">${d.heading} → ${turnHeading(d, 'L')}</span>`, TG.COSTS.pocketL)}${opt('R', `Add right-turn lane<br><span class="sub">${d.heading} → ${turnHeading(d, 'R')}</span>`, TG.COSTS.pocketR)}</div></td></tr>`;
+  }).join('');
+  const sig = node.sig;
+  return `<h2>Intersection <button class="btn small" id="backBtn">Overview</button></h2>
+   <p class="insp-title">${esc(N.name)}</p>
+   <p class="sub">${rab ? 'Single-lane roundabout (yield on entry)' : `Traffic signal · ${sig.cycle}s cycle · phases: ${sig.phases.map(p => p.grp === 'A' ? (p.leftOnly ? 'main lefts' : 'main') : (p.leftOnly ? 'side lefts' : 'side')).join(' → ')}`}</p>
+   <div class="opt"><input type="checkbox" id="o-rab" data-act="rab" data-id="${id}" ${rab ? 'checked' : ''}>
+     <label for="o-rab"><b>Convert to roundabout</b><br><span class="sub">No signal and no stops when gaps are available. Entry capacity drops as circulating traffic rises.</span></label><span class="cost">${fmt$(TG.COSTS.roundabout)}</span></div>
+   ${rab ? '' : `
+   <div class="row"><label for="s-c">Cycle length</label><select id="s-c" data-act="cycle" data-id="${id}">${[60, 80, 90, 100, 120, 150].map(c => `<option ${c === s.C ? 'selected' : ''} value="${c}">${c} s</option>`).join('')}</select><span class="sub">retime ${fmt$(TG.COSTS.retime)}</span></div>
+   <div class="row"><label for="s-s">Main-street green</label><input type="range" id="s-s" min="35" max="80" step="1" value="${Math.round(s.split * 100)}" data-act="split" data-id="${id}"><output id="s-so">${Math.round(s.split * 100)}%</output></div>
+   <div class="opt"><input type="checkbox" id="s-pa" data-act="protA" data-id="${id}" ${s.protA ? 'checked' : ''}><label for="s-pa">Protected left phase, main street${N.protA ? ' <span class="sub">(today)</span>' : ''}</label><span class="cost">${N.protA ? '' : fmt$(TG.COSTS.protL)}</span></div>
+   <div class="opt"><input type="checkbox" id="s-pb" data-act="protB" data-id="${id}" ${s.protB ? 'checked' : ''}><label for="s-pb">Protected left phase, side street${N.protB ? ' <span class="sub">(today)</span>' : ''}</label><span class="cost">${N.protB ? '' : fmt$(TG.COSTS.protL)}</span></div>`}
+   <h2 style="margin-top:4px">Approaches <span>v/c · delay</span></h2>
+   <table class="t">${appr}</table>
+   <div class="row"><button class="btn small" data-act="resetNode" data-id="${id}">Reset this intersection</button></div>`;
+}
+
+let rebuildTimer = null;
+function onAct(e) {
+  const el = e.currentTarget, a = el.dataset.act, id = el.dataset.id, P = S.plan;
+  const sigEntry = () => (P.signals[id] = P.signals[id] || {});
+  switch (a) {
+    case 'addLane': (P.links[id] = P.links[id] || {}).addLane = el.checked; tidy(); break;
+    case 'oneWay': (P.links[id] = P.links[id] || {}).oneWay = el.value || undefined; tidy(); break;
+    case 'pocket': { const p = (P.pockets[id] = P.pockets[id] || {}); p[el.dataset.k] = el.checked; tidy(); break; }
+    case 'rab': P.roundabouts[id] = el.checked; if (el.checked) { delete P.signals[id]; for (const d of S.sim.net.nodes[id].inDirs) delete P.pockets[d.id]; } tidy(); break;
+    case 'cycle': sigEntry().C = +el.value; tidy(); break;
+    case 'split': sigEntry().split = +el.value / 100; $('s-so').textContent = el.value + '%'; tidy(); scheduleRebuild(true); return;
+    case 'protA': sigEntry().protA = el.checked; tidy(); break;
+    case 'protB': sigEntry().protB = el.checked; tidy(); break;
+    case 'zone': S.zoneMult[id] = +el.value / 100; $('z-mo').textContent = el.value + '%'; S.sim.setDemand(S.demand, S.zoneMult); renderPlan(); return;
+    case 'resetNode': delete P.signals[id]; delete P.roundabouts[id];
+      for (const d of S.sim.net.nodes[id].inDirs) delete P.pockets[d.id]; tidy(); break;
+  }
+  scheduleRebuild(false);
+}
+// drop plan entries that equal "today" so the cost list stays honest
+function tidy() {
+  const P = S.plan;
+  for (const id in P.links) { const o = P.links[id]; if (!o.addLane) delete o.addLane; if (!o.oneWay) delete o.oneWay; if (!Object.keys(o).length) delete P.links[id]; }
+  for (const id in P.pockets) { const o = P.pockets[id]; for (const k of ['L', 'R']) if (!o[k]) delete o[k]; if (!Object.keys(o).length) delete P.pockets[id]; }
+  for (const id in P.roundabouts) if (!P.roundabouts[id]) delete P.roundabouts[id];
+  for (const id in P.signals) {
+    const o = P.signals[id], N = TG.NODES[id];
+    if (o.C === N.C) delete o.C; if (o.split != null && Math.abs(o.split - N.split) < 1e-6) delete o.split;
+    if (o.protA != null && o.protA === !!N.protA) delete o.protA; if (o.protB != null && o.protB === !!N.protB) delete o.protB;
+    if (!Object.keys(o).length) delete P.signals[id];
+  }
+}
+function scheduleRebuild(slow) {
+  clearTimeout(rebuildTimer);
+  rebuildTimer = setTimeout(() => { newLiveSim(); renderInspector(); renderPlan(); toast('Plan applied. Traffic restarted on the new network.'); }, slow ? 350 : 30);
+  renderPlan();
+}
+let toastT = null;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1800); }
+
+// ---------------------------------------------------- F. plan / budget
+function renderPlan() {
+  const items = TG.planItems(S.plan), cost = TG.planCost(S.plan);
+  $('planList').innerHTML = items.length ? items.map(i => `<li><span>${esc(i.label)}</span><span class="cost">${fmt$(i.cost)}</span><button aria-label="Remove ${esc(i.label)}" data-key="${i.key}">×</button></li>`).join('')
+    : '<li><span class="hint">No changes yet. Today\'s network is your baseline.</span></li>';
+  $('planList').querySelectorAll('button[data-key]').forEach(b => b.onclick = () => removeItem(b.dataset.key));
+  $('planCount').textContent = items.length ? items.length + (items.length === 1 ? ' change' : ' changes') : '';
+  const pct = Math.min(100, cost / TG.BUDGET * 100);
+  $('meter').querySelector('i').style.width = pct + '%'; $('meter').classList.toggle('over', cost > TG.BUDGET);
+  $('spent').textContent = fmt$(cost) + ' spent';
+  $('left').textContent = cost > TG.BUDGET ? fmt$(cost - TG.BUDGET) + ' over budget' : fmt$(TG.BUDGET - cost) + ' left';
+  $('testDemand').textContent = 'at ' + Math.round(S.demand * 100) + '% demand';
+}
+function removeItem(key) {
+  const [k, ...rest] = key.split(':'), id = rest.join(':'), P = S.plan;
+  if (k === 'lane') delete (P.links[id] || {}).addLane;
+  if (k === 'ow') delete (P.links[id] || {}).oneWay;
+  if (k === 'pl') delete (P.pockets[id] || {}).L;
+  if (k === 'pr') delete (P.pockets[id] || {}).R;
+  if (k === 'rt') { delete (P.signals[id] || {}).C; delete (P.signals[id] || {}).split; }
+  if (k === 'pa' || k === 'pr0') delete (P.signals[id] || {}).protA;
+  if (k === 'pb' || k === 'pr0') delete (P.signals[id] || {}).protB;
+  if (k === 'rb') delete P.roundabouts[id];
+  tidy(); scheduleRebuild(false);
+}
+$('btnClear').onclick = () => { S.plan = TG.emptyPlan(); scheduleRebuild(false); };
+
+// ------------------------------------------- G. traffic test & scoring
+async function runTest() {
+  if (S.testing) return; S.testing = true;
+  const btn = $('btnTest'), prog = $('prog'), bar = prog.querySelector('i');
+  btn.disabled = true; prog.hidden = false;
+  const opts = { demandMult: S.demand, zoneMult: { ...S.zoneMult } };
+  const key = JSON.stringify(opts);
+  const plan = TG.clonePlan(S.plan), cost = TG.planCost(plan);
+  let base = S.baseCache[key];
+  const both = !base;
+  if (!base) { btn.textContent = 'Testing today\'s network…'; base = await TG.evaluate(TG.emptyPlan(), opts, f => bar.style.width = (f * 50) + '%'); S.baseCache[key] = base; }
+  btn.textContent = 'Testing your plan…';
+  const res = await TG.evaluate(plan, opts, f => bar.style.width = ((both ? 50 : 0) + f * (both ? 50 : 100)) + '%');
+  const sc = TG.score(res, base, cost);
+  S.runs.push({ n: S.runs.length + 1, demand: S.demand, zone: { ...S.zoneMult }, plan, cost, res, base, sc, items: TG.planItems(plan) });
+  btn.textContent = 'Run traffic test'; btn.disabled = false; prog.hidden = true; bar.style.width = '0';
+  S.testing = false; $('btnReport').disabled = false;
+  renderRuns();
+}
+$('btnTest').onclick = runTest;
+
+function renderRuns() {
+  const last = S.runs[S.runs.length - 1];
+  if (!last) { $('scoreBox').innerHTML = ''; $('runs').innerHTML = ''; return; }
+  const r = last.res, b = last.base, p = last.sc.parts;
+  $('scoreBox').innerHTML = `<div class="scorebig"><b>${last.sc.total}</b><span>/ 100 · Test ${last.n}</span></div>
+    <div class="parts">
+      <span>Delay per trip: ${r.avgDelay.toFixed(0)}s vs ${b.avgDelay.toFixed(0)}s today (${last.sc.red >= 0 ? '−' : '+'}${Math.abs(last.sc.red * 100).toFixed(0)}%)</span><span>${p.pDelay.toFixed(1)} / 50</span>
+      <span>Approaches at LOS D or better: ${(r.shareOK * 100).toFixed(0)}%</span><span>${p.pLOS.toFixed(1)} / 25</span>
+      <span>Budget left: ${fmt$(Math.max(0, TG.BUDGET - last.cost))}</span><span>${p.pBudget.toFixed(1)} / 15</span>
+      <span>Trips completed vs demanded: ${(r.throughput * 100).toFixed(0)}%</span><span>${p.pThru.toFixed(1)} / 10</span>
+    </div>
+    ${r.unserved > 0 ? `<p class="warn">${Math.round(r.unserved)} veh/h are stranded with no route. Large penalty applied.</p>` : ''}
+    ${last.cost > TG.BUDGET ? '<p class="warn">Over budget: score halved.</p>' : ''}`;
+  const best = S.runs.reduce((a, x) => x.sc.total > a.sc.total ? x : a, S.runs[0]);
+  $('runs').innerHTML = `<tr><th>#</th><th style="text-align:right">Demand</th><th style="text-align:right">Delay</th><th style="text-align:right">Cost</th><th style="text-align:right">Score</th><th></th></tr>` +
+    S.runs.slice().reverse().map(x => `<tr class="${x === best ? 'best' : ''}"><td>${x.n}</td><td class="n">${Math.round(x.demand * 100)}%</td><td class="n">${x.res.avgDelay.toFixed(0)}s</td><td class="n">${fmt$(x.cost)}</td><td class="n"><b>${x.sc.total}</b></td>
+      <td><button class="btn small" data-load="${x.n}">Load</button></td></tr>`).join('');
+  $('runs').querySelectorAll('button[data-load]').forEach(b => b.onclick = () => {
+    const x = S.runs.find(r => r.n === +b.dataset.load); S.plan = TG.clonePlan(x.plan); S.zoneMult = { ...x.zone }; setDemand(x.demand); scheduleRebuild(false);
+  });
+}
+function showReport() {
+  const best = S.runs.reduce((a, x) => x.sc.total > a.sc.total ? x : a, S.runs[0]); if (!best) return;
+  const now = new Date();
+  $('reportBody').innerHTML = `<div class="hdr"><b>LPGA Traffic Lab · Score Report</b><span>${esc(S.name || 'Name not entered')}</span></div>
+    <p class="sub">${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · ${S.runs.length} test${S.runs.length > 1 ? 's' : ''} run · best shown</p>
+    <div class="scorebig"><b>${best.sc.total}</b><span>/ 100 at ${Math.round(best.demand * 100)}% demand</span></div>
+    <table class="t">
+      <tr><th></th><th style="text-align:right">Today</th><th style="text-align:right">Your plan</th></tr>
+      <tr><td>Average delay per trip</td><td class="n">${best.base.avgDelay.toFixed(0)} s</td><td class="n">${best.res.avgDelay.toFixed(0)} s</td></tr>
+      <tr><td>Trips completed vs demanded</td><td class="n">${(best.base.throughput * 100).toFixed(0)}%</td><td class="n">${(best.res.throughput * 100).toFixed(0)}%</td></tr>
+      <tr><td>Approaches at LOS D or better</td><td class="n">${(best.base.shareOK * 100).toFixed(0)}%</td><td class="n">${(best.res.shareOK * 100).toFixed(0)}%</td></tr>
+      <tr><td>Worst approach (v/c)</td><td class="n">${best.base.worstVC.toFixed(2)} ${losChip(best.base.worstLOS)}</td><td class="n">${best.res.worstVC.toFixed(2)} ${losChip(best.res.worstLOS)}</td></tr>
+      <tr><td>Vehicle-hours of delay (15 min)</td><td class="n">${best.base.vehHrsLost.toFixed(1)}</td><td class="n">${best.res.vehHrsLost.toFixed(1)}</td></tr>
+    </table>
+    <div><b>Plan (${fmt$(best.cost)} of ${fmt$(TG.BUDGET)})</b>
+      <ul class="plan">${best.items.length ? best.items.map(i => `<li><span>${esc(i.label)}</span><span class="cost">${fmt$(i.cost)}</span></li>`).join('') : '<li><span>No changes</span></li>'}</ul></div>`;
+  $('reportDlg').showModal();
+}
+$('btnReport').onclick = showReport;
+$('btnCloseReport').onclick = () => $('reportDlg').close();
+
+// ------------------------------------------------------ toolbar & intro
+function setDemand(v) {
+  S.demand = v; $('demand').value = Math.round(v * 100); $('demandOut').textContent = Math.round(v * 100) + '%';
+  S.sim.setDemand(S.demand, S.zoneMult); renderScen(); renderPlan(); if (!S.sel) renderInspector();
+}
+$('demand').addEventListener('input', e => setDemand(+e.target.value / 100));
+function renderScen() {
+  $('scenseg').innerHTML = SCEN.map(s => `<button aria-pressed="${Math.abs(S.demand - s.v) < 0.001}" data-v="${s.v}" title="${Math.round(s.v * 100)}% demand">${s.k}</button>`).join('');
+  $('scenseg').querySelectorAll('button').forEach(b => b.onclick = () => setDemand(+b.dataset.v));
+}
+function renderSpeed() {
+  $('speedseg').innerHTML = [1, 2, 4, 8, 16].map(s => `<button aria-pressed="${S.speed === s}" data-s="${s}">${s}×</button>`).join('');
+  $('speedseg').querySelectorAll('button').forEach(b => b.onclick = () => { S.speed = +b.dataset.s; renderSpeed(); });
+}
+function renderColor() {
+  $('colorseg').innerHTML = `<button aria-pressed="${S.colorMode === 'vc'}" data-m="vc" title="Planning estimate: volume ÷ capacity">v/c</button><button aria-pressed="${S.colorMode === 'delay'}" data-m="delay" title="Measured from simulated cars">Delay</button>`;
+  $('colorseg').querySelectorAll('button').forEach(b => b.onclick = () => { S.colorMode = b.dataset.m; renderColor(); renderLegend(); if (!S.sel) renderInspector(); });
+}
+function renderLegend() {
+  const lab = S.colorMode === 'vc' ? ['≤.60', '.70', '.80', '.90', '1.0', '>1'] : ['≤10s', '20', '35', '55', '80', '>80'];
+  $('legend').innerHTML = `<span class="lt">LOS · ${S.colorMode === 'vc' ? 'v/c' : 'delay'}</span>` + 'ABCDEF'.split('').map((l, i) =>
+    `<span style="display:inline-flex;flex-direction:column;align-items:center;gap:1px"><span class="sw" style="background:var(--los-${l.toLowerCase()})"></span><span class="ln">${l}</span><span class="ln" style="color:var(--muted)">${lab[i]}</span></span>`).join('');
+}
+$('btnPlay').onclick = () => { S.paused = !S.paused; $('btnPlay').textContent = S.paused ? '▶' : '❚❚'; $('btnPlay').setAttribute('aria-label', S.paused ? 'Play' : 'Pause'); };
+function renderWho() { $('who').innerHTML = S.name ? `Engineer: <b>${esc(S.name)}</b>` : ''; }
+$('btnStart').onclick = () => { S.name = $('nameIn').value.trim(); renderWho(); $('intro').close(); };
+$('nameIn').addEventListener('keydown', e => { if (e.key === 'Enter') $('btnStart').click(); });
+
+// ------------------------------------------------------------ H. main loop
+newLiveSim();
+renderSpeed(); renderScen(); renderColor(); renderLegend(); renderPlan(); renderInspector(); renderWho();
+try { $('intro').showModal(); } catch (e) { /* dialogs unsupported: skip intro */ }
+let lastT = performance.now(), acc = 0, uiT = 0;
+function frame(now) {
+  const dt = Math.min(0.1, (now - lastT) / 1000); lastT = now;
+  if (!S.paused) {
+    acc += dt * S.speed; let n = 0;
+    while (acc >= C.DT && n < 200) { TG.step(S.sim); acc -= C.DT; n++; }
+    if (n >= 200) acc = 0;
+  }
+  draw(dt);
+  placeZoneControls();
+  const tt = Math.floor(S.sim.t); $('clock').textContent = `sim ${String(Math.floor(tt / 60)).padStart(2, '0')}:${String(tt % 60).padStart(2, '0')} · ${S.sim.veh.length} cars`;
+  uiT += dt; if (uiT > 1.5) { uiT = 0; refreshInspectorNumbers(); }
+  requestAnimationFrame(frame);
+}
+// re-render the inspector occasionally so measured delays stay live (skip while the user is dragging a slider)
+function refreshInspectorNumbers() {
+  const a = document.activeElement;
+  if (a && $('inspector').contains(a) && (a.tagName === 'SELECT' || a.type === 'range')) return;
+  const id = a && $('inspector').contains(a) ? a.id : null;
+  renderInspector();
+  if (id && $(id)) $(id).focus({ preventScroll: true });
+}
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>
