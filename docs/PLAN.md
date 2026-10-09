@@ -62,6 +62,7 @@ its model.
 | D12 | **US customary units** on the page (mph, ft, veh/hr) | As LPGA; metres inside |
 | D13 | **The player's name is optional** — blank still plays, and the page says so | Ron: entering names is enough; no class list of links |
 | D14 | Store name **TrafficLab+ reserved** by Ron, 2026-10-09 | |
+| D15 | **Publishing: GitHub Pages, one repository, every study in it**, with a **summary page as the index** linking to each study's page; the student can **leave any study out** (Ron, 2026-10-09) | Ron: "The Github publication plan is Github Pages, one repo. All projects go the single repo with a summary page as the index with links to each html. The user can select any individual project to not send to the repo." One link for the whole class's work per student, and nothing half-finished goes out unless they choose it |
 
 ### Consequences of D6–D8 (decided in this plan, not asked)
 
@@ -158,12 +159,23 @@ as the student's notes, if they choose.
 
 ### Publishing
 
-One repository per student, `TrafficLab` by default, with **one folder per study**:
-`https://<user>.github.io/TrafficLab/<study-slug>/` — the link they hand in. A study's folder is
-the only thing a publish replaces, so publishing one study never removes another. The repository
-is marked as made by TrafficLab+ (topic `trafficlab-plus`, description, a `trafficlab-site.json`
-at the root, a generator meta on every page) — the LMS-2-Website rule, so a publish can never land
-on a hand-made repository. An index page lists the student's studies.
+Decided by Ron, 2026-10-09 (D15): **one repository, GitHub Pages, every study in it, a summary page
+as the index**.
+
+- One repository per student, `TrafficLab` by default. **Every study goes into it** — the studies the
+  program knows (the studies folder and recent studies) — **except any the student marks "Don't
+  publish"**. That mark is kept per study and shown beside it in the Publish section.
+- Each study is one page in its own folder: `https://<user>.github.io/TrafficLab/<study-slug>/` — the
+  link to hand in for that study.
+- **The index** (`https://<user>.github.io/TrafficLab/`) is a summary page: one card per published
+  study with its title, place, intersections, budget, the date it was published, and a link to its
+  page. It is rebuilt on every publish, so it always lists exactly what is in the repository.
+- A publish adds and updates the chosen studies' folders and removes the folders of studies now
+  marked "Don't publish" (with the student told which, before anything is sent). Nothing else in the
+  repository is touched.
+- The repository is marked as made by TrafficLab+ (topic `trafficlab-plus`, description, a
+  `trafficlab-site.json` at the root listing the studies, a generator meta on every page) — the
+  LMS-2-Website rule, so a publish can never land on a hand-made repository.
 
 ## 6. What is deliberately absent (for 1.0)
 

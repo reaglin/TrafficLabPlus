@@ -79,6 +79,14 @@ public sealed class StudySession
     /// <summary>A study that exists only in the window so far (new, or opened from a .json file).</summary>
     public void MarkUnsaved() => IsDirty = true;
 
+    /// <summary>Something kept in the study file beside the study changed (FDOT's answer, the
+    /// choices made about it): Save is asked for, and the window says so.</summary>
+    public void AttachmentChanged()
+    {
+        IsDirty = true;
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
+
     public void Undo() => Swap(_undo, _redo);
 
     public void Redo() => Swap(_redo, _undo);

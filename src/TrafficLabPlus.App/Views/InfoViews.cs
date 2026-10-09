@@ -184,6 +184,7 @@ public sealed class AboutView : SectionView
                      "The traffic model: car-following (the Intelligent Driver Model), fixed-time signals, roundabouts by the Highway Capacity Manual's entry capacity, and v/c and level of service by HCM thresholds. A teaching model — planning-level, not an engineering analysis.",
                      "Map, roads and place search: © OpenStreetMap contributors, under the Open Database License (openstreetmap.org/copyright). Roads come from the Overpass API and searches from Nominatim.",
                      "The map uses Leaflet, © Volodymyr Agafonkin and CloudMade, under the BSD 2-Clause License.",
+                     "Traffic counts: Florida Department of Transportation, Transportation Data and Analytics office (Annual Average Daily Traffic, public data).",
                      "The pages use the Overpass typeface by Delve Withrington, Dave Bailey and Thomas Jockin, under the SIL Open Font License.",
                  })
         {

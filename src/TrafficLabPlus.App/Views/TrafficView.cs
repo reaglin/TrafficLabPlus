@@ -1,18 +1,28 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using TrafficLabPlus.Core.Counts;
 using TrafficLabPlus.Core.Model;
+using TrafficLabPlus.Core.Osm;
 
 namespace TrafficLabPlus.App.Views;
 
 /// <summary>
 /// Traffic: how much traffic there is today, where it comes in and goes out, trips that never
-/// happen, and the demand buttons on the page. (FDOT counts and the AI's estimate come in phases 5
-/// and 6.)
+/// happen, and the demand buttons on the page. For a Florida study made from the map, FDOT's counts
+/// fill the volumes in (AADT × K × D), each one shown with its site, year and factors before it is used.
+/// (The AI's estimate comes in phase 6.)
 /// </summary>
 public sealed class TrafficView : SectionView
 {
     public const int MaxScenarios = 5;
+
+    private readonly FdotClient _fdot = new(OsmClient.CreateHttp());
+    private List<CountMatch>? _matches;
+    private string? _answer;
+    private string? _savedOn;
+    private string? _lookupProblem;
+    private object? _matchedFor;
 
     public override void Rebuild()
     {
@@ -34,6 +44,8 @@ public sealed class TrafficView : SectionView
         {
             form.Note($"This study uses a typed table of {dm.Od.Count} trips between road ends, and the page uses it exactly as it stands. Editing that table arrives in a later version; the numbers below are not used while it is there.", Form.Res("ErrorBrush"));
         }
+
+        Counts(form, s);
 
         form.Choice("How traffic is given", "Either one total that is shared out by how busy each road end is, or a number typed for each road end (from counts, for example).",
             [(Demand.Gravity, "One total, shared by how busy each road end is"), (Demand.Volumes, "Vehicles per hour typed for each road end")],
@@ -62,15 +74,279 @@ public sealed class TrafficView : SectionView
                 form.Number(n.Label + " — vehicles entering", "veh/h", "Vehicles an hour coming into the study here (0 if none).", () => n.Volume, v => n.Volume = v, 0, 20000, k + "volume");
             }
 
-            form.Number(n.Label + (dm.IsVolumes ? " — how busy as a destination" : ""), "", share.Length > 0 ? share : "Compared with the other road ends.",
+            bool counted = StudyEdits.OriginOf(st, k + "weight") == Origins.Fdot;
+            form.Number(n.Label + (dm.IsVolumes ? " — how busy as a destination" : ""), counted ? "veh/h out" : "",
+                counted ? "Vehicles an hour leaving the study here, from the count; trips leaving are shared out by these." : share.Length > 0 ? share : "Compared with the other road ends.",
                 () => n.Weight, v => { n.Weight = v; RebuildSoon(); }, 0, 100000, k + "weight");
         }
 
         NoTrips(form, s, ends);
         Scenarios(form, s);
 
-        form.Heading("Real counts and estimates");
-        form.Note("Looking up FDOT traffic counts for Florida roads, and asking the AI for an estimate, arrive in later versions of TrafficLab+.");
+        form.Heading("Estimates");
+        form.Note("Asking the AI for an estimate, for roads with no count, arrives in a later version of TrafficLab+.");
+    }
+
+    // ------------------------------------------------------------ FDOT counts
+
+    private void Counts(Form form, StudySession s)
+    {
+        form.Heading("Traffic counts from FDOT (Florida roads)",
+            "FDOT counts traffic on state and most county roads and publishes each count as AADT: the Annual Average Daily Traffic, "
+            + "vehicles a day in both directions. Two factors turn a day into a busy hour: K, the share of the day's traffic in the design hour "
+            + "(usually about 9%), and D, the share going the busier way in that hour (usually 55–58%). TrafficLab+ takes AADT × K × D as the "
+            + "vehicles an hour coming in at a road end, as if the busier direction were toward the intersection — a busy hour to test against. "
+            + "A ramp runs one way: an off-ramp brings AADT × K in; an on-ramp only takes traffic out.");
+
+        if (!ReferenceEquals(_matchedFor, s.Document))
+        {
+            _matchedFor = s.Document;
+            _matches = null;
+            _lookupProblem = null;
+            if (FdotCache.FromBytes(s.Document.Attachments.GetValueOrDefault(FdotCache.Entry)) is { } saved)
+            {
+                Match(s, saved.Json, saved.Choices);
+                _savedOn = saved.Fetched;
+            }
+        }
+
+        if (s.Study.Geo is not { } geo)
+        {
+            form.Note(FdotClient.NotFromMap);
+            return;
+        }
+
+        if (!geo.InFlorida)
+        {
+            form.Note(FdotClient.NotInFlorida);
+            return;
+        }
+
+        Button look = form.Button(_matches is null ? "Look up FDOT counts for these roads" : "Look up FDOT counts again",
+            "Asks FDOT's public traffic-count map once; the answer is kept in the study file.", () => { }, primary: _matches is null);
+        look.Click += async (_, _) =>
+        {
+            look.IsEnabled = false;
+            look.Content = "Asking FDOT…";
+            try
+            {
+                string json = await _fdot.CountsAsync(s.Study);
+                Match(s, json, null);
+                _savedOn = DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                _lookupProblem = null;
+                Keep(s);
+            }
+            catch (OsmServiceException ex)
+            {
+                _lookupProblem = ex.Message;
+            }
+
+            Rebuild();
+        };
+
+        if (_lookupProblem is not null)
+        {
+            form.Note(_lookupProblem, Form.Res("ErrorBrush"));
+        }
+
+        if (_matches is null)
+        {
+            return;
+        }
+
+        // what is in use is read from the study itself, so it stays true after an undo or a reopen
+        List<StudyNode> ends = s.Study.Nodes.Where(n => n.Type == StudyNode.End).ToList();
+        bool inUse = ends.Any(n => StudyEdits.OriginOf(s.Study, $"node:{n.Id}/volume") == Origins.Fdot);
+        int found = _matches.Count(m => m.Found);
+        if (found == 0)
+        {
+            form.Note("FDOT has no counts on these roads. " + FdotClient.TypeInstead);
+            return;
+        }
+
+        form.Note(inUse
+            ? $"Counts in use (looked up {_savedOn}): the road ends below say \"from FDOT traffic counts\", and the page credits FDOT."
+            : $"Found FDOT counts for {found} of the {_matches.Count} road ends (looked up {_savedOn}). Check each one, change K or D if you know better, untick any that look wrong, then press Use the ticked counts.");
+        form.Note("A count looks wrong if its from–to roads are not the road this end is on, or if it is many years old.");
+
+        var pending = new TextBlock { TextWrapping = TextWrapping.Wrap, Foreground = Form.Res("ErrorBrush"), Margin = new Thickness(0, 6, 0, 0) };
+        Button? useButton = null;
+        void Refresh()
+        {
+            int ticked = _matches.Count(m => m.Found && m.Use);
+            if (useButton is not null)
+            {
+                useButton.Content = $"Use the ticked counts ({ticked} of {_matches.Count} road ends)";
+                useButton.IsEnabled = ticked > 0;
+            }
+
+            bool differs = inUse && _matches.Any(m =>
+            {
+                StudyNode? end = s.Study.Node(m.EndId);
+                bool fromFdot = StudyEdits.OriginOf(s.Study, $"node:{m.EndId}/volume") == Origins.Fdot;
+                return m.Found && (m.Use != fromFdot || (m.Use && end?.Volume != Math.Round(m.Entering)));
+            });
+            pending.Text = differs ? "Not applied yet: the figures above differ from what the study uses. Press Use the ticked counts to apply them." : "";
+            pending.Visibility = differs ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        foreach (CountMatch m in _matches)
+        {
+            form.Panel.Children.Add(new TextBlock { Text = m.EndName, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 10, 0, 2), TextWrapping = TextWrapping.Wrap });
+            if (!m.Found)
+            {
+                form.Note($"No FDOT count on this road — local and private roads are rarely counted. It keeps its estimate of {Estimate(s, m.EndId):#,0} veh/h coming in.");
+                continue;
+            }
+
+            foreach ((FdotCount c, bool inbound) in m.Counts)
+            {
+                form.Note(c.Describe() + (c.OneWay ? (inbound ? " — comes in here." : " — leaves the study here.") : "."));
+            }
+
+            FdotCount main = m.Counts.OrderByDescending(c => c.Count.Aadt).First().Count;
+            var row = new WrapPanel { Margin = new Thickness(0, 0, 0, 2) };
+            var result = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) };
+            var error = new TextBlock { TextWrapping = TextWrapping.Wrap, Foreground = Form.Res("ErrorBrush"), Visibility = Visibility.Collapsed };
+            void Show()
+            {
+                result.Text = m.Use
+                    ? $"→ {m.Entering:#,0} vehicles an hour come in here, {m.Exiting:#,0} go out."
+                    : $"Not used: this road end keeps its estimate of {Estimate(s, m.EndId):#,0} veh/h coming in.";
+                Refresh();
+            }
+
+            void Changed()
+            {
+                Show();
+                Keep(s);
+            }
+
+            row.Children.Add(Factor("K", m.K, main.K, v => { m.K = v; Changed(); }, 1, 30, error,
+                "Design-hour factor: the share of a day's traffic in the busy hour."));
+            if (m.Counts.Any(c => !c.Count.OneWay))
+            {
+                // a one-way ramp has no busier direction: D does not apply
+                row.Children.Add(Factor("D", m.D, main.D, v => { m.D = v; Changed(); }, 50, 100, error,
+                    "Directional factor: the share going the busier way in that hour."));
+            }
+
+            var use = new CheckBox { Content = "Use this count", IsChecked = m.Use, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 0, 0) };
+            use.Checked += (_, _) => { m.Use = true; Changed(); };
+            use.Unchecked += (_, _) => { m.Use = false; Changed(); };
+            row.Children.Add(use);
+            form.Panel.Children.Add(row);
+            form.Panel.Children.Add(error);
+            form.Panel.Children.Add(result);
+            Show();
+        }
+
+        useButton = form.Button("Use the ticked counts",
+            "Switches the study to typed volumes: each ticked road end gets its vehicles in and out from FDOT; the others keep their estimates. Ctrl+Z undoes it.",
+            () =>
+            {
+                int year = _matches.Where(m => m.Found && m.Use).SelectMany(m => m.Counts).Select(c => c.Count.Year).DefaultIfEmpty(DateTime.Now.Year).Max();
+                s.Edit("demand/counts", () => FdotCounts.Apply(s.Study, _matches, year));
+                RebuildSoon();
+            }, primary: true);
+        form.Panel.Children.Add(pending);
+        Refresh();
+
+        if (inUse)
+        {
+            form.Button("Stop using the counts",
+                "Goes back to one total shared out by how busy each road end is, keeping today's total. The counts stay listed here to use again.",
+                () =>
+                {
+                    s.Edit("demand/counts", () => FdotCounts.StopUsing(s.Study));
+                    RebuildSoon();
+                });
+        }
+    }
+
+    private static double Estimate(StudySession s, string endId) => DemandShares.Entering(s.Study).GetValueOrDefault(endId);
+
+    /// <summary>Keeps FDOT's answer and the student's choices (ticks, K, D) in the study file, so a
+    /// reopened study shows what was chosen. It is a change to the file: Save is asked for.</summary>
+    private void Keep(StudySession s)
+    {
+        if (_answer is null || _matches is null)
+        {
+            return;
+        }
+
+        s.Document.Attachments[FdotCache.Entry] = FdotCache.ToBytes(_answer, _savedOn ?? "",
+            _matches.Where(m => m.Found).ToDictionary(m => m.EndId, m => (m.Use, m.K, m.D)));
+        s.AttachmentChanged();
+    }
+
+    private void Match(StudySession s, string json, IReadOnlyDictionary<string, (bool Use, double K, double D)>? choices)
+    {
+        try
+        {
+            List<FdotCount> counts = FdotCounts.Parse(json);
+            _answer = json;
+            _matches = FdotCounts.Match(s.Study, counts);
+            foreach (CountMatch m in _matches)
+            {
+                if (choices is not null && choices.TryGetValue(m.EndId, out (bool Use, double K, double D) c))
+                {
+                    (m.Use, m.K, m.D) = c;
+                }
+            }
+        }
+        catch (TrafficLabPlus.Core.Build.StudyFormatException ex)
+        {
+            _matches = null;
+            _lookupProblem = ex.Message;
+        }
+    }
+
+    /// <summary>A small percentage box for K or D: commits on Enter or leaving it, says beside it
+    /// what is wrong, and shows FDOT's own figure to go back to.</summary>
+    private static StackPanel Factor(string name, double value, double fdot, Action<double> set, double min, double max, TextBlock error, string help)
+    {
+        var p = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 12, 0), ToolTip = help };
+        var box = new TextBox { Width = 56, Text = (value * 100).ToString("0.#", CultureInfo.CurrentCulture), HorizontalContentAlignment = HorizontalAlignment.Right, Padding = new Thickness(2) };
+        System.Windows.Automation.AutomationProperties.SetName(box, name + " factor, percent");
+        System.Windows.Automation.AutomationProperties.SetHelpText(box, help);
+        p.Children.Add(new TextBlock { Text = name + " ", FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center });
+        p.Children.Add(box);
+        p.Children.Add(new TextBlock
+        {
+            Text = $" %  (FDOT's figure: {(fdot * 100).ToString("0.#", CultureInfo.CurrentCulture)}%)",
+            VerticalAlignment = VerticalAlignment.Center,
+            Foreground = Form.Res("MutedTextBrush"),
+        });
+        void Commit()
+        {
+            if (double.TryParse(box.Text.Replace("%", "", StringComparison.Ordinal), NumberStyles.Float, CultureInfo.CurrentCulture, out double v) && v >= min && v <= max)
+            {
+                box.ClearValue(Control.BorderBrushProperty);
+                error.Visibility = Visibility.Collapsed;
+                if (Math.Abs(v / 100 - value) > 1e-9)
+                {
+                    value = v / 100;
+                    set(value);
+                }
+            }
+            else
+            {
+                box.BorderBrush = Form.Res("ErrorBrush");
+                error.Text = $"{name} must be a percentage from {min} to {max}; it is still {(value * 100).ToString("0.#", CultureInfo.CurrentCulture)}%.";
+                error.Visibility = Visibility.Visible;
+            }
+        }
+
+        box.LostKeyboardFocus += (_, _) => Commit();
+        box.KeyDown += (_, e) =>
+        {
+            if (e.Key == System.Windows.Input.Key.Enter)
+            {
+                Commit();
+            }
+        };
+        return p;
     }
 
     private void SwitchMode(Study st, List<StudyNode> ends, string mode)

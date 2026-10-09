@@ -13,6 +13,7 @@ namespace TrafficLabPlus.App;
 /// TrafficLabPlus.exe --new-study &lt;signals&gt; &lt;study.json&gt;  (a starting network, as New study makes it)
 /// TrafficLabPlus.exe --osm-junctions &lt;overpass.json&gt; &lt;out.txt&gt;   (the junctions found in an Overpass answer)
 /// TrafficLabPlus.exe --osm-study &lt;overpass.json&gt; &lt;study.json&gt; &lt;junction id&gt;…
+/// TrafficLabPlus.exe --fdot-match &lt;study.json&gt; &lt;fdot.json&gt; &lt;out.txt&gt;  (FDOT counts matched to road ends)
 /// TrafficLabPlus.exe &lt;study.trafficlab&gt;                (opens it)
 /// </code>
 /// </summary>
@@ -56,6 +57,12 @@ public partial class App : Application
                         new Core.Osm.OsmStudyRequest { Junctions = args[3..], Title = "From OpenStreetMap" });
                     File.WriteAllText(args[2], StudyJson.Write(made.Study));
                     File.WriteAllLines(args[2] + ".notes.txt", made.Notes);
+                    return 0;
+                case "--fdot-match" when args.Length == 4:
+                    Study st = StudyJson.Read(File.ReadAllText(args[1]));
+                    File.WriteAllLines(args[3], Core.Counts.FdotCounts.Match(st, Core.Counts.FdotCounts.Parse(File.ReadAllText(args[2])))
+                        .Select(m => $"{m.EndId}	{m.EndName}	in {m.Entering:0}	out {m.Exiting:0}	K {m.K:0.###} D {m.D:0.###}	"
+                                     + string.Join(" + ", m.Counts.Select(c => (c.Inbound ? "IN " : "OUT ") + c.Count.Describe()))));
                     return 0;
                 default:
                     return 2;

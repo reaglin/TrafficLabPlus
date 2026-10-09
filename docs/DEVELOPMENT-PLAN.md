@@ -104,10 +104,13 @@ The LPGA core is good; this phase changes what it reads, not how it drives.
 
 | # | Task | Done when |
 |---|---|---|
-| 5.1 | Traffic section: entering volume per zone, scenarios (Today, a future year, an event) with multipliers, typed in a table that explains veh/hr | Built early, with phase 3 (3.4); what phase 5 adds is FDOT and the AADT conversion |
-| 5.2 | **FDOT AADT lookup** from FDOT's open data for each road in a Florida study, with the count year and station | LPGA's roads return counts |
-| 5.3 | AADT → peak-hour volume with **K** and **D** factors (FDOT defaults, editable, explained) | |
-| 5.4 | Outside Florida, the lookup says so and offers typing or the AI | |
+| 5.1 | ⚠️ Traffic section: one total shared by how busy each road end is, or vehicles an hour typed per road end; trips that do not happen; the demand buttons (Today, a future year, an event) with their percentages; each road end shows the veh/h the engine will send in | Built early, with phase 3 (3.4). Action: Ron, hand-test 11 |
+| 5.2 | ⚠️ **FDOT AADT lookup** from FDOT's own public layer (Transportation Data and Analytics, `Annual_Average_Daily_Traffic_TDA`): one query for the study's box; each counted stretch matched to the road end it leads to (runs along the road, within 40 m; ramps only to one-way counts); the site, year, AADT and FDOT's description shown before anything is used; the answer kept in the study file (`fdot.json`). A study made from the map knows where it is on the earth (`geo`) | **LPGA's roads return counts**: LPGA Blvd (site 797025, 29,000/day, 2025), Williamson north and south (797087, 797086), the I-95 off-ramp (792025); Outlet, Cornerstone and the short ramp beside LPGA have none, and say so. Tests on the saved answer; tried live in the window |
+| 5.3 | ⚠️ AADT → design-hour volume: **AADT × K × D** in, AADT × K × (1 − D) out; an off-ramp brings AADT × K in, an on-ramp takes it out. **K and D start at FDOT's own factors for each count**, can be changed per road end, and are explained in plain words; each count can be left unticked. "Use the ticked counts" switches to typed volumes (one undo); uncounted road ends keep their estimates; the page and printout credit FDOT | Tests: 29,000 × 9% × 57.6% = 1,503 veh/h; the engine sends in exactly what the counts say; the study passes the check and runs. With LPGA's counts the design hour runs the corridor over capacity (LOS F) — a real busy hour |
+| 5.4 | ⚠️ Outside Florida, or for a study not made from the map, the lookup says so and what to do instead (type a local count; the AI in phase 6) | Tests on both |
+| 5.5 | ⚠️ **UX review** of the counts (cognitive walkthrough + Nielsen, `ux-reviewer`, plus the running window), 2026-10-09: 0 critical, 3 major, 5 minor | Fixed: the ticks and K/D a student chose are kept in the study file and come back on reopening; whether counts are in use is read from the study, so it stays true after an undo; figures changed after the counts are in use say "Not applied yet"; a **Stop using the counts** button; K and D commit on Enter, say what is wrong beside them, and show FDOT's own figure; the Use button counts the ticked ones; a line on how to tell a wrong count; "type them" says where; looking up counts asks for a Save; errors say which button to press and do not blame the internet for a bad answer; the credit year is the newest count used; counted road ends show "veh/h out". Action: Ron, hand-test 11 |
+
+**Hand-test:** `docs/MANUAL-TESTING.md`, test 11.
 
 ---
 
@@ -132,10 +135,11 @@ Through `Eaglin.AiManager` and `Eaglin.AiManager.Wpf` (latest on the local feed:
 | # | Task | Done when |
 |---|---|---|
 | 7.1 | Port `Publisher`, `GitHubApi`, `GitCli`, `TokenStore` from GamifyPlus | |
-| 7.2 | One repository per student (`TrafficLab`), one folder per study; publishing one study never removes another; an index page of the student's studies | |
+| 7.2 | **One repository** (`TrafficLab`), GitHub Pages: **every study goes in, except those the student marks "Don't publish"**; one folder per study; a **summary page as the index** — a card per study (title, place, intersections, budget, date) linking to its page; a publish never touches anything else, and says before sending which folders it will remove (D15, Ron 2026-10-09) | A test publish to a local repository: the index lists exactly the studies sent; a study marked "Don't publish" is not sent, and its old folder is removed |
 | 7.3 | Marked as made by TrafficLab+ (topic, description, `trafficlab-site.json`, generator meta) | A publish refuses a repository it did not make |
-| 7.4 | **"Copy the link to hand in"** after a publish, and a plain "New to GitHub?" guide | |
+| 7.4 | **"Copy the link to hand in"** after a publish — for one study, or for the summary page — and a plain "New to GitHub?" guide |  |
 | 7.5 | Real publish with Ron's token | Ron opens the link on his phone |
+| 7.6 | The Publish section lists every study the program knows, each with **Publish / Don't publish** (kept with the study) and whether its page in the repository is up to date | UX review |
 
 ---
 
@@ -152,7 +156,7 @@ Through `Eaglin.AiManager` and `Eaglin.AiManager.Wpf` (latest on the local feed:
 
 ---
 
-## Open questions for Ron — all 6 answered (2026-10-09)
+## Open questions for Ron — all 6 answered (2026-10-09); 7 open
 
 1. ~~What does a published page open with?~~ **Blank, as a puzzle.** The page opens with today's
    network and no plan. The player builds a plan; when they **submit** it (run the scored test and
@@ -176,6 +180,13 @@ Through `Eaglin.AiManager` and `Eaglin.AiManager.Wpf` (latest on the local feed:
    always tests at it and says so; the toolbar stays free for exploring;
    (b) Submit tests at whatever is set, the printout says what that was (it does now), and the teacher
    tells the class which demand to use.
+
+7. **Which hour do FDOT counts give the page?** (asked 2026-10-09, phase 5) TrafficLab+ uses **AADT × K × D**
+   coming in at every counted road end — the busier direction of the design hour, as if every road's
+   busier direction were toward the intersection. With LPGA's counts that runs the corridor over capacity
+   (LOS F) at "Today". Options: (a) keep it — a deliberately busy hour; (b) **AADT × K ÷ 2** each way (the
+   design hour, both directions averaged) — gentler, and the scenario buttons make it busier; (c) let the
+   author choose per study. Proposed: (c), with (b) as the starting choice.
 
 ---
 

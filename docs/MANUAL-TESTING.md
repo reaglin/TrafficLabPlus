@@ -137,3 +137,25 @@ These need the internet: the map, the search and the roads come from OpenStreetM
 
 **What to send back:** whether a student could find their intersection this way, and what in the
 made study you would want different.
+
+---
+
+## Phase 5 — traffic volumes and FDOT counts (2026-10-09)
+
+### Test 11 — FDOT counts for the LPGA corridor
+
+1. Open the LPGA corridor study you made from the map in test 10 (or make it again), and go to
+   **3 Traffic**. At the top: *Traffic counts from FDOT*, with what AADT, K and D mean.
+2. **Look up FDOT counts for these roads.** Five of the eight road ends get a count: LPGA Blvd west
+   and east (site 797025, 29,000 a day), Williamson north and south, and the I-95 off-ramp. Outlet,
+   Cornerstone and the short ramp say they have none and keep their estimates.
+3. Change **K** on one road to 10 and leave the box: its vehicles an hour go up. Untick one count.
+4. **Use the ticked counts.** The road ends below now show their volumes "from FDOT traffic counts",
+   the page reloads busier (the design hour), and its credit line says *Traffic counts: Florida
+   Department of Transportation…*. Ctrl+Z puts the old numbers back.
+5. Save, close, reopen: the counts are still listed, without asking FDOT again.
+6. Open the **Four-Way Intersection** example and go to Traffic: it says counts need a study made from
+   the map, and what to do instead.
+
+**What to send back:** whether AADT × K × D is the busy hour you want students to test, or whether
+you would rather use K alone (both directions averaged) or a typed peak-hour count.

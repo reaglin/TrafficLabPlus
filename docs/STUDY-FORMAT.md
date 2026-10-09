@@ -30,7 +30,8 @@ unchanged; `toU()` converts once, at load, and snaps to 10⁻⁹ u so LPGA's val
 | `links` | yes | Road segments between nodes (below) |
 | `pockets` | | Turn lanes that exist today (below) |
 | `backdrop` | | Decoration only — never simulated (below) |
-| `sources` | | Where things came from. `osm: true` puts "© OpenStreetMap contributors" on the page and printout |
+| `sources` | | Where things came from. `osm: true` puts "© OpenStreetMap contributors" on the page and printout; `counts` (text) puts "Traffic counts: …" there too |
+| `geo` | | For a study made from the map: `{lat, lon, x, y}` — the local point (x, y) metres is at (lat, lon). Counts are looked up by it. The page ignores it |
 | `from` | | For the editor: where each value came from — a key like `node:I1/cycle` or `link:L1/lanes`, and `example`, `default`, `typed`, `osm`, `fdot` or `ai`; `*` covers every value not listed. Left out of the built page |
 
 **No `plan`.** A published page always opens blank, as a puzzle (Ron, 2026-10-09).
@@ -102,7 +103,8 @@ What the program saves: a zip holding `study.json` (the study above), `notes.md`
 never on the page) and, for a study made from the map, `osm.json`: `box` (south, west, north, east),
 `fetched` (the date), `junctions` (the chosen junction ids, `j` + the lowest OSM node id in the
 junction) and `overpass` (Overpass's answer as it came), so an opened study never asks OpenStreetMap
-again. Entries the program does not know are kept and written back.
+again. A study whose counts were looked up also holds `fdot.json` (`fetched`, and `answer`: FDOT's
+answer as it came), so the Traffic section shows the same counts without asking again. Entries the program does not know are kept and written back.
 A study with a newer `format` is refused before anything is read. A plain `.json` study opens too, and
 is saved as a `.trafficlab` file.
 

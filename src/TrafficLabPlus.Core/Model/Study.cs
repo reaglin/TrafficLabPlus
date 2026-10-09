@@ -41,6 +41,10 @@ public sealed class Study
 
     public Sources? Sources { get; set; }
 
+    /// <summary>Where the study is on the earth, for a study made from the map: the local point
+    /// (X, Y) metres is at (Lat, Lon). Counts are looked up by it. The page ignores it.</summary>
+    public GeoAnchor? Geo { get; set; }
+
     /// <summary>Where each value came from, for the editor: a key such as <c>node:I1/cycle</c> or
     /// <c>link:L1/lanes</c>, and one of the <see cref="Origins"/> words. The page ignores it.</summary>
     public Dictionary<string, string>? From { get; set; }
@@ -77,6 +81,28 @@ public static class Origins
         Ai => "suggested by the AI",
         _ => "",
     };
+}
+
+public sealed class GeoAnchor
+{
+    public double Lat { get; set; }
+    public double Lon { get; set; }
+    public double X { get; set; }
+    public double Y { get; set; }
+
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? Extra { get; set; }
+
+    private const double MetresPerDegreeLat = 110_574, MetresPerDegreeLon = 111_320;
+
+    private double LonScale => MetresPerDegreeLon * Math.Cos(Lat * Math.PI / 180);
+
+    public (double Lat, double Lon) ToLatLon(double x, double y) => (Lat - (y - Y) / MetresPerDegreeLat, Lon + (x - X) / LonScale);
+
+    public (double X, double Y) ToLocal(double lat, double lon) => (X + (lon - Lon) * LonScale, Y + (Lat - lat) * MetresPerDegreeLat);
+
+    /// <summary>Roughly inside Florida (FDOT's counts cover Florida only).</summary>
+    public bool InFlorida => Lat is > 24.3 and < 31.1 && Lon is > -87.7 and < -79.8;
 }
 
 public sealed class WorldBox

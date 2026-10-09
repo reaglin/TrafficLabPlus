@@ -372,6 +372,9 @@ public static class NetworkFromOsm
             n.Y = Math.Round(n.Y + dy, 1);
         }
 
+        // the local frame's place on the earth, so counts can be looked up later
+        study.Geo = new GeoAnchor { Lat = lat0, Lon = lon0, X = dx, Y = dy };
+
         foreach (JsonArray line in streets.OfType<JsonArray>().Concat(freeways.OfType<JsonObject>().Select(f => (JsonArray)f["points"]!)))
         {
             foreach (JsonArray p in line.OfType<JsonArray>())
