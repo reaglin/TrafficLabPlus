@@ -22,8 +22,16 @@ $demo = Join-Path $work "LPGA Corridor Traffic Lab.trafficlab"
 Start-Sleep -Milliseconds 1500
 
 $env:TRAFFICLAB_WINDOW = "1920x1080"
+# the start screen without this machine's recent studies: their folder paths are not for a public listing
+$recent = Join-Path $env:LOCALAPPDATA "TrafficLabPlus\recent.txt"
+if (Test-Path $recent) { Move-Item $recent "$recent.store-shot" -Force }
 try {
     & $tour -Exe $exe -Steps "wait:500", "shot:$out\01-start.png"
+}
+finally {
+    if (Test-Path "$recent.store-shot") { Move-Item "$recent.store-shot" $recent -Force }
+}
+try {
     & $tour -Exe $exe -Args "`"$demo`"" -WaitMs 4000 -Steps "select:1  Map", "wait:7000", "shot:$out\02-map-from-openstreetmap.png"
     & $tour -Exe $exe -Steps "invoke:Open the LPGA Traffic Lab example", "wait:4000", "invoke:Start", "wait:600", "toggle:Race Week",
         "expand:Choose an intersection, road end or road to change", "select:Intersection: LPGA & Williamson", "keys:{ESC}", "wait:8000",

@@ -28,7 +28,7 @@ public sealed class StartView(Action<BuiltInExample> example, Action fromMap, Ac
             "Start a study — find your intersection on the map and bring in its real roads, or start from a simple layout.",
             "Shape the network: streets, lanes, speeds, the signal timing and turn lanes that exist today.",
             "Set the traffic, and the challenge: how many vehicles, the budget, what each fix costs.",
-            "Check the page on the right as you go — it is exactly the page that will be published. Save it as a file; publishing to the web and handing in the link come in a later version.",
+            "Check the page on the right as you go — it is exactly the page that will be published. When it is ready, Publish puts it on your free GitHub Pages website, with a link to hand in.",
         ];
         for (int i = 0; i < steps.Length; i++)
         {

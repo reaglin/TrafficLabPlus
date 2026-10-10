@@ -13,6 +13,7 @@ Writes:
     resources/images/trafficlab-icon-1024.png        the master: full-bleed green with the mark
     resources/images/trafficlab-icon-rounded-1024.png a rounded green square on transparency
     resources/images/icon-candidates.png              the chosen mark and two variants side by side
+    resources/images/trafficlab-mark-2048.png, trafficlab-glyph-2048.png   for make-store-assets.ps1
     src/TrafficLabPlus.App/TrafficLabPlus.ico         the program's .exe and window icon (16-256)
 The package images for the Store (tiles, splash) come from the master when packaging is built (8.3).
 """
@@ -61,6 +62,13 @@ def tile(size, rounded=False, **kw):
 # the chosen mark
 tile(1024).save(os.path.join(IMAGES, 'trafficlab-icon-1024.png'))
 tile(1024, rounded=True).save(os.path.join(IMAGES, 'trafficlab-icon-rounded-1024.png'))
+
+# for the Store package (packaging/make-store-assets.ps1): the mark at 2048 on green, and the white
+# signal alone on transparency (its lamps green) to set beside the name on the wide tile and hero art
+tile(2048).save(os.path.join(IMAGES, 'trafficlab-mark-2048.png'))
+glyph = Image.new('RGBA', (2048 * 2, 2048 * 2), (0, 0, 0, 0))
+plus_signal(ImageDraw.Draw(glyph), 2048 * 2)
+glyph.resize((2048, 2048), Image.LANCZOS).save(os.path.join(IMAGES, 'trafficlab-glyph-2048.png'))
 
 # the .ico: rounded square on transparency, each size drawn at its size (sharp at 16 px)
 sizes = [16, 24, 32, 48, 64, 128, 256]

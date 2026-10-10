@@ -291,7 +291,7 @@ public sealed class FdotClient(HttpClient http)
 
     public const string NotFromMap = "Counts are found by where the roads are on the map, and this study was not made from the map (1 Map). " + TypeInstead;
 
-    public const string NotInFlorida = "FDOT's counts cover Florida only, and this study is elsewhere. Many cities and states publish their own counts: " + TypeInstead + " (In a later version the AI can estimate them.)";
+    public const string NotInFlorida = "FDOT's counts cover Florida only, and this study is elsewhere. Many cities and states publish their own counts: " + TypeInstead + " Or press Estimate traffic with the AI… to have the AI estimate them for you to check.";
 
     public async Task<string> CountsAsync(Study study, CancellationToken cancel = default)
     {

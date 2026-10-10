@@ -1,10 +1,10 @@
 <Project>
 
-  <!-- Shared settings for TrafficLabPlus (src/, tests/, later packaging/). -->
+  <!-- Shared settings for TrafficLabPlus (src/, tests/, packaging/). -->
 
   <PropertyGroup>
-    <!-- One version property; packaging will read it for the MSIX identity. -->
-    <TrafficLabPlusVersion>0.1.0</TrafficLabPlusVersion>
+    <!-- One version property; packaging/pack.ps1 reads it for the MSIX version. -->
+    <TrafficLabPlusVersion>1.0.0</TrafficLabPlusVersion>
     <Version>$(TrafficLabPlusVersion)</Version>
     <AssemblyVersion>$(TrafficLabPlusVersion).0</AssemblyVersion>
     <FileVersion>$(TrafficLabPlusVersion).0</FileVersion>
