@@ -32,8 +32,10 @@ it after every change, undo, New study with its budget, About. 40 tests green. E
 for Ron (`docs/MANUAL-TESTING.md`, tests 1–15). Ron's real publish worked 2026-10-10. **The Store
 package is built** (2026-10-10, 1.0.0, `DeanEaglin.TrafficLab`, Store ID 9P5NGQF4HRPD): `packaging/`
 ported from Gamify+, `pwsh ./packaging/make-msixupload.ps1` → `artifacts\*.msixupload`; the release
-documents are in `docs/release/` (start with `DEPLOY_TO_WIN_APP_STORE.md`). Next: Ron runs WACK and
-submits; when live, tag `v1.0.0` and update softwareplus.ai/trafficlab/.
+documents are in `docs/release/` (start with `DEPLOY_TO_WIN_APP_STORE.md`). WACK PASS 23/24.
+**1.0.0 is live on the Microsoft Store since 2026-10-10** (https://apps.microsoft.com/detail/9p5ngqf4hrpd,
+tagged `v1.0.0`); softwareplus.ai/trafficlab/ links to it and plays the two examples. An update starts
+at `docs/release/DEPLOY_TO_WIN_APP_STORE.md` §6.
 
 ### Read these first
 

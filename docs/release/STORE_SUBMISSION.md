@@ -18,7 +18,7 @@ certification twice).
 | Listing copy, category, age rating | ✅ `STORE_LISTING.md` and below |
 | Screenshots | ✅ Nine at 1920 × 1080 in `resources/images/screenshots/` (`tools/store-shots.ps1`); no folder path or GitHub account in any of them — **Ron to look before uploading** |
 | WACK | ✅ **PASS**, 23 of 24, on 1.0.0.0 (Ron, 2026-10-10) — see Result below |
-| Submit | ✅ Submitted by Ron 2026-10-10 — **in certification** |
+| Submit | ✅ Submitted by Ron 2026-10-10 — **live on the Store 2026-10-10** (tagged `v1.0.0`) |
 
 ## The Partner Center account
 
@@ -166,11 +166,11 @@ The first three are described in the certification notes. `App resources` and
 6. ~~Run WACK~~ — PASS, 23/24, 2026-10-10.
 7. ~~Partner Center~~ — submitted 2026-10-10: pricing → properties → age rating → packages → listing (copy, images,
    screenshots) → certification notes → submit (`DEPLOY_TO_WIN_APP_STORE.md` §5 step 7).
-8. Once live: `git tag v1.0.0`; record the Store link and date here and in the plan; update
+8. ~~Once live: tag, record, website~~ — live 2026-10-10; tagged `v1.0.0`; softwareplus.ai/trafficlab/ has the Store link.
    `softwareplus.ai/trafficlab/` (Store link, version, screenshots — the portfolio rule).
 
 ## Releases
 
 | Version | Built | Submitted | Live | Store link |
 |---|---|---|---|---|
-| 1.0.0.0 | 2026-10-10 | 2026-10-10 | | https://apps.microsoft.com/detail/9P5NGQF4HRPD |
+| 1.0.0.0 | 2026-10-10 | 2026-10-10 | 2026-10-10 | https://apps.microsoft.com/detail/9P5NGQF4HRPD |
