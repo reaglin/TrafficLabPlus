@@ -267,3 +267,6 @@ manual-test/
 # TrafficLab+: the hand-test build and screenshots
 manual-test/
 shots/
+
+# the Store release documents (the [Rr]elease/ rule above is for build output)
+!docs/release/
