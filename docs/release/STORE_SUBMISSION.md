@@ -17,7 +17,7 @@ certification twice).
 | `.msixupload` | ✅ Built 2026-10-10, package family name verified. The package was installed on this machine (`Add-AppxPackage -Register`), started from the Start menu entry, opened the LPGA example and played the page, and was removed again |
 | Listing copy, category, age rating | ✅ `STORE_LISTING.md` and below |
 | Screenshots | ✅ Nine at 1920 × 1080 in `resources/images/screenshots/` (`tools/store-shots.ps1`); no folder path or GitHub account in any of them — **Ron to look before uploading** |
-| WACK | ⚠️ **Ron to run** — `pwsh ./packaging/run-wack.ps1` (needs the UAC prompt approved, and drives the app on screen for several minutes) |
+| WACK | ✅ **PASS**, 23 of 24, on 1.0.0.0 (Ron, 2026-10-10) — see Result below |
 | Submit | ⚠️ Ron, in Partner Center |
 
 ## The Partner Center account
@@ -139,8 +139,22 @@ report is `artifacts\wack-report.xml`. Do not run `appcert.exe` by hand (see
 
 ### Result
 
-*(Ron: record the run here — date, OVERALL, how many of how many, and any message that names a
-TrafficLab+ file.)*
+**2026-10-10, on 1.0.0.0 — OVERALL PASS, 23 of 24** (run by Ron; report `artifacts\wack-report.xml`).
+
+The one FAIL is `Blocked executables`, **optional** — the same finding Gamify+, SMADA and Statistle
+passed certification with. 42 of its 46 messages are inside Microsoft's own runtime, which a
+self-contained package must carry (`System.Diagnostics.Process.dll`, `mscordbi.dll`,
+`System.CodeDom.dll`…). Four name TrafficLab+'s own files:
+
+| Message | What it is |
+|---|---|
+| `TrafficLabPlus.exe` … `shell32.dll!ShellExecuteW` | Opening a built page or a help link in the browser, and a folder in Explorer |
+| `TrafficLabPlus.dll` … `Process.Start` | The same, from the views |
+| `TrafficLabPlus.Core.dll` … `Process.Start` | Running the user's own `git.exe` when publishing without a GitHub token |
+| `TrafficLabPlus.dll` … blocked executable reference to `"cmd"` | **Not a program launch.** `cmd` is the name of a field in the messages the Map step sends to its map page (`new { cmd = "goto", … }` in `Views/MapView.cs`, read by `Map/map.html`); WACK matches the text. TrafficLab+ never runs `cmd.exe`. It could be renamed in a later version to quiet the message |
+
+The first three are described in the certification notes. `App resources` and
+`DPIAwarenessValidation` passed.
 
 ## Submission order
 
@@ -149,7 +163,7 @@ TrafficLab+ file.)*
 3. ~~Set the release version~~ — 1.0.0.
 4. ~~Generate the Store assets~~ — done.
 5. ~~Build the `.msixupload`~~ — done, PFN-verified, installed and run locally.
-6. Run WACK (Ron).
+6. ~~Run WACK~~ — PASS, 23/24, 2026-10-10.
 7. Partner Center: pricing → properties → age rating → packages → listing (copy, images,
    screenshots) → certification notes → submit (`DEPLOY_TO_WIN_APP_STORE.md` §5 step 7).
 8. Once live: `git tag v1.0.0`; record the Store link and date here and in the plan; update
