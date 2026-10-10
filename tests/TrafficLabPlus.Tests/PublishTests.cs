@@ -74,8 +74,19 @@ public sealed partial class PublishTests : IDisposable
         Assert.DoesNotContain("<script", index, StringComparison.OrdinalIgnoreCase);
     }
 
-    [GeneratedRegex("""(src|href)\s*=\s*["']?(https?:)?//""", RegexOptions.IgnoreCase)]
+    // a load: an src, or a <link>'s href (a stylesheet). An <a> the reader clicks is not one.
+    [GeneratedRegex("""(src\s*=|<link[^>]*href\s*=)\s*["']?(https?:)?//""", RegexOptions.IgnoreCase)]
     private static partial Regex Remote();
+
+    [Fact]
+    public void TheIndexSaysItWasCreatedWithTrafficLabAndLinksToSoftwarePlus()
+    {
+        string index = File.ReadAllText(Path.Combine(BuiltSite(), "index.html"));
+        string footer = index[index.IndexOf("<footer>", StringComparison.Ordinal)..];
+
+        Assert.Contains("Created with <a href=\"https://softwareplus.ai/trafficlab/\">TrafficLab+</a>", footer, StringComparison.Ordinal);
+        Assert.Contains("<a href=\"https://softwareplus.ai/\">SoftwarePlus.ai</a>", footer, StringComparison.Ordinal);
+    }
 
     [Fact]
     public void AStudyLeftOutIsGoneFromTheSiteAndGitIsKept()

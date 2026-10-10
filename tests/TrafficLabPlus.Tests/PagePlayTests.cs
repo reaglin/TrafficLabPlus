@@ -33,6 +33,9 @@ public class PagePlayTests
             Assert.True(r.GetProperty("introOpen").GetBoolean(), "the intro shows first");
             Assert.True(r.GetProperty("introClosed").GetBoolean(), "Start closes the intro, name or no name");
             Assert.StartsWith(who, r.GetProperty("who").GetString()!.Trim(), StringComparison.Ordinal);
+            Assert.StartsWith("Created with TrafficLab+ · SoftwarePlus.ai", r.GetProperty("footer").GetString(), StringComparison.Ordinal);
+            Assert.Equal(["https://softwareplus.ai/trafficlab/", "https://softwareplus.ai/"],
+                r.GetProperty("footerLinks").EnumerateArray().Select(l => l.GetString()));
             Assert.Equal(1, r.GetProperty("planItems").GetInt32());
             Assert.True(r.GetProperty("printoutOpen").GetBoolean(), "Submit plan opens the printout");
             Assert.Contains(printedName, r.GetProperty("printout").GetString(), StringComparison.Ordinal);

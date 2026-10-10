@@ -178,13 +178,15 @@ public static class SiteBuilder
             .facts, .about { color: var(--muted); font-size: 14px; }
             .go { color: var(--sign); font-weight: 600; font-size: 14px; }
             footer { padding: 8px 16px 32px; color: var(--muted); font-size: 13px; }
+            footer a { color: var(--sign); font-weight: 600; text-decoration: none; }
+            footer a:hover, footer a:focus { text-decoration: underline; }
             </style>
             </head>
             <body>
             <header><div class="wrap"><h1>{{H(title)}}</h1><p>Live traffic simulations. Open one, build a plan to fix it within its budget, test it, and submit it for a score.</p></div></header>
             <main>
             {{empty}}{{cards}}</main>
-            <footer>Published {{when.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture)}} · Made with TrafficLab+{{(osm ? " · Road data © OpenStreetMap contributors" : "")}}</footer>
+            <footer>Published {{when.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture)}} · Created with <a href="https://softwareplus.ai/trafficlab/">TrafficLab+</a> · <a href="https://softwareplus.ai/">SoftwarePlus.ai</a>{{(osm ? " · Road data © OpenStreetMap contributors" : "")}}</footer>
             </body>
             </html>
             """;

@@ -44,9 +44,13 @@ $('introTitle').textContent = ST.title;
 $('introText').textContent = (ST.intro ? ST.intro + ' ' : '') +
   'Cars follow a real car-following model, signals cycle through their phases, and each road is shaded by its Level of Service (LOS A–F).';
 $('introBudget').textContent = fmt$(TG.BUDGET) + ' budget';
-$('credit').textContent = ['Made with TrafficLab+', ST.author ? 'Study by ' + ST.author : '',
+// The footer on every page TrafficLab+ makes (Ron, 2026-10-10): who made it, and a link to SoftwarePlus.ai.
+const PROGRAM_URL = 'https://softwareplus.ai/trafficlab/', SITE_URL = 'https://softwareplus.ai/';
+const extLink = (href, text) => `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
+$('credit').innerHTML = ['Created with ' + extLink(PROGRAM_URL, 'TrafficLab+'), extLink(SITE_URL, 'SoftwarePlus.ai'),
+  ST.author ? 'Study by ' + esc(ST.author) : '',
   ST.sources && ST.sources.osm ? 'Road data © OpenStreetMap contributors' : '',
-  ST.sources && typeof ST.sources.counts === 'string' ? 'Traffic counts: ' + ST.sources.counts : ''].filter(Boolean).join(' · ');
+  ST.sources && typeof ST.sources.counts === 'string' ? 'Traffic counts: ' + esc(ST.sources.counts) : ''].filter(Boolean).join(' · ');
 function distText(m) { const ft = m * FT_PER_M; return ft < 1000 ? Math.round(ft / 10) * 10 + ' ft' : (ft / 5280).toFixed(2) + ' mi'; }
 
 function newLiveSim() {
@@ -676,7 +680,7 @@ function printoutHTML(run) {
     </table>
     <div><b>Every approach</b> <span class="sub">v/c with its LOS, and the delay measured from the simulated cars</span>
     <table class="t"><tr><th>Approach</th><th>At</th><th style="text-align:right">v/c today</th><th style="text-align:right">v/c plan</th><th style="text-align:right">Delay today</th><th style="text-align:right">Delay plan</th></tr>${appr}</table></div>
-    <p class="sub">Made with TrafficLab+. A teaching model: planning-level v/c and a simulated ${SINGLE ? 'intersection' : 'corridor'}, not an engineering analysis.${ST.sources && ST.sources.osm ? ' Road data © OpenStreetMap contributors.' : ''}${ST.sources && typeof ST.sources.counts === 'string' ? ' Traffic counts: ' + esc(ST.sources.counts) + '.' : ''}</p>`;
+    <p class="sub">Created with TrafficLab+ (softwareplus.ai/trafficlab). A teaching model: planning-level v/c and a simulated ${SINGLE ? 'intersection' : 'corridor'}, not an engineering analysis.${ST.sources && ST.sources.osm ? ' Road data © OpenStreetMap contributors.' : ''}${ST.sources && typeof ST.sources.counts === 'string' ? ' Traffic counts: ' + esc(ST.sources.counts) + '.' : ''}</p>`;
 }
 let printed = null;   // the run on the printout now
 function showPrintout(run) {

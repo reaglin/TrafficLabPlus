@@ -57,6 +57,8 @@ function visitScript(name) {
     await sleep(300);
     out.introClosed = !$('intro').open;
     out.who = $('who').textContent;
+    out.footer = $('credit').innerText;
+    out.footerLinks = [...$('credit').querySelectorAll('a')].map(a => a.href);
     const row = document.querySelector('#inspector tr[data-node]');
     out.overviewRows = document.querySelectorAll('#inspector tr[data-node]').length;
     if (row) { row.click(); await sleep(200); }

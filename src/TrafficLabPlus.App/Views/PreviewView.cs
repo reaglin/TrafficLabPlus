@@ -79,6 +79,15 @@ public sealed class PreviewView : ContentControl
                 CoreWebView2Environment environment =
                     await CoreWebView2Environment.CreateAsync(userDataFolder: DataFolder);
                 await _web.EnsureCoreWebView2Async(environment);
+                _web.CoreWebView2.NewWindowRequested += (_, e) => { e.Handled = true; OpenOutside(e.Uri); };
+                _web.CoreWebView2.NavigationStarting += (_, e) =>
+                {
+                    if (IsWeb(e.Uri))
+                    {
+                        e.Cancel = true;
+                        OpenOutside(e.Uri);
+                    }
+                };
                 _ready = true;
             }
             catch (WebView2RuntimeNotFoundException)
@@ -133,6 +142,29 @@ public sealed class PreviewView : ContentControl
         catch (Exception ex) when (ex is InvalidOperationException or System.Runtime.InteropServices.COMException)
         {
             return null;
+        }
+    }
+
+    private static bool IsWeb(string uri) =>
+        uri.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+        uri.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>A link on the page (the footer's TrafficLab+ and SoftwarePlus.ai) opens in the
+    /// person's browser, not in a second window inside the program.</summary>
+    private static void OpenOutside(string uri)
+    {
+        if (!IsWeb(uri))
+        {
+            return;
+        }
+
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(uri) { UseShellExecute = true });
+        }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            // no browser to hand it to; the link simply does nothing
         }
     }
 
