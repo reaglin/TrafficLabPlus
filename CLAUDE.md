@@ -2,6 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Every release: the latest AI Manager and a manual-test exe (Ron, 2026-10-11)
+
+TrafficLab+ gets its AI through the shared **AI Manager** packages (`..\AiManager`, local feed `C:\nuget-local`).
+**Every release of TrafficLab+ moves to the latest AI Manager version first** (now **1.6.0**; this repo pins
+**1.4.1**) — not only when a feature needs it — so every program shows the same AI Settings, key
+help and fixes. Then build, run the tests, and publish the hand-test build to **`manual-test$exe`**
+(gitignored; command in `docs/MANUAL-TESTING.md`) for Ron to test before anything goes to the Store.
+On a computer that has just pulled AI Manager, run `..\AiManager\build\pack.ps1` first: the
+packages are built locally, not stored in git. The rule for all the AI programs: `..\CLAUDE.md`,
+"Every AI program: the latest AI Manager with every release".
+
 ## What this is
 
 **TrafficLab+** (repo `TrafficLabPlus`) — a Windows 10/11 program that turns a real intersection,

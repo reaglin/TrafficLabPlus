@@ -174,6 +174,17 @@ Through `Eaglin.AiManager` and `Eaglin.AiManager.Wpf` (latest on the local feed:
 
 ---
 
+## Every release — AI Manager and the manual-test build (Ron, 2026-10-11)
+
+Ron: *"the new releases will need to update to the latest version and this will be something that
+must occur with every version that we release of all the programs that use the AI Manager."*
+These two items are done **again for every release**; a release is not ready for the Store until both are.
+
+| # | Task | Done when |
+|---|---|---|
+| R.1 | **Move to the latest AI Manager** (`Eaglin.AiManager` and its UI package in the csproj; now **1.6.0**, this repo pins **1.4.1**). Read AI Manager's `docs/DEVELOPMENT-PLAN.md` for what changed (1.6.0: How? beside Get a key, the dated key help page); fix anything the new version changes; tests green | the csproj names the latest version in `C:\nuget-local`; tests green |
+| R.2 | **Hand-test build** in `manual-test$exe` (`docs/MANUAL-TESTING.md`); Ron opens AI Settings there and checks How? beside his provider | ⚠️ Ron runs the exe |
+
 ## Open questions for Ron — all 7 answered (2026-10-09)
 
 1. ~~What does a published page open with?~~ **Blank, as a puzzle.** The page opens with today's
