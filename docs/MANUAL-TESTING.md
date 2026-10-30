@@ -225,3 +225,14 @@ made study you would want different.
 5. Come back another day: the links are still in 1 Your studies and 3 Publish, ready to copy.
 
 **What to send back:** whether a student new to GitHub could get through this alone.
+
+## Help ▸ Check for a new version (2026-10-30, plan 9.3)
+
+### Test 16 — check for a new version
+
+1. In `manual-test\TrafficLabPlus.exe`, choose **Help ▸ Check for a new version…**. It says this copy was not installed from
+   the Microsoft Store, so it cannot check, and offers the Store page; **Yes** opens TrafficLab+'s page in the browser.
+2. Once the next version is on the Store, in the copy installed from the Store: the same item says you have the latest
+   version (with its number), or offers to download and install the new one.
+
+**What to send back:** whether the messages are clear.

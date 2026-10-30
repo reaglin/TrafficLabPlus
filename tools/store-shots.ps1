@@ -8,7 +8,7 @@ param([switch]$NoAi)
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path $PSScriptRoot -Parent
-$exe = Join-Path $root "src\TrafficLabPlus.App\bin\Debug\net10.0-windows\TrafficLabPlus.exe"
+$exe = Join-Path $root "src\TrafficLabPlus.App\bin\Debug\net10.0-windows10.0.19041.0\TrafficLabPlus.exe"
 $out = Join-Path $root "resources\images\screenshots"
 $tour = Join-Path $PSScriptRoot "tour-window.ps1"
 New-Item -ItemType Directory -Force $out | Out-Null

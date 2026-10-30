@@ -98,10 +98,10 @@ dotnet build TrafficLabPlus.slnx
 dotnet test TrafficLabPlus.slnx          # needs node on PATH; plays the page if Chrome or Edge is installed
 node --test tests/js/engine.test.js      # the engine alone
 dotnet run --project src/TrafficLabPlus.App
-.\src\TrafficLabPlus.App\bin\Debug\net10.0-windows\TrafficLabPlus.exe --build-example out.html
-.\src\TrafficLabPlus.App\bin\Debug\net10.0-windows\TrafficLabPlus.exe --build-page study.json out.html
+.\src\TrafficLabPlus.App\bin\Debug\net10.0-windows10.0.19041.0\TrafficLabPlus.exe --build-example out.html
+.\src\TrafficLabPlus.App\bin\Debug\net10.0-windows10.0.19041.0\TrafficLabPlus.exe --build-page study.json out.html
 node tools/play-page.js out.html "Maria Gomez" shot.png   # TL_WIDTH=390 TL_DARK=1 TL_PRINT=p.pdf
-.\src\TrafficLabPlus.App\bin\Debug\net10.0-windows\TrafficLabPlus.exe --new-study 3 study.json
+.\src\TrafficLabPlus.App\bin\Debug\net10.0-windows10.0.19041.0\TrafficLabPlus.exe --new-study 3 study.json
 ```
 
 **The engine is LPGA's.** Change its behaviour only on purpose: the yardstick tests compare it car

@@ -2,7 +2,9 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <!-- The Windows version (10.0.19041) lets Help ▸ Check for a new version ask the Microsoft Store
+         (Windows.Services.Store.StoreContext; plan 9.3). Builds now land in bin\...\net10.0-windows10.0.19041.0\. -->
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>TrafficLabPlus</AssemblyName>
     <RootNamespace>TrafficLabPlus.App</RootNamespace>

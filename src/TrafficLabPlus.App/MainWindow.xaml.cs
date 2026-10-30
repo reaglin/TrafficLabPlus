@@ -676,6 +676,8 @@ public partial class MainWindow : Window
 
     private void About_Click(object sender, RoutedEventArgs e) => Go(NavAbout);
 
+    private async void CheckForUpdate_Click(object sender, RoutedEventArgs e) => await StoreUpdates.CheckAsync(this);
+
     private void RecentMenu_Opened(object sender, RoutedEventArgs e)
     {
         RecentMenu.Items.Clear();

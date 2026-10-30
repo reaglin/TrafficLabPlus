@@ -42,6 +42,7 @@
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_Start screen: what TrafficLab+ is for" Click="StartScreen_Click" />
+                <MenuItem Header="Check for a _new version…" Click="CheckForUpdate_Click" ToolTip="Asks the Microsoft Store whether a newer version of TrafficLab+ is out, and offers to install it" />
                 <MenuItem Header="_About TrafficLab+" Click="About_Click" />
             </MenuItem>
         </Menu>

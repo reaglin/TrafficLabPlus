@@ -118,7 +118,7 @@ TrafficLabPlus.slnx
 │   ├── Ai/          prompts and readers for the four AI jobs; never calls a provider itself
 │   ├── Publish/     Publisher, GitHubApi, GitCli — ported from GamifyPlus
 │   └── Document/    StudyDocument (.trafficlab), paths, recent studies, samples (LPGA)
-├── src/TrafficLabPlus.App/     net10.0-windows, WPF
+├── src/TrafficLabPlus.App/     net10.0-windows10.0.19041.0, WPF
 │   ├── MainWindow   Map ▸ Network ▸ Traffic ▸ Challenge ▸ Preview ▸ Publish, plus Settings, About
 │   ├── Views/MapView    WebView2 + Leaflet (bundled, not CDN) for finding and picking intersections
 │   ├── Views/PreviewView WebView2 hosting the built page
