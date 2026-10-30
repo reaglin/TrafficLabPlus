@@ -91,6 +91,31 @@ public sealed class SettingsView(AppSettings settings) : SectionView
 public sealed class AboutView : SectionView
 {
     public const string SiteUrl = "https://softwareplus.ai/trafficlab/";
+    public const string StoreUrl = "https://apps.microsoft.com/detail/9P5NGQF4HRPD";
+    public const string AllProgramsUrl = "https://softwareplus.ai/#programs";
+
+    /// <summary>One line of words followed by a link that opens in the web browser.</summary>
+    private static TextBlock LinkLine(string words, string linkText, string url, double top)
+    {
+        var link = new Hyperlink(new Run(linkText)) { NavigateUri = new Uri(url) };
+        link.RequestNavigate += (_, e) =>
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                MessageBox.Show("No web browser opened. The address is " + url, "TrafficLab+");
+            }
+
+            e.Handled = true;
+        };
+        var line = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, top, 0, 0) };
+        line.Inlines.Add(new Run(words));
+        line.Inlines.Add(link);
+        return line;
+    }
 
     public override void Rebuild()
     {
@@ -117,22 +142,10 @@ public sealed class AboutView : SectionView
         var words = new StackPanel();
         words.Children.Add(new TextBlock { Text = "Created by Dr. Ron Eaglin", FontSize = 18, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 4) });
         words.Children.Add(new TextBlock { Text = "TrafficLab+ grew out of his LPGA Traffic Lab, a classroom simulation of the LPGA Blvd corridor at I-95 in Daytona Beach — built into TrafficLab+ as its example.", TextWrapping = TextWrapping.Wrap });
-        var link = new Hyperlink(new Run("softwareplus.ai/trafficlab")) { NavigateUri = new Uri(SiteUrl) };
-        link.RequestNavigate += (_, e) =>
-        {
-            try
-            {
-                Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
-            }
-            catch (System.ComponentModel.Win32Exception)
-            {
-                MessageBox.Show("No web browser opened. The address is " + SiteUrl, "TrafficLab+");
-            }
-        };
-        var more = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0) };
-        more.Inlines.Add(new Run("More about TrafficLab+, with help and examples: "));
-        more.Inlines.Add(link);
-        words.Children.Add(more);
+        // Links (portfolio rules, 2026-09-30 and 2026-10-30): the program's page, its Store page, all the programs.
+        words.Children.Add(LinkLine("More about TrafficLab+, with help and examples: ", "softwareplus.ai/trafficlab", SiteUrl, 8));
+        words.Children.Add(LinkLine("TrafficLab+ on the Microsoft Store (updates, ratings and reviews): ", "apps.microsoft.com/detail/9P5NGQF4HRPD", StoreUrl, 4));
+        words.Children.Add(LinkLine("All of Dr. Ron Eaglin's programs: ", "softwareplus.ai", AllProgramsUrl, 4));
         card.Children.Add(words);
         panel.Children.Add(card);
 
