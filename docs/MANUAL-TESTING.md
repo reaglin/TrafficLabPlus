@@ -53,6 +53,11 @@ B13. (9.9) With no study open (File ▸ Close the study), hover the greyed **2 N
     each tooltip says why it is greyed out and what to do.
 B14. (9.9) Hover the buttons and boxes in Map, Network, Traffic, Challenge, Publish, Settings, the New study window, the AI window and
     the token window — every one has a tooltip saying what it does.
+B15. (9.11) Publish with a published study: under "On the website now" the whole address shows on its own line (hover it: the
+    full address). Network on a laptop-sized window: the settings under the drawing show a useful part. Settings: the AI line ends "To see
+    what the AI has cost so far, choose What the AI has cost… in Settings." Help ▸ Check for a new version: "Open TrafficLab+'s page on
+    the Microsoft Store…". Publish's summary page: a study with no place reads "One intersection · …". On the LPGA page (and on a phone),
+    no ▲▼ control sits under the legend or the zoom buttons.
 
 ### C. Every screen (USABILITY-CHECKLIST.md 1–4)
 For each of Start, 1 Map, 2 Network, 3 Traffic, 4 Challenge, 5 Preview, 6 Publish, Settings, About, the New study window, the AI window

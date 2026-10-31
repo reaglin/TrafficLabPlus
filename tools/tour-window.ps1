@@ -10,6 +10,7 @@
 #   menu:<menu>=<item>   press an item of a menu (File, Edit, Help)
 #   scroll:<name>=<percent>   scroll the area that holds the named element (0 = top, 100 = bottom)
 #   close:<title>   close one of the app's own windows (a dialog or message) by its title, through UI Automation
+#   size:<w>x<h>    move the main window to the top left and make it this size (UI Automation, no keys)
 #   wait:<ms>       wait
 #   shot:<file.png> capture the window, with the app's dialogs drawn where they sit
 # Example:
@@ -203,6 +204,11 @@ try {
             'collapse' { (Find $rest ($AE::IsExpandCollapsePatternAvailableProperty)).GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern).Collapse() }
             'close' { (Find $rest ($AE::IsWindowPatternAvailableProperty)).GetCurrentPattern([System.Windows.Automation.WindowPattern]::Pattern).Close() }
             'keys' { Keys $rest }
+            'size' {
+                $w, $hh = $rest -split 'x', 2
+                $tp = $AE::FromHandle($h).GetCurrentPattern([System.Windows.Automation.TransformPattern]::Pattern)
+                $tp.Move(0, 0); $tp.Resize([double]$w, [double]$hh); Start-Sleep -Milliseconds 800
+            }
             'wait' { Start-Sleep -Milliseconds ([int]$rest) }
             'shot' { Shot $rest }
         }

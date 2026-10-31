@@ -318,14 +318,23 @@ function bumpZone(z, delta) {
   S.sim.setDemand(S.demand, S.zoneMult); renderPlan();
   if (!S.sel || (S.sel.type === 'node' && S.sel.id === z)) renderInspector();
 }
+// the legend (bottom left) and the zoom buttons (bottom right) sit over the map: a control that would land
+// under one of them moves up to just above it, so nothing covers a ▲▼ (UX review 2026-10-31)
+const zoneObstacles = [$('legend'), document.querySelector('.mapwrap .zoom')].filter(Boolean);
 function placeZoneControls() {
   const net = S.sim.net, top = cv.offsetTop, cw = cv.clientWidth, ch = cv.clientHeight;
+  const obs = zoneObstacles.map(o => ({ l: o.offsetLeft - 4, t: o.offsetTop - 4, r: o.offsetLeft + o.offsetWidth + 4, b: o.offsetTop + o.offsetHeight + 4 }));
   for (const z in zoneEls) {
     const n = net.nodes[z], d = n.outDirs[0] || n.inDirs[0], el = zoneEls[z];
     const ux = d.from === z ? d.ux : -d.ux, uy = d.from === z ? d.uy : -d.uy;
     const wx = n.x + ux * 46 + (-uy) * 30, wy = n.y + uy * 46 + ux * 30;        // a little inside, beside the inbound lanes
     const sx = Math.min(cw - 22, Math.max(22, wx * view.s + view.ox)), sy = Math.min(ch - 34, Math.max(34, wy * view.s + view.oy));
-    el.style.transform = `translate(${(sx - 17).toFixed(0)}px, ${(top + sy - 30).toFixed(0)}px)`;
+    const x = sx - 17, w = el.offsetWidth || 34, h = el.offsetHeight || 60;
+    let y = top + sy - 30;
+    for (const o of obs) {
+      if (x < o.r && x + w > o.l && y < o.b && y + h > o.t) y = Math.max(top + 4, o.t - h);
+    }
+    el.style.transform = `translate(${x.toFixed(0)}px, ${y.toFixed(0)}px)`;
     const m = S.zoneMult[z] ?? 1, out = el.querySelector('output');
     const vph = S.sim.od.filter(p => p.o === z).reduce((s, p) => s + p.v, 0);
     const txt = Math.round(m * 100) + '%'; if (out.textContent !== txt) out.textContent = txt;

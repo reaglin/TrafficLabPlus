@@ -68,7 +68,7 @@ public sealed class TrafficAi
             AiProviderType p = hub.DefaultProvider;
             return $"AI ready: {AiHub.DisplayName(p)} ({hub.DefaultModel(p)}). Asking sends your words and the study's roads, intersections and traffic " +
                    "(no names of people) to that provider, and charges the account whose key you entered — usually a few cents. " +
-                   "Nothing it suggests changes your study until you tick it and press Apply. Settings, then What the AI has cost…, shows the total.";
+                   "Nothing it suggests changes your study until you tick it and press Apply. To see what the AI has cost so far, choose What the AI has cost… in Settings.";
         }
     }
 

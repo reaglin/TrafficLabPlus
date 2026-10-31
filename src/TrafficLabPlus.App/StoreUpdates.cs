@@ -37,7 +37,7 @@ public static class StoreUpdates
         {
             if (MessageBox.Show(owner,
                     $"This copy of {ProgramName} ({CurrentVersion}) was not installed from the Microsoft Store, so it cannot check for a " +
-                    "new version itself.\n\nOpen the program's page on the Microsoft Store to see the latest version?",
+                    $"new version itself.\n\nOpen {ProgramName}'s page on the Microsoft Store to see the latest version?",
                     title, MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
                 OpenStorePage(owner);
             return;

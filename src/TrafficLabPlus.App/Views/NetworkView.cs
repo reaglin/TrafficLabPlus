@@ -27,9 +27,12 @@ public sealed class NetworkView : SectionView
     {
         var root = new Grid();
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = 160 });
+        // The settings under the drawing get the larger share and a floor of 260 px, so a laptop screen shows a
+        // useful part of both; the drawing fits itself to whatever height it has. The splitter moves it either way.
+        // (UX review 2026-10-31: at 1100 px high the settings had only ~200 px.)
+        root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = 170 });
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(0.9, GridUnitType.Star), MinHeight = 160 });
+        root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1.4, GridUnitType.Star), MinHeight = 260 });
 
         var top = new StackPanel { Margin = new Thickness(18, 14, 18, 8) };
         top.Children.Add(Title("Network"));

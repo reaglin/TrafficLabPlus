@@ -61,7 +61,7 @@ public sealed partial class PublishTests : IDisposable
         Assert.Contains("href=\"four-way/\"", index, StringComparison.Ordinal);
         Assert.Contains("Maria Gomez — traffic studies", index, StringComparison.Ordinal);
         Assert.Contains("Daytona Beach, Florida · 5 intersections · $5M budget", index, StringComparison.Ordinal);
-        Assert.Contains("one intersection · $2M budget", index, StringComparison.Ordinal);
+        Assert.Contains("<span class=\"facts\">One intersection · $2M budget", index, StringComparison.Ordinal);
         Assert.Contains("generator\" content=\"TrafficLabPlus", index, StringComparison.Ordinal);
     }
 

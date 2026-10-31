@@ -136,6 +136,8 @@ public static class SiteBuilder
                 signals == 1 ? "one intersection" : $"{signals} intersections",
                 budget + " budget",
             }.Where(x => !string.IsNullOrWhiteSpace(x)));
+            // a study with no place starts with "one intersection": the line starts with a capital (UX review 2026-10-31)
+            facts = facts.Length > 0 ? char.ToUpper(facts[0], CultureInfo.InvariantCulture) + facts[1..] : facts;
             string about = !string.IsNullOrWhiteSpace(st.Subtitle) ? st.Subtitle! : !string.IsNullOrWhiteSpace(st.Intro) ? st.Intro! : $"Fix this network on a {budget} budget.";
             if (about.Length > 160)
             {

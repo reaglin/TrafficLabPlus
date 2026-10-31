@@ -324,7 +324,7 @@ public sealed class PublishView(AppSettings settings, Func<IReadOnlyList<string>
         }
     }
 
-    private static DockPanel LinkRow(string what, string url, int indent)
+    private static StackPanel LinkRow(string what, string url, int indent)
     {
         var row = new DockPanel { Margin = new Thickness(indent, 3, 0, 3) };
         var copy = new Button { Content = "Copy the link", Padding = new Thickness(8, 2, 8, 2), Margin = new Thickness(6, 0, 0, 0), ToolTip = "Copies this address, ready to paste where you hand it in" };
@@ -347,11 +347,21 @@ public sealed class PublishView(AppSettings settings, Func<IReadOnlyList<string>
         DockPanel.SetDock(copy, Dock.Right);
         row.Children.Add(open);
         row.Children.Add(copy);
-        var text = new StackPanel();
-        text.Children.Add(new TextBlock { Text = what, TextWrapping = TextWrapping.Wrap });
-        text.Children.Add(new TextBox { Text = url, IsReadOnly = true, BorderThickness = new Thickness(0), Background = System.Windows.Media.Brushes.Transparent, Foreground = Form.Res("AccentBrush") });
-        row.Children.Add(text);
-        return row;
+        row.Children.Add(new TextBlock { Text = what, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center });
+        // The address takes its own full-width line under the label and buttons and wraps, so a narrow window
+        // never cuts it off; the whole address is also its tooltip (UX review 2026-10-31).
+        var address = new TextBox
+        {
+            Text = url, IsReadOnly = true, TextWrapping = TextWrapping.Wrap, BorderThickness = new Thickness(0),
+            Background = System.Windows.Media.Brushes.Transparent, Foreground = Form.Res("AccentBrush"),
+            Margin = new Thickness(0, 2, 0, 0), ToolTip = url,
+        };
+        AutomationProperties.SetName(address, "Address of " + what);
+        var block = new StackPanel { Margin = new Thickness(indent, 3, 0, 3) };
+        row.Margin = new Thickness(0);
+        block.Children.Add(row);
+        block.Children.Add(address);
+        return block;
     }
 
     private static Expander NewToGitHub()
