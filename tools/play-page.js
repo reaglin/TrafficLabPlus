@@ -11,7 +11,8 @@
  * and every error the page throws.
  *
  * Environment: TL_WIDTH=390 for a phone, TL_DARK=1 for dark mode, TL_PRINT=<file.pdf> to print
- * the printout to a PDF as the browser would.
+ * the printout to a PDF as the browser would, TL_SHOT_PRINTOUT=1 to photograph the printout
+ * (open over the page) instead of the page.
  *
  * Needs Chrome or Edge. A developer and test tool, not part of the program. Modelled on
  * ..\GamifyPlus\tools\play-game.js.
@@ -141,7 +142,8 @@ async function main() {
     result.sideways = await evaluate('document.documentElement.scrollWidth > window.innerWidth');
 
     if (shot) {
-      await evaluate("document.getElementById('reportDlg').close()");
+      // the page with the plan; TL_SHOT_PRINTOUT=1 keeps the printout open over it instead
+      if (!process.env.TL_SHOT_PRINTOUT) await evaluate("document.getElementById('reportDlg').close()");
       await new Promise(r => setTimeout(r, 600));
       const png = await send('Page.captureScreenshot', {});
       fs.writeFileSync(shot, Buffer.from(png.data, 'base64'));
