@@ -24,7 +24,7 @@
   <Identity
     Name="DeanEaglin.TrafficLab"
     Publisher="CN=E88392BA-A722-4B3A-8372-04403A55AA63"
-    Version="1.0.0.0"
+    Version="1.1.0.0"
     ProcessorArchitecture="x64" />
 
   <Properties>

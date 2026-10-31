@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <!-- One version property; packaging/pack.ps1 reads it for the MSIX version. -->
-    <TrafficLabPlusVersion>1.0.0</TrafficLabPlusVersion>
+    <TrafficLabPlusVersion>1.1.0</TrafficLabPlusVersion>
     <Version>$(TrafficLabPlusVersion)</Version>
     <AssemblyVersion>$(TrafficLabPlusVersion).0</AssemblyVersion>
     <FileVersion>$(TrafficLabPlusVersion).0</FileVersion>

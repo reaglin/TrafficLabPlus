@@ -26,9 +26,13 @@ public static class StoreUpdates
         }
     }
 
-    public static async Task CheckAsync(Window owner)
+    /// <param name="owner">The window the Store's dialogs belong to.</param>
+    /// <param name="confirmSave">Asked before installing, because the Store closes TrafficLab+ to install: offers to
+    /// save the open study (Yes / No / Cancel). False (Cancel) stops the update.</param>
+    /// <param name="busy">Told true while the Store is being asked (the window shows "Asking the Microsoft Store…"), false after.</param>
+    public static async Task CheckAsync(Window owner, Func<bool> confirmSave, Action<bool>? busy = null)
     {
-        const string title = "Check for a new version";
+        const string title = ProgramName + " — Check for a new version";
         if (!IsFromStore())
         {
             if (MessageBox.Show(owner,
@@ -46,13 +50,22 @@ public static class StoreUpdates
             store = StoreContext.GetDefault();
             // A desktop program must tell the Store which window its own dialogs belong to.
             WinRT.Interop.InitializeWithWindow.Initialize(store, new WindowInteropHelper(owner).Handle);
-            updates = await store.GetAppAndOptionalStorePackageUpdatesAsync();
+            busy?.Invoke(true);
+            try
+            {
+                updates = await store.GetAppAndOptionalStorePackageUpdatesAsync();
+            }
+            finally
+            {
+                busy?.Invoke(false);
+            }
         }
         catch (Exception ex)
         {
+            Debug.WriteLine(ex);
             if (MessageBox.Show(owner,
-                    $"The Microsoft Store could not be asked about a new version (are you connected to the internet?).\n\n{ex.Message}\n\n" +
-                    $"Open {ProgramName}'s page on the Microsoft Store instead?",
+                    "The Microsoft Store could not be asked about a new version. Check that this computer is connected to the " +
+                    $"internet and try again.\n\nOpen {ProgramName}'s page on the Microsoft Store instead?\n\nDetails for support: {ex.Message}",
                     title, MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
                 OpenStorePage(owner);
             return;
@@ -67,9 +80,14 @@ public static class StoreUpdates
 
         if (MessageBox.Show(owner,
                 $"A new version of {ProgramName} is on the Microsoft Store (you have {CurrentVersion}).\n\n" +
-                $"Download and install it now? Your work is kept. When it is installed, {ProgramName} closes; open it again " +
-                "to use the new version. (No: the Store installs it later on its own.)",
+                $"Download and install it now? Windows closes {ProgramName} to install it; open it again from the Start menu to use " +
+                "the new version. If the study has unsaved changes, you are asked to save them first. (No: the Store will install it " +
+                "later if automatic updates are on.)",
                 title, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
+
+        // the Store closes the program to install it: unsaved changes are offered a save first (Cancel stops here)
+        if (!confirmSave())
             return;
 
         try
@@ -77,9 +95,9 @@ public static class StoreUpdates
             var result = await store.RequestDownloadAndInstallStorePackageUpdatesAsync(updates);
             string message = result.OverallState switch
             {
-                StorePackageUpdateState.Completed => $"The new version is installed. Close {ProgramName} and open it again to use it.",
-                StorePackageUpdateState.Canceled => "The update was cancelled. You can check again at any time, or the Store will install it later.",
-                _ => $"The update did not finish ({result.OverallState}). The Microsoft Store will try again later, or open " +
+                StorePackageUpdateState.Completed => $"The new version is installed. If {ProgramName} is still open, close it and open it again from the Start menu.",
+                StorePackageUpdateState.Canceled => "The update was cancelled. You can check again at any time, or the Store will install it later if automatic updates are on.",
+                _ => "The update did not finish. The Microsoft Store will try again later, or open " +
                      $"{ProgramName}'s page on the Store and press Update.",
             };
             MessageBox.Show(owner, message, title, MessageBoxButton.OK,
@@ -87,8 +105,9 @@ public static class StoreUpdates
         }
         catch (Exception ex)
         {
-            MessageBox.Show(owner, $"The update could not be started.\n\n{ex.Message}\n\nOpen {ProgramName}'s page on the Microsoft Store " +
-                "and press Update instead.", title, MessageBoxButton.OK, MessageBoxImage.Warning);
+            Debug.WriteLine(ex);
+            MessageBox.Show(owner, $"The update could not be started. Open {ProgramName}'s page on the Microsoft Store " +
+                "and press Update instead.\n\nDetails for support: " + ex.Message, title, MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 
@@ -97,7 +116,7 @@ public static class StoreUpdates
         try { Process.Start(new ProcessStartInfo(StorePage) { UseShellExecute = true }); }
         catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
         {
-            MessageBox.Show(owner, $"Windows could not open the page.\n\n{StorePage}", "Check for a new version",
+            MessageBox.Show(owner, $"Windows could not open the page.\n\n{StorePage}", ProgramName + " — Check for a new version",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }

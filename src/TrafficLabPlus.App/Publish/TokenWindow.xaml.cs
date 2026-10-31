@@ -96,7 +96,7 @@ public partial class TokenWindow : Window
         }
         catch (HttpRequestException ex)
         {
-            Say("✗ Not saved: GitHub could not be reached. Check the internet connection and try again. (" + ex.Message + ")", good: false);
+            Say("✗ Not saved: GitHub could not be reached. Check the internet connection and try again. Details for support: " + ex.Message, good: false);
         }
         finally
         {

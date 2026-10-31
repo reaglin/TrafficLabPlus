@@ -241,7 +241,7 @@ public sealed class TrafficView : SectionView
             var useText = new StackPanel { Orientation = Orientation.Horizontal };
             useText.Children.Add(new TextBlock { Text = "Use this count" });
             useText.Children.Add(Form.Chip(required: false));
-            var use = new CheckBox { Content = useText, IsChecked = m.Use, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 0, 0) };
+            var use = new CheckBox { Content = useText, IsChecked = m.Use, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(4, 0, 0, 0), ToolTip = "Ticked: Use the ticked counts puts this FDOT count on this road end. Unticked: its volume is left as it is" };
             System.Windows.Automation.AutomationProperties.SetName(use, "Use this count (optional)");
             use.Checked += (_, _) => { m.Use = true; Changed(); };
             use.Unchecked += (_, _) => { m.Use = false; Changed(); };
@@ -394,7 +394,7 @@ public sealed class TrafficView : SectionView
         {
             string a = s.Study.Node(pair.ElementAtOrDefault(0) ?? "")?.Label ?? "?", b = s.Study.Node(pair.ElementAtOrDefault(1) ?? "")?.Label ?? "?";
             var row = new DockPanel { Margin = new Thickness(0, 2, 0, 2) };
-            var remove = new Button { Content = "Remove", Padding = new Thickness(8, 1, 8, 1), Margin = new Thickness(8, 0, 0, 0) };
+            var remove = new Button { Content = "Remove", Padding = new Thickness(8, 1, 8, 1), Margin = new Thickness(8, 0, 0, 0), ToolTip = "Allow trips between these two road ends again. Ctrl+Z puts it back" };
             remove.Click += (_, _) => s.Edit("demand/noTrips", () =>
             {
                 dm.NoTrips!.Remove(pair);
@@ -415,7 +415,7 @@ public sealed class TrafficView : SectionView
         {
             var add = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
             ComboBox first = EndsBox(ends), second = EndsBox(ends);
-            var go = new Button { Content = "Add this pair", Padding = new Thickness(8, 2, 8, 2) };
+            var go = new Button { Content = "Add this pair", Padding = new Thickness(8, 2, 8, 2), ToolTip = "No trips will go between the two road ends chosen on the left" };
             var why = new TextBlock { Foreground = Form.Res("ErrorBrush"), TextWrapping = TextWrapping.Wrap };
             go.Click += (_, _) =>
             {
@@ -428,6 +428,12 @@ public sealed class TrafficView : SectionView
                 if (x == y)
                 {
                     why.Text = "Choose two different road ends.";
+                    return;
+                }
+
+                if ((dm.NoTrips ?? []).Any(p => p.Count == 2 && ((p[0] == x && p[1] == y) || (p[0] == y && p[1] == x))))
+                {
+                    why.Text = "That pair is already listed.";
                     return;
                 }
 
@@ -453,7 +459,7 @@ public sealed class TrafficView : SectionView
 
     private static ComboBox EndsBox(List<StudyNode> ends)
     {
-        var box = new ComboBox { MinWidth = 180 };
+        var box = new ComboBox { MinWidth = 180, ToolTip = "Choose a road end (where traffic comes in or goes out)" };
         foreach (StudyNode n in ends)
         {
             box.Items.Add(new ComboBoxItem { Content = n.Label, Tag = n.Id });
@@ -474,7 +480,7 @@ public sealed class TrafficView : SectionView
             form.Number($"Button {i + 1}: demand", "% of today", "100 is today's traffic; 125 is a quarter more.", () => sc.Mult, v => sc.Mult = v, 10, 300, "demand/scenarios", 0, v => v * 100, v => v / 100, required: false);
             if (list.Count > 1)
             {
-                var remove = new Button { Content = $"Remove button {i + 1}", HorizontalAlignment = HorizontalAlignment.Left, Padding = new Thickness(8, 1, 8, 1), Margin = new Thickness(0, 4, 0, 4) };
+                var remove = new Button { Content = $"Remove button {i + 1}", HorizontalAlignment = HorizontalAlignment.Left, Padding = new Thickness(8, 1, 8, 1), Margin = new Thickness(0, 4, 0, 4), ToolTip = "Takes this demand button off the page. Ctrl+Z puts it back" };
                 remove.Click += (_, _) => { s.Edit("demand/scenarios", () => list.Remove(sc)); RebuildSoon(); };
                 form.Panel.Children.Add(remove);
             }
@@ -482,7 +488,7 @@ public sealed class TrafficView : SectionView
 
         if (list.Count < MaxScenarios)
         {
-            form.Button("Add a demand button", "", () =>
+            form.Button("Add a demand button", "Adds a button to the page's toolbar that sets the traffic to a share of today's (for example Race Week at 125%).", () =>
             {
                 s.Edit("demand/scenarios", () => (dm.Scenarios ??= []).Add(new Scenario
                 {

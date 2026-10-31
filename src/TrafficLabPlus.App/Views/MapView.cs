@@ -21,7 +21,7 @@ public sealed class MapView : SectionView
 
     private readonly Func<OsmCache, Task> _make;
     private readonly WebView2 _web = new();
-    private readonly TextBox _search = new() { Padding = new Thickness(3) };
+    private readonly TextBox _search = new() { Padding = new Thickness(3), ToolTip = "A street and a town, like \"LPGA Boulevard, Daytona Beach\"; then Search or Enter" };
     private readonly ListBox _places = new() { MaxHeight = 150, Visibility = Visibility.Collapsed };
     private readonly Button _load = new() { Content = "Load the roads shown on the map", Padding = new Thickness(10, 4, 10, 4), HorizontalAlignment = HorizontalAlignment.Left };
     private readonly TextBlock _loadState = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0) };
@@ -60,7 +60,7 @@ public sealed class MapView : SectionView
 
         Step(p, "1  Find the place  (optional)", "A street and a town works best, like \"LPGA Boulevard, Daytona Beach\". (OpenStreetMap does not find a crossing by its two street names: find one of the streets, then pick the crossing in step 3.) Or simply drag and zoom the map.");
         var searchRow = new DockPanel();
-        var go = new Button { Content = "Search", Padding = new Thickness(10, 3, 10, 3), Margin = new Thickness(6, 0, 0, 0) };
+        var go = new Button { Content = "Search", Padding = new Thickness(10, 3, 10, 3), Margin = new Thickness(6, 0, 0, 0), ToolTip = "Find the place typed in the box (OpenStreetMap's Nominatim) and move the map there. Enter does the same" };
         DockPanel.SetDock(go, Dock.Right);
         searchRow.Children.Add(go);
         searchRow.Children.Add(_search);
@@ -202,7 +202,7 @@ public sealed class MapView : SectionView
         catch (Exception ex) when (ex is WebView2RuntimeNotFoundException or IOException or UnauthorizedAccessException or InvalidOperationException
                                        or System.Runtime.InteropServices.COMException)
         {
-            _problem.Text = "The map cannot be shown on this computer (" + ex.Message + "). Microsoft's WebView2, part of Edge, is needed for it.";
+            _problem.Text = "The map cannot be shown on this computer: Microsoft's WebView2, part of Edge, is needed for it. Install or repair Microsoft Edge WebView2 from Microsoft, then open TrafficLab+ again. Details for support: " + ex.Message;
             _problem.Visibility = Visibility.Visible;
             _web.Visibility = Visibility.Collapsed;
         }
@@ -230,7 +230,7 @@ public sealed class MapView : SectionView
                 double km = Math.Max(Geo.Metres(_view[0], _view[1], _view[2], _view[1]), Geo.Metres(_view[0], _view[1], _view[0], _view[3])) / 1000;
                 _load.IsEnabled = km <= OsmQuery.MaxSideKm;
                 string zoom = $"Zoom in to load: the map shows {km:0.#} km across, and roads are loaded for less than {OsmQuery.MaxSideKm:0} km.";
-                _load.ToolTip = _load.IsEnabled ? null : zoom;
+                _load.ToolTip = _load.IsEnabled ? "Asks OpenStreetMap for every road in the area shown on the map (a few seconds; needs the internet)" : zoom;
                 _zoomNote.Text = zoom;
                 _zoomNote.Visibility = _load.IsEnabled ? Visibility.Collapsed : Visibility.Visible;
 
@@ -360,6 +360,7 @@ public sealed class MapView : SectionView
                 Content = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap },
                 IsChecked = _chosen.Contains(j.Id),
                 Tag = j.Id,
+                ToolTip = "Tick to put this intersection in the study (up to ten); untick to leave it out",
             };
             AutomationProperties.SetName(box, text);
             // Checked/Unchecked rather than Click: a screen reader or UI Automation ticks a box without clicking it
@@ -442,7 +443,7 @@ public sealed class MapView : SectionView
             OsmJunction? j = _junctions.FirstOrDefault(x => x.Id == _chosen[i]);
             var row = new DockPanel { Margin = new Thickness(0, 2, 0, 2) };
             string id = _chosen[i];
-            var remove = new Button { Content = "Remove", Padding = new Thickness(6, 0, 6, 0), Margin = new Thickness(4, 0, 0, 0) };
+            var remove = new Button { Content = "Remove", Padding = new Thickness(6, 0, 6, 0), Margin = new Thickness(4, 0, 0, 0), ToolTip = "Take this intersection out of the study (tick it again on the list to put it back)" };
             remove.Click += (_, _) => Toggle(id);
             int at = i;
             var down = new Button { Content = "↓", Padding = new Thickness(6, 0, 6, 0), Margin = new Thickness(4, 0, 0, 0), IsEnabled = i < _chosen.Count - 1, ToolTip = "Move later along the corridor" };
@@ -462,6 +463,10 @@ public sealed class MapView : SectionView
         }
 
         _makeButton.IsEnabled = _chosen.Count > 0;
+        _makeButton.ToolTip = _chosen.Count > 0
+            ? "Name the study and set its budget, then TrafficLab+ builds it from the chosen intersections and opens it"
+            : "Greyed out until you tick at least one intersection in step 3 (load the roads in step 2 first)";
+        ToolTipService.SetShowOnDisabled(_makeButton, true);
         _makeButton.Content = _chosen.Count switch
         {
             0 => "Make the study…",

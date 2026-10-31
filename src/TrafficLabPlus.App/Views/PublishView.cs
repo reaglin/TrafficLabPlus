@@ -65,6 +65,7 @@ public sealed class PublishView(AppSettings settings, Func<IReadOnlyList<string>
             {
                 IsChecked = r.Study is not null && !Excluded(r.Path),
                 IsEnabled = r.Study is not null,
+                ToolTip = r.Study is not null ? "Ticked: this study goes on your website. Unticked: it is left out (remembered)" : "This file cannot be read as a study, so it cannot be published (the reason is under it)",
                 Content = new TextBlock { Text = r.Study?.Title ?? System.IO.Path.GetFileName(r.Path), FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap },
             };
             AutomationProperties.SetName(tick, "Publish " + (r.Study?.Title ?? System.IO.Path.GetFileName(r.Path)));
@@ -91,7 +92,7 @@ public sealed class PublishView(AppSettings settings, Func<IReadOnlyList<string>
         var tokenRow = new WrapPanel { Margin = new Thickness(0, 10, 0, 0) };
         var tokenState = new TextBlock { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 0, 0), TextWrapping = TextWrapping.Wrap };
         void ShowToken() => tokenState.Text = TokenStore.HasToken ? "A GitHub token is saved: TrafficLab+ can publish for you." : "No GitHub token saved yet (see New to GitHub? below).";
-        var tokenButton = new Button { Content = "GitHub token…", Padding = new Thickness(10, 4, 10, 4) };
+        var tokenButton = new Button { Content = "GitHub token…", Padding = new Thickness(10, 4, 10, 4), ToolTip = "Make, check and save the GitHub token that lets TrafficLab+ publish for you (step by step)" };
         tokenButton.Click += (_, _) =>
         {
             if (TokenWindow.Show(Window.GetWindow(this), out string? who) && who is { Length: > 0 })
@@ -120,7 +121,10 @@ public sealed class PublishView(AppSettings settings, Func<IReadOnlyList<string>
             Style = (Style)Application.Current.Resources["Primary"],
             HorizontalAlignment = HorizontalAlignment.Left,
             Margin = new Thickness(0, 6, 0, 0),
+            IsEnabled = count > 0,
+            ToolTip = count > 0 ? "Builds the website (a summary page and a page per ticked study) and sends it to your GitHub Pages repository" : "Tick at least one study under 1 Your studies to publish",
         };
+        ToolTipService.SetShowOnDisabled(go, true);
         go.Click += async (_, _) =>
         {
             if (_busy)
@@ -142,7 +146,7 @@ public sealed class PublishView(AppSettings settings, Func<IReadOnlyList<string>
         Heading(panel, "Or: save one study's page as a file  (optional)", "One .html file, with nothing else needed: it opens in any browser with no internet, and can be emailed or put on any web site.");
         if (Session is { } s)
         {
-            var save = new Button { Content = "Save the open study's page as a web page file…", Padding = new Thickness(10, 4, 10, 4), HorizontalAlignment = HorizontalAlignment.Left };
+            var save = new Button { Content = "Save the open study's page as a web page file…", Padding = new Thickness(10, 4, 10, 4), HorizontalAlignment = HorizontalAlignment.Left, ToolTip = "Saves the page as one .html file that opens in any browser, with no internet" };
             save.Click += (_, _) => SavePage(s, Window.GetWindow(this));
             panel.Children.Add(save);
         }
@@ -323,7 +327,7 @@ public sealed class PublishView(AppSettings settings, Func<IReadOnlyList<string>
     private static DockPanel LinkRow(string what, string url, int indent)
     {
         var row = new DockPanel { Margin = new Thickness(indent, 3, 0, 3) };
-        var copy = new Button { Content = "Copy the link", Padding = new Thickness(8, 2, 8, 2), Margin = new Thickness(6, 0, 0, 0) };
+        var copy = new Button { Content = "Copy the link", Padding = new Thickness(8, 2, 8, 2), Margin = new Thickness(6, 0, 0, 0), ToolTip = "Copies this address, ready to paste where you hand it in" };
         copy.Click += (_, _) =>
         {
             try
@@ -337,7 +341,7 @@ public sealed class PublishView(AppSettings settings, Func<IReadOnlyList<string>
             }
         };
         AutomationProperties.SetName(copy, "Copy the link to " + what);
-        var open = new Button { Content = "Open", Padding = new Thickness(8, 2, 8, 2), Margin = new Thickness(6, 0, 0, 0) };
+        var open = new Button { Content = "Open", Padding = new Thickness(8, 2, 8, 2), Margin = new Thickness(6, 0, 0, 0), ToolTip = "Opens this address in your web browser" };
         open.Click += (_, _) => Open(url);
         DockPanel.SetDock(open, Dock.Right);
         DockPanel.SetDock(copy, Dock.Right);
@@ -360,6 +364,7 @@ public sealed class PublishView(AppSettings settings, Func<IReadOnlyList<string>
                      "2. Make a token — a password just for TrafficLab+: press GitHub token… above and follow its steps. It opens the right page on GitHub, says which boxes to tick, and checks the token works.",
                      "3. Press Publish. The first time, TrafficLab+ creates the TrafficLab repository and switches its website on. GitHub takes a minute or two to put it up; the address shows a \"404\" page until then.",
                      "4. Copy the link to hand in: the summary page, or one study's own page.",
+                     "Players of your page hand in their printout; you hand in the link.",
                      "Everything on the website is public: anyone with the address can open it. Your study files stay on this computer.",
                  })
         {
@@ -380,7 +385,7 @@ public sealed class PublishView(AppSettings settings, Func<IReadOnlyList<string>
 
     private static TextBox Box(Panel p, string label, string value, string help, bool required)
     {
-        var box = new TextBox { Text = value, Padding = new Thickness(3) };
+        var box = new TextBox { Text = value, Padding = new Thickness(3), ToolTip = help };
         var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 2) };
         row.Children.Add(new Label { Content = label, Target = box, Padding = new Thickness(0), FontWeight = FontWeights.SemiBold });
         row.Children.Add(Form.Chip(required));
@@ -431,7 +436,7 @@ public sealed class PublishView(AppSettings settings, Func<IReadOnlyList<string>
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            MessageBox.Show(owner, "The page could not be saved there: " + ex.Message + "\n\nTry another folder, such as Documents.", "TrafficLab+", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(owner, "The page could not be saved there. Try another folder, such as Documents.\n\nDetails for support: " + ex.Message, "TrafficLab+", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 

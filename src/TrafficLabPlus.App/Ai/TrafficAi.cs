@@ -77,7 +77,7 @@ public sealed class TrafficAi
         if (Hub() is not { } hub)
         {
             MessageBox.Show(owner, "The AI could not be opened.\n\n" + _openProblem + "\n\nEverything else in TrafficLab+ works without it.",
-                "AI settings", MessageBoxButton.OK, MessageBoxImage.Warning);
+                "TrafficLab+ — AI settings", MessageBoxButton.OK, MessageBoxImage.Warning);
             return false;
         }
 
@@ -91,7 +91,7 @@ public sealed class TrafficAi
         if (Hub() is not { } hub)
         {
             MessageBox.Show(owner, "The AI could not be opened, so there is nothing to show.\n\n" + _openProblem,
-                "What the AI has cost", MessageBoxButton.OK, MessageBoxImage.Warning);
+                "TrafficLab+ — What the AI has cost", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -126,7 +126,7 @@ public sealed class TrafficAi
         }
         catch (HttpRequestException ex)
         {
-            return AiAnswer.Failed("TrafficLab+ could not reach the AI service. Check that this computer is online and try again. (Details: " + ex.Message + ")");
+            return AiAnswer.Failed("TrafficLab+ could not reach the AI service. Check that this computer is online and try again. Details for support: " + ex.Message);
         }
         catch (TaskCanceledException)
         {

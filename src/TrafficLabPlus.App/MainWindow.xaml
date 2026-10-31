@@ -13,37 +13,44 @@
         <CommandBinding Command="SaveAs" Executed="SaveAs_Executed" CanExecute="HasStudy" />
         <CommandBinding Command="Undo" Executed="Undo_Executed" CanExecute="CanUndo" />
         <CommandBinding Command="Redo" Executed="Redo_Executed" CanExecute="CanRedo" />
+        <CommandBinding Command="Help" Executed="Help_Executed" />
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Command="SaveAs" Key="S" Modifiers="Ctrl+Shift" />
+        <KeyBinding Command="Help" Key="F1" />
     </Window.InputBindings>
 
     <DockPanel>
         <Menu DockPanel.Dock="Top" Background="{StaticResource PanelBrush}" Padding="4,2">
             <MenuItem Header="_File">
-                <MenuItem Header="_New study…" Command="New" InputGestureText="Ctrl+N" />
-                <MenuItem Header="_Open a study file…" Command="Open" InputGestureText="Ctrl+O" />
-                <MenuItem x:Name="ExamplesMenu" Header="Open an _example" SubmenuOpened="ExamplesMenu_Opened">
+                <MenuItem Header="_New study…" Command="New" InputGestureText="Ctrl+N" ToolTip="Start a study from a simple layout: one signal, a T, or a row of signals (asks first if the open study has unsaved changes)" />
+                <MenuItem Header="_Open a study file…" Command="Open" InputGestureText="Ctrl+O" ToolTip="Open a .trafficlab study you or someone else saved (asks first if the open study has unsaved changes)" />
+                <MenuItem x:Name="ExamplesMenu" Header="Open an _example" SubmenuOpened="ExamplesMenu_Opened" ToolTip="The built-in examples: finished studies to play, change and save as your own">
                     <MenuItem Header="(examples)" IsEnabled="False" />
                 </MenuItem>
-                <MenuItem x:Name="RecentMenu" Header="Open _recent" SubmenuOpened="RecentMenu_Opened">
+                <MenuItem x:Name="RecentMenu" Header="Open _recent" SubmenuOpened="RecentMenu_Opened" ToolTip="Studies you opened or saved lately">
                     <MenuItem Header="(none yet)" IsEnabled="False" />
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="_Save" Command="Save" InputGestureText="Ctrl+S" />
-                <MenuItem Header="Save _as…" Command="SaveAs" InputGestureText="Ctrl+Shift+S" />
-                <MenuItem x:Name="CloseMenu" Header="_Close the study" Click="CloseStudy_Click" />
+                <MenuItem Header="_Save" Command="Save" InputGestureText="Ctrl+S" ToolTipService.ShowOnDisabled="True" ToolTip="Save the open study (an example is saved as your own copy). Greyed out: no study is open" />
+                <MenuItem Header="Save _as…" Command="SaveAs" InputGestureText="Ctrl+Shift+S" ToolTipService.ShowOnDisabled="True" ToolTip="Save the open study under a new name or in another folder. Greyed out: no study is open" />
+                <MenuItem x:Name="CloseMenu" Header="_Close the study" Click="CloseStudy_Click" ToolTip="Close the open study and go back to the start screen (asks first if there are unsaved changes)" />
                 <Separator />
-                <MenuItem Header="E_xit" Click="Exit_Click" />
+                <MenuItem Header="E_xit" Click="Exit_Click" ToolTip="Close TrafficLab+ (asks first if there are unsaved changes)" />
             </MenuItem>
             <MenuItem Header="_Edit">
-                <MenuItem Header="_Undo" Command="Undo" InputGestureText="Ctrl+Z" />
-                <MenuItem Header="_Redo" Command="Redo" InputGestureText="Ctrl+Y" />
+                <MenuItem Header="_Undo" Command="Undo" InputGestureText="Ctrl+Z" ToolTipService.ShowOnDisabled="True" ToolTip="Take back the last change to the study. Greyed out: nothing to take back yet" />
+                <MenuItem Header="_Redo" Command="Redo" InputGestureText="Ctrl+Y" ToolTipService.ShowOnDisabled="True" ToolTip="Make again the change you just took back. Greyed out: nothing was taken back" />
             </MenuItem>
             <MenuItem Header="_Help">
-                <MenuItem Header="_Start screen: what TrafficLab+ is for" Click="StartScreen_Click" />
-                <MenuItem Header="Check for a _new version…" Click="CheckForUpdate_Click" ToolTip="Asks the Microsoft Store whether a newer version of TrafficLab+ is out, and offers to install it" />
-                <MenuItem Header="_About TrafficLab+" Click="About_Click" />
+                <!-- the same Help menu, in the same order and words, in every program (USABILITY-CHECKLIST.md 6.3) -->
+                <MenuItem Header="_Help for this screen" InputGestureText="F1" Click="HelpForScreen_Click"
+                          ToolTip="Opens the help page about the step you are on, on softwareplus.ai, in your web browser" />
+                <MenuItem Header="Help on the _web (softwareplus.ai/trafficlab)" Click="HelpOnWeb_Click"
+                          ToolTip="Opens TrafficLab+'s help, with every step explained, in your web browser" />
+                <Separator />
+                <MenuItem x:Name="CheckForUpdateItem" Header="Check for a _new version…" Click="CheckForUpdate_Click" ToolTipService.ShowOnDisabled="True" ToolTip="Asks the Microsoft Store whether a newer version of TrafficLab+ is out, and offers to install it" />
+                <MenuItem Header="_About TrafficLab+…" Click="About_Click" ToolTip="Version, who made TrafficLab+, its links and the credits" />
             </MenuItem>
         </Menu>
 
@@ -68,10 +75,12 @@
                     <RadioButton x:Name="NavPreview" Style="{StaticResource SectionButton}" Content="5  Preview" Tag="Preview" Checked="Section_Checked"
                                  ToolTip="The page, full size, exactly as it will be published" />
                     <RadioButton x:Name="NavPublish" Style="{StaticResource SectionButton}" Content="6  Publish" Tag="Publish" Checked="Section_Checked"
-                                 ToolTip="Save the page as a file (publishing to the web comes later)" />
+                                 ToolTip="Put your studies on your free GitHub Pages website and get the link to hand in." />
                     <Border Height="1" Background="{StaticResource LineBrush}" Margin="14,8" />
-                    <RadioButton x:Name="NavSettings" Style="{StaticResource SectionButton}" Content="Settings" Tag="Settings" Checked="Section_Checked" />
-                    <RadioButton x:Name="NavAbout" Style="{StaticResource SectionButton}" Content="About" Tag="About" Checked="Section_Checked" />
+                    <RadioButton x:Name="NavSettings" Style="{StaticResource SectionButton}" Content="Settings" Tag="Settings" Checked="Section_Checked"
+                                 ToolTip="Your name and course for new studies, the AI (optional), and where files are kept" />
+                    <RadioButton x:Name="NavAbout" Style="{StaticResource SectionButton}" Content="About" Tag="About" Checked="Section_Checked"
+                                 ToolTip="Version, who made TrafficLab+, its links and the credits" />
                 </StackPanel>
             </DockPanel>
         </Border>

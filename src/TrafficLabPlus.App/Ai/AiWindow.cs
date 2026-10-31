@@ -22,10 +22,10 @@ public sealed class AiWindow : Window
     private readonly string _purpose;
     private readonly string _system;
     private readonly TextBox _words = new() { AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, MinHeight = 90, Padding = new Thickness(4) };
-    private readonly Button _ask = new() { Content = "Ask the AI", Style = (Style)Application.Current.Resources["Primary"], HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 8, 0, 0) };
+    private readonly Button _ask = new() { Content = "Ask the AI", ToolTip = "Sends what you typed, with the study, to your AI provider; it proposes changes for you to tick (a small cost on your key). Greyed out: no AI is set up yet (Set up an AI now…), or it is answering", Style = (Style)Application.Current.Resources["Primary"], HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 8, 0, 0) };
     private readonly TextBlock _state = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 0, 0) };
     private readonly StackPanel _results = new();
-    private readonly Button _apply = new() { Content = "Apply the ticked changes", Style = (Style)Application.Current.Resources["Primary"], Margin = new Thickness(0, 0, 8, 0), IsEnabled = false };
+    private readonly Button _apply = new() { Content = "Apply the ticked changes", ToolTip = "Makes the ticked changes to the study; Ctrl+Z takes them all back. Greyed out until the AI has proposed something", Style = (Style)Application.Current.Resources["Primary"], Margin = new Thickness(0, 0, 8, 0), IsEnabled = false };
     private AiProposals? _proposals;
     private readonly CancellationTokenSource _stop = new();
     private readonly TextBlock _status = new() { TextWrapping = TextWrapping.Wrap, Foreground = Form.Res("MutedTextBrush"), FontSize = 12, Margin = new Thickness(0, 0, 0, 10) };
@@ -35,6 +35,8 @@ public sealed class AiWindow : Window
     {
         _session = session;
         _prompt = prompt;
+        ToolTipService.SetShowOnDisabled(_apply, true);
+        ToolTipService.SetShowOnDisabled(_ask, true);
         _read = read;
         _purpose = purpose;
         _system = system ?? AiPrompts.System;
@@ -54,7 +56,7 @@ public sealed class AiWindow : Window
         if (!TrafficAi.Shared.IsReady)
         {
             // set it up from here, rather than being sent away to find it
-            var setup = new Button { Content = "Set up an AI now…", Padding = new Thickness(10, 4, 10, 4), HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 10) };
+            var setup = new Button { Content = "Set up an AI now…", Padding = new Thickness(10, 4, 10, 4), HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 10), ToolTip = "Opens AI settings: choose a provider and enter your own key" };
             setup.Click += (_, _) =>
             {
                 TrafficAi.Shared.ShowSettings(this);
@@ -91,7 +93,7 @@ public sealed class AiWindow : Window
             buttons.Children.Add(_apply);
         }
 
-        var close = new Button { Content = read is null ? "Close" : "Cancel", IsCancel = true, Padding = new Thickness(12, 6, 12, 6) };
+        var close = new Button { Content = read is null ? "Close" : "Cancel", IsCancel = true, Padding = new Thickness(12, 6, 12, 6), ToolTip = "Close this window; nothing the AI proposed is applied (Esc)" };
         buttons.Children.Add(close);
         _apply.Click += (_, _) => Apply();
 
@@ -178,7 +180,7 @@ public sealed class AiWindow : Window
                 text.Children.Add(new TextBlock { Text = "Why: " + pr.Reason, TextWrapping = TextWrapping.Wrap, Foreground = Form.Res("MutedTextBrush") });
             }
 
-            var box = new CheckBox { Content = text, IsChecked = true, Margin = new Thickness(0, 6, 0, 0) };
+            var box = new CheckBox { Content = text, IsChecked = true, Margin = new Thickness(0, 6, 0, 0), ToolTip = "Ticked: this change is made when you press Apply. Untick to leave it out" };
             AutomationProperties.SetName(box, $"{pr.Target}, {pr.Setting}, from {pr.Before} to {pr.After}");
             box.Checked += (_, _) => { pr.Use = true; Count(); };
             box.Unchecked += (_, _) => { pr.Use = false; Count(); };

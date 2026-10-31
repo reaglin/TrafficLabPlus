@@ -79,6 +79,11 @@ public sealed class PreviewView : ContentControl
                 CoreWebView2Environment environment =
                     await CoreWebView2Environment.CreateAsync(userDataFolder: DataFolder);
                 await _web.EnsureCoreWebView2Async(environment);
+                // The page asks "Leave site?" before it is closed with a plan on it (beforeunload). In the
+                // preview it is rebuilt after every edit, so that question would pop up mid-typing: here,
+                // and only here, the page's leave-guard is never registered (UX review 2026-10-31, M1).
+                // A published page, and Open in your browser, keep it.
+                await _web.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(NoLeaveGuard);
                 _web.CoreWebView2.NewWindowRequested += (_, e) => { e.Handled = true; OpenOutside(e.Uri); };
                 _web.CoreWebView2.NavigationStarting += (_, e) =>
                 {
@@ -100,8 +105,8 @@ public sealed class PreviewView : ContentControl
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException
                                            or System.Runtime.InteropServices.COMException)
             {
-                ShowProblem("The page could not be shown inside the window (" + ex.Message + "). " +
-                            "Press Open in your browser above — the page works exactly the same there.");
+                ShowProblem("The page could not be shown inside the window. " +
+                            "Press Open in your browser above — the page works exactly the same there. Details for support: " + ex.Message);
                 return;
             }
             finally
@@ -144,6 +149,12 @@ public sealed class PreviewView : ContentControl
             return null;
         }
     }
+
+    /// <summary>Run before the page's own scripts: ignores any beforeunload listener the page adds.</summary>
+    internal const string NoLeaveGuard =
+        "(() => { const add = window.addEventListener; " +
+        "window.addEventListener = function (type, ...rest) { if (type === 'beforeunload') return; return add.call(this, type, ...rest); }; " +
+        "Object.defineProperty(window, 'onbeforeunload', { set() {}, get() { return null; } }); })();";
 
     private static bool IsWeb(string uri) =>
         uri.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||

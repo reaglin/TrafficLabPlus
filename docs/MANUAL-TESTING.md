@@ -13,6 +13,65 @@ dotnet publish src/TrafficLabPlus.App/TrafficLabPlus.App.csproj -c Release -r wi
 
 ---
 
+## Round 2026-11 — usability (Ron, 2026-10-31)
+
+Build: `manual-test\TrafficLabPlus.exe` (made 2026-10-31, version 1.1.0, AI Manager 1.7.0). Close any copy that is open first.
+Record each step as ✅ / ❌ with a note; ❌ and notes go back into `docs/DEVELOPMENT-PLAN.md` (phase 9, items 9.4–9.10).
+The help pages F1 opens are on softwareplus.ai/trafficlab/help/ once they are deployed; until then a link may show "404".
+
+### A. First start, as a new user
+A1. Start it. Does the start screen say what TrafficLab+ is for and what to do first? Is **Open the LPGA example** offered first?
+A2. Open the LPGA example — expected: the Preview with the page; the line above it says "This is the page as a player sees it."
+A3. **1 Map**: search "LPGA Boulevard, Daytona Beach", **Load the roads shown on the map**, tick two intersections, **Make the study…** —
+    expected: if a study has unsaved changes you are asked to save *before* the name-and-budget window; then the study opens in Network.
+A4. **2 Network** to **4 Challenge**: change a lane count, a volume, the budget — expected: the page on the right is rebuilt each time.
+A5. **6 Publish**: tick the study, **Publish** (or just read the steps) — expected: you can tell what hands in what.
+At each step: could you tell what to do next without knowing the program?
+
+### B. This round's fixes (plan rows marked "UX review 2026-10-31")
+B1. (9.4) In Preview, build a plan on the page (add a turn lane), then change anything in Network — expected: **no** "Leave site?"
+    question; the line above the page says "Rebuilt at …, after your change — a plan you were trying on the page starts again."
+B2. (9.4) Press **Open in your browser**, build a plan there, close the tab — expected: the browser *does* ask (the published page keeps it).
+B3. (9.5) **Help ▸ Check for a new version…** — expected (hand-test copy): it cannot check, offers the Store page. In the Store copy, once
+    1.1 is live: "Asking the Microsoft Store…" under the study's name (and a wait cursor) while it asks; before installing, "Windows
+    closes TrafficLab+ to install it; open it again from the Start menu … If the study has unsaved changes, you are asked to save them
+    first.", then the save question (Cancel stops the update).
+B4. (9.6) Hover **6 Publish** on the left — expected: "Put your studies on your free GitHub Pages website and get the link to hand in."
+B5. (9.6) Settings ▸ type an Author, then close TrafficLab+ at once (no Tab) — open it again: the Author is kept.
+B6. (9.6) About — expected: a fourth link, "Privacy policy: softwareplus.ai/trafficlab/privacy", opens in the browser.
+B7. (9.6) Publish ▸ **GitHub token…** — step 5 says "Check that GitHub shows your expiry date …"; the foot says "never put in a study file
+    or on your website." Publish ▸ **New to GitHub?** ends "Players of your page hand in their printout; you hand in the link."
+B8. (9.6) Save a study, close it, rename or move the file in Explorer, then click it under **Continue where you left off** — expected:
+    "That file is gone; it has been taken off the list.", and it is gone from the start screen at once.
+B9. (9.6) Traffic ▸ Trips that do not happen: add a pair, then the same pair again (either order) — expected: "That pair is already listed."
+B10. (9.7) About says Version 1.1.0.
+B11. (9.9) **Help** menu reads, in order: Help for this screen (F1) · Help on the web (softwareplus.ai/trafficlab) · Check for a new
+    version… · About TrafficLab+…. Press **F1** on Map, Network, Traffic, Challenge, Preview, Publish, Settings, About and Start — each
+    opens that step's help page in the browser.
+B12. (9.9) Under each step's guide box: "More help for this step, with examples (F1): softwareplus.ai/trafficlab/help/…" opens that page.
+B13. (9.9) With no study open (File ▸ Close the study), hover the greyed **2 Network**…**6 Publish**, **Next**, File ▸ Save, Edit ▸ Undo —
+    each tooltip says why it is greyed out and what to do.
+B14. (9.9) Hover the buttons and boxes in Map, Network, Traffic, Challenge, Publish, Settings, the New study window, the AI window and
+    the token window — every one has a tooltip saying what it does.
+
+### C. Every screen (USABILITY-CHECKLIST.md 1–4)
+For each of Start, 1 Map, 2 Network, 3 Traffic, 4 Challenge, 5 Preview, 6 Publish, Settings, About, the New study window, the AI window
+(any "… with the AI…" button) and the GitHub token window: hover every control — tooltip? Disabled ones say why? F1 opens help about
+this screen? With no study open, does the screen say what to do? Type a wrong value (a budget of "abc", a speed of 500) — does it say
+why, next to the box?
+
+### D. Same as every program (checklist 5–6)
+D1. Change something, then File ▸ Close the study / New study… / Open a study file… / Exit: asked to save (Yes / No / Cancel)?
+D2. Help menu items and order as in B11.
+D3. About: version 1.1.0, "Created by Dr. Ron Eaglin", four links work (the program's page, the Microsoft Store, all programs, privacy).
+D4. Check for a new version (hand-test copy: says it cannot check, offers the Store page).
+
+### E. Look (checklist 7)
+At 150 % scaling and the smallest window size (980 × 620): anything cut off, hard to read, or shown by colour only (the yellow
+problems bar, the red error lines under boxes)?
+
+---
+
 ## Phases 0–2 — the engine and the page (2026-10-09)
 
 ### Test 1 — LPGA, rebuilt from data, against the original

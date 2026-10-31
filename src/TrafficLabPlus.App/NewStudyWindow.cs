@@ -54,6 +54,10 @@ public sealed class NewStudyWindow : Window
         _count.GotKeyboardFocus += (_, _) => _row.IsChecked = true;
         _count.DropDownOpened += (_, _) => _row.IsChecked = true;
         AutomationProperties.SetName(_count, "How many signals along the main street");
+        _count.ToolTip = "How many signals along the main street (2 to " + StudyTemplates.MaxSignals + "), a quarter mile apart";
+        _four.ToolTip = "A crossroads: one signal where two streets cross";
+        _tee.ToolTip = "A T: one signal where a street ends at another";
+        _row.ToolTip = "A corridor: several signals along one main street, each with a cross street";
 
         var p = new StackPanel { Margin = new Thickness(20, 16, 20, 16) };
         p.Children.Add(new TextBlock { Text = "A new traffic study", Style = (Style)Application.Current.Resources["SectionTitle"] });
@@ -88,6 +92,7 @@ public sealed class NewStudyWindow : Window
         money.Children.Add(_budget);
         money.Children.Add(new TextBlock { Text = " million", VerticalAlignment = VerticalAlignment.Center });
         AutomationProperties.SetName(_budget, "Budget, in millions of dollars");
+        _budget.ToolTip = "In millions of dollars, like 5 for $5 million (LPGA's budget)";
         p.Children.Add(money);
         p.Children.Add(Help("What a player's plan may spend on fixes — turn lanes, extra lanes, retiming, roundabouts. LPGA's is $5 million: enough for a few real fixes, not everything. Spending less scores better; going over halves the score."));
 
@@ -96,8 +101,8 @@ public sealed class NewStudyWindow : Window
         p.Children.Add(_error);
 
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 14, 0, 0) };
-        var create = new Button { Content = "Create the study", IsDefault = true, Style = (Style)Application.Current.Resources["Primary"], Margin = new Thickness(0, 0, 8, 0) };
-        var cancel = new Button { Content = "Cancel", IsCancel = true, Padding = new Thickness(12, 6, 12, 6) };
+        var create = new Button { Content = "Create the study", IsDefault = true, Style = (Style)Application.Current.Resources["Primary"], Margin = new Thickness(0, 0, 8, 0), ToolTip = "Makes the study from what is filled in above and opens it (Enter)" };
+        var cancel = new Button { Content = "Cancel", IsCancel = true, Padding = new Thickness(12, 6, 12, 6), ToolTip = "Close without making a study (Esc)" };
         create.Click += (_, _) => Create();
         buttons.Children.Add(create);
         buttons.Children.Add(cancel);
@@ -164,6 +169,7 @@ public sealed class NewStudyWindow : Window
     {
         p.Children.Add(new Label { Content = label, Target = box, Padding = new Thickness(0), Margin = new Thickness(0, 10, 0, 2), FontWeight = FontWeights.SemiBold });
         AutomationProperties.SetName(box, label.Replace("_", "", StringComparison.Ordinal));
+        box.ToolTip = help;
         p.Children.Add(box);
         p.Children.Add(Help(help));
     }

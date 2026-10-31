@@ -20,25 +20,25 @@
                 <TextBlock TextWrapping="Wrap" Margin="0,0,0,2" Text="2. Name it (for example TrafficLab+). Resource owner: your own account. Expiration: no more than a year from today — GitHub refuses anything later, and then Generate does nothing. A preset such as 90 days is simplest." />
                 <TextBlock TextWrapping="Wrap" Margin="0,0,0,2" Text="3. Repository access: All repositories." />
                 <TextBlock TextWrapping="Wrap" Margin="0,0,0,2" Text="4. Repository permissions — set to Read and write: Administration, Contents and Pages. Leave the rest." />
-                <TextBlock TextWrapping="Wrap" Text="5. Press Generate token. Check the box GitHub shows names your expiry date (if it says never expire, cancel and choose the date again — if Generate does nothing, look for a red message on the form). Copy the token (it begins github_pat_ and is shown only once) and paste it below." />
+                <TextBlock TextWrapping="Wrap" Text="5. Press Generate token. Check that GitHub shows your expiry date (if it says the token never expires, cancel and choose a date again). If Generate does nothing, look for a red message on the form. Copy the token (it begins github_pat_ and is shown only once) and paste it below." />
             </StackPanel>
         </Border>
 
         <TextBlock Text="Token" FontWeight="SemiBold" Margin="0,14,0,4" />
-        <PasswordBox x:Name="TokenBox" Padding="6,5" AutomationProperties.Name="GitHub token" />
+        <PasswordBox x:Name="TokenBox" Padding="6,5" AutomationProperties.Name="GitHub token" ToolTip="Paste the token GitHub showed you; it begins github_pat_" />
         <TextBlock x:Name="Current" TextWrapping="Wrap" FontSize="13" Margin="0,4,0,0"
                    Foreground="{StaticResource MutedTextBrush}" />
 
         <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-            <Button x:Name="SaveButton" Content="Check and save" Click="OnSave" IsDefault="True"
+            <Button x:Name="SaveButton" Content="Check and save" Click="OnSave" IsDefault="True" ToolTipService.ShowOnDisabled="True" ToolTip="Checks the token with GitHub and, if it works, saves it on this computer (Enter). Greyed out while it is checking with GitHub"
                     Background="{StaticResource AccentBrush}" Foreground="White" Padding="14,6" Margin="0,0,8,0" />
-            <Button x:Name="RemoveButton" Content="Remove the saved token" Click="OnRemove" Padding="14,6" Margin="0,0,8,0" />
-            <Button Content="Close" Click="OnClose" IsCancel="True" Padding="14,6" />
+            <Button x:Name="RemoveButton" Content="Remove the saved token" Click="OnRemove" ToolTipService.ShowOnDisabled="True" ToolTip="Deletes the saved token from this computer (it still works on GitHub until you cancel it there). Greyed out: no token is saved" Padding="14,6" Margin="0,0,8,0" />
+            <Button Content="Close" Click="OnClose" IsCancel="True" ToolTip="Close this window (Esc); a token not yet saved is not kept" Padding="14,6" />
         </StackPanel>
 
         <TextBlock x:Name="Result" TextWrapping="Wrap" Margin="0,10,0,0" />
 
         <TextBlock TextWrapping="Wrap" FontSize="12" Margin="0,12,0,0" Foreground="{StaticResource MutedTextBrush}"
-                   Text="The token is saved on this computer only, encrypted for your Windows account. It is never put in a study site or a website. You can cancel it at any time on GitHub: your picture → Settings → Developer settings → Personal access tokens." />
+                   Text="The token is saved on this computer only, encrypted for your Windows account. It is never put in a study file or on your website. You can cancel it at any time on GitHub: your picture → Settings → Developer settings → Personal access tokens." />
     </StackPanel>
 </Window>

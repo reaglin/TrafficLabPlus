@@ -78,6 +78,7 @@ public partial class MainWindow : Window
     // ---------------------------------------------------------------- the sections
 
     private string _current = "Start";
+    private readonly Dictionary<RadioButton, string> _navTips = [];
 
     private void Section_Checked(object sender, RoutedEventArgs e)
     {
@@ -155,6 +156,11 @@ public partial class MainWindow : Window
         // the map is where a study starts: until there is one, the steps after it have nothing to show
         bool canGoOn = _session is not null;
         NextButton.IsEnabled = canGoOn;
+        PrevButton.ToolTip = i > 0 ? "Go back to step " + i + ": " + Steps[i - 1].Title : null;
+        NextButton.ToolTip = i >= Steps.Length - 1 ? null
+            : canGoOn ? "Go on to step " + (i + 2) + ": " + Steps[i + 1].Title
+            : "Greyed out until a study is open: make one on this page, or start one from a layout or an example on the Start screen.";
+        ToolTipService.SetShowOnDisabled(NextButton, true);
         StepNote.Text = !canGoOn
             ? "Make a study first — press Make the study… on this page once you have chosen intersections — or start one from a layout or an example on the Start screen. Then Next takes you on."
             : _current switch
@@ -229,12 +235,19 @@ public partial class MainWindow : Window
         ShowSteps();
         bool open = _session is not null;
         // the map needs no study: it is where one starts
+        const string why = "Greyed out until a study is open: start or open one on the Start screen, or make one from the map in step 1, Map.";
         foreach (RadioButton nav in new[] { NavNetwork, NavTraffic, NavChallenge, NavPreview, NavPublish })
         {
             nav.IsEnabled = open;
+            // a greyed-out step says why (usability checklist 2.3); its own tooltip comes back once a study is open
+            _navTips.TryAdd(nav, nav.ToolTip as string ?? "");
+            nav.ToolTip = open ? _navTips[nav] : _navTips[nav].TrimEnd('.') + ". " + why;
+            ToolTipService.SetShowOnDisabled(nav, true);
         }
 
         CloseMenu.IsEnabled = open;
+        CloseMenu.ToolTip = open ? "Close the open study and go back to the start screen (asks first if there are unsaved changes)" : "Greyed out: no study is open.";
+        ToolTipService.SetShowOnDisabled(CloseMenu, true);
         if (_session is not { } s)
         {
             Title = "TrafficLab+";
@@ -270,7 +283,7 @@ public partial class MainWindow : Window
                 BorderThickness = new Thickness(0),
                 Padding = new Thickness(0, 1, 0, 1),
                 Cursor = Cursors.Hand,
-                ToolTip = "Go to it",
+                ToolTip = "Go to the place where this can be fixed",
             };
             link.Click += (_, _) => GoToProblem(p);
             ProblemsList.Items.Add(link);
@@ -351,14 +364,17 @@ public partial class MainWindow : Window
             Preview.Source = null;
             // the first showing of a study opens with the page's instructions, as a player sees it;
             // a rebuild after an edit goes straight back to the map
+            bool rebuilt = _shownOnce;
             Preview.Source = _shownOnce ? new UriBuilder(new Uri(_pagePath)) { Query = "nointro" }.Uri : new Uri(_pagePath);
             _shownOnce = true;
             BrowserButton.IsEnabled = true;
-            PreviewState.Text = "Rebuilt at " + DateTime.Now.ToString("T", System.Globalization.CultureInfo.CurrentCulture) + ", after the last change. Try it as a player would: build a plan, run a test, submit it.";
+            PreviewState.Text = !rebuilt
+                ? "This is the page as a player sees it. Try it as a player would: build a plan, run a test, submit it."
+                : "Rebuilt at " + DateTime.Now.ToString("T", System.Globalization.CultureInfo.CurrentCulture) + ", after your change — a plan you were trying on the page starts again. Try it as a player would: build a plan, run a test, submit it.";
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            PreviewState.Text = "The page could not be written to " + AppSettings.PreviewFolder + ": " + ex.Message;
+            PreviewState.Text = "The page could not be written to " + AppSettings.PreviewFolder + ". Check that the folder is not read-only and the disk is not full, then make any change to try again. Details for support: " + ex.Message;
         }
     }
 
@@ -375,8 +391,8 @@ public partial class MainWindow : Window
         }
         catch (Win32Exception ex)
         {
-            MessageBox.Show(this, "No web browser opened (" + ex.Message + "). The page is saved here, and any browser can open it:" +
-                                  Environment.NewLine + Environment.NewLine + _pagePath,
+            MessageBox.Show(this, "No web browser opened. The page is saved here, and any browser can open it:" +
+                                  Environment.NewLine + Environment.NewLine + _pagePath + Environment.NewLine + Environment.NewLine + "Details for support: " + ex.Message,
                 "TrafficLab+", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
@@ -418,8 +434,14 @@ public partial class MainWindow : Window
         var map = (MapView)_sections["Map"];
         string? first = map.Junctions.FirstOrDefault(j => j.Id == cache.Junctions.FirstOrDefault())?.Label;
         string? title = first is null ? null : (cache.Junctions.Count == 1 ? first : first.Split(" & ")[0]) + " Traffic Lab";
+        // ask about unsaved changes before the dialog, not after the person has filled it in
+        if (!ConfirmDiscard())
+        {
+            return Task.CompletedTask;
+        }
+
         var dialog = new NewStudyWindow(_settings, cache.Junctions.Count, map.Area, title) { Owner = this };
-        if (dialog.ShowDialog() != true || dialog.Request is not { } r || !ConfirmDiscard())
+        if (dialog.ShowDialog() != true || dialog.Request is not { } r)
         {
             return Task.CompletedTask;
         }
@@ -439,7 +461,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex) when (ex is ArgumentException or StudyFormatException)
         {
-            MessageBox.Show(this, "The study could not be made: " + ex.Message, "TrafficLab+", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, "The study could not be made from these intersections. Try choosing fewer, or load the roads again." + Environment.NewLine + Environment.NewLine + "Details for support: " + ex.Message, "TrafficLab+", MessageBoxButton.OK, MessageBoxImage.Warning);
             return Task.CompletedTask;
         }
 
@@ -517,7 +539,12 @@ public partial class MainWindow : Window
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             _recent.Remove(path);
-            MessageBox.Show(this, "The study could not be opened: " + ex.Message, "TrafficLab+", MessageBoxButton.OK, MessageBoxImage.Warning);
+            // the start screen's "Continue where you left off" must not keep offering it
+            _sections["Start"].Rebuild();
+            string why = File.Exists(path)
+                ? "The study could not be opened. It may be open in another program, or you may not have permission to read it. It has been taken off the list of recent studies." + Environment.NewLine + Environment.NewLine + "Details for support: " + ex.Message
+                : "That file is gone; it has been taken off the list." + Environment.NewLine + Environment.NewLine + path;
+            MessageBox.Show(this, why, "TrafficLab+", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 
@@ -561,8 +588,8 @@ public partial class MainWindow : Window
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            MessageBox.Show(this, "The study could not be saved: " + ex.Message + Environment.NewLine + Environment.NewLine +
-                                  "Nothing was lost: it is still open here. Try Save as… and another folder, such as Documents.",
+            MessageBox.Show(this, "The study could not be saved. Nothing was lost: it is still open here. Try Save as… and another folder, such as Documents." + Environment.NewLine + Environment.NewLine + 
+                                  "Details for support: " + ex.Message,
                 "TrafficLab+", MessageBoxButton.OK, MessageBoxImage.Warning);
             return false;
         }
@@ -672,11 +699,46 @@ public partial class MainWindow : Window
 
     private void Exit_Click(object sender, RoutedEventArgs e) => Close();
 
-    private void StartScreen_Click(object sender, RoutedEventArgs e) => Go(NavStart);
+    // Help ▸ Help for this screen (F1): the help page about the section shown now
+    private void HelpForScreen_Click(object sender, RoutedEventArgs e) => Guides.OpenWeb(Guides.HelpPage(_current), this);
+
+    private void Help_Executed(object sender, ExecutedRoutedEventArgs e) => Guides.OpenWeb(Guides.HelpPage(_current), this);
+
+    private void HelpOnWeb_Click(object sender, RoutedEventArgs e) => Guides.OpenWeb(Guides.HelpRoot, this);
 
     private void About_Click(object sender, RoutedEventArgs e) => Go(NavAbout);
 
-    private async void CheckForUpdate_Click(object sender, RoutedEventArgs e) => await StoreUpdates.CheckAsync(this);
+    private async void CheckForUpdate_Click(object sender, RoutedEventArgs e)
+    {
+        object header = CheckForUpdateItem.Header;
+        CheckForUpdateItem.IsEnabled = false;
+        CheckForUpdateItem.Header = "Asking the Microsoft Store…";
+        // the menu has closed by now: the words and the wait cursor show in the window while the Store is asked
+        void Busy(bool on)
+        {
+            Mouse.OverrideCursor = on ? Cursors.Wait : null;
+            if (on)
+            {
+                SaveState.Text = "Asking the Microsoft Store…";
+            }
+            else
+            {
+                ShowStudyState();
+            }
+        }
+
+        try
+        {
+            await StoreUpdates.CheckAsync(this, ConfirmDiscard, Busy);
+        }
+        finally
+        {
+            Mouse.OverrideCursor = null;
+            CheckForUpdateItem.Header = header;
+            CheckForUpdateItem.IsEnabled = true;
+            ShowStudyState();
+        }
+    }
 
     private void RecentMenu_Opened(object sender, RoutedEventArgs e)
     {

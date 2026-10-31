@@ -34,8 +34,8 @@
     <!-- The one AI layer for all of Ron's programs (..\AiManager), from C:
 uget-local. App only:
          Core has no package references. -->
-    <PackageReference Include="Eaglin.AiManager" Version="1.4.1" />
-    <PackageReference Include="Eaglin.AiManager.Wpf" Version="1.4.1" />
+    <PackageReference Include="Eaglin.AiManager" Version="1.7.0" />
+    <PackageReference Include="Eaglin.AiManager.Wpf" Version="1.7.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4191.47" />
   </ItemGroup>
 

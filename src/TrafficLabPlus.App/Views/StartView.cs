@@ -90,6 +90,7 @@ public sealed class StartView(Action<BuiltInExample> example, Action fromMap, Ac
             Margin = new Thickness(0, 0, 10, 10),
             HorizontalContentAlignment = HorizontalAlignment.Left,
             VerticalContentAlignment = VerticalAlignment.Top,
+            ToolTip = body,
         };
         if (primary)
         {

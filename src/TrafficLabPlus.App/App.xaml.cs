@@ -32,7 +32,19 @@ public partial class App : Application
             return;
         }
 
+        // A mistake in the program should not close it and lose the open study (UX review 2026-10-31).
+        DispatcherUnhandledException += OnUnhandled;
         new MainWindow(args.Length > 0 ? args[0] : null).Show();
+    }
+
+    private void OnUnhandled(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine(e.Exception);
+        MessageBox.Show(MainWindow,
+            "Something went wrong in TrafficLab+. If a study is open, save it under a new name (File ▸ Save as…), then close TrafficLab+ and open it again." + Environment.NewLine + Environment.NewLine +
+            "Details for support: " + e.Exception.Message,
+            "TrafficLab+", MessageBoxButton.OK, MessageBoxImage.Warning);
+        e.Handled = true;
     }
 
     private static int RunCommand(string[] args)

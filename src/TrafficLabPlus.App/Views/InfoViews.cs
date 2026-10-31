@@ -37,9 +37,9 @@ public sealed class SettingsView(AppSettings settings) : SectionView
         var status = new TextBlock { Text = Ai.TrafficAi.Shared.Status, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 0, 0) };
         panel.Children.Add(status);
         var aiRow = new WrapPanel { Margin = new Thickness(0, 6, 0, 0) };
-        var aiSettings = new Button { Content = "AI settings…", Padding = new Thickness(10, 4, 10, 4), Margin = new Thickness(0, 0, 8, 0) };
+        var aiSettings = new Button { Content = "AI settings…", Padding = new Thickness(10, 4, 10, 4), Margin = new Thickness(0, 0, 8, 0), ToolTip = "Choose the AI provider and enter your own key (shared with Dr. Ron Eaglin's other programs, kept on this computer)" };
         aiSettings.Click += (_, _) => { Ai.TrafficAi.Shared.ShowSettings(Window.GetWindow(this)); status.Text = Ai.TrafficAi.Shared.Status; };
-        var usage = new Button { Content = "What the AI has cost…", Padding = new Thickness(10, 4, 10, 4) };
+        var usage = new Button { Content = "What the AI has cost…", Padding = new Thickness(10, 4, 10, 4), ToolTip = "Shows each AI request this computer has made and its estimated cost" };
         usage.Click += (_, _) => Ai.TrafficAi.Shared.ShowUsage(Window.GetWindow(this));
         aiRow.Children.Add(aiSettings);
         aiRow.Children.Add(usage);
@@ -54,7 +54,8 @@ public sealed class SettingsView(AppSettings settings) : SectionView
     {
         var box = new TextBox { Text = value ?? "", Padding = new Thickness(3) };
         System.Windows.Automation.AutomationProperties.SetName(box, label);
-        box.LostKeyboardFocus += (_, _) =>
+        // saved as it is typed, so closing the window straight after typing keeps it
+        box.TextChanged += (_, _) =>
         {
             set(string.IsNullOrWhiteSpace(box.Text) ? null : box.Text.Trim());
             settings.Save();
@@ -68,7 +69,7 @@ public sealed class SettingsView(AppSettings settings) : SectionView
     {
         panel.Children.Add(new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 2) });
         panel.Children.Add(new TextBox { Text = folder, IsReadOnly = true, BorderThickness = new Thickness(0), Background = Brushes.Transparent, TextWrapping = TextWrapping.Wrap });
-        var open = new Button { Content = "Open this folder", HorizontalAlignment = HorizontalAlignment.Left, Padding = new Thickness(8, 2, 8, 2), Margin = new Thickness(0, 2, 0, 0) };
+        var open = new Button { Content = "Open this folder", HorizontalAlignment = HorizontalAlignment.Left, Padding = new Thickness(8, 2, 8, 2), Margin = new Thickness(0, 2, 0, 0), ToolTip = "Opens this folder in File Explorer (it is made first if it is not there yet)" };
         open.Click += (_, _) =>
         {
             try
@@ -78,7 +79,7 @@ public sealed class SettingsView(AppSettings settings) : SectionView
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
             {
-                MessageBox.Show("The folder could not be opened: " + ex.Message, "TrafficLab+", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("The folder could not be opened. Its address is shown above; you can paste it into File Explorer." + Environment.NewLine + Environment.NewLine + "Details for support: " + ex.Message, "TrafficLab+", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         };
         panel.Children.Add(open);
@@ -93,6 +94,7 @@ public sealed class AboutView : SectionView
     public const string SiteUrl = "https://softwareplus.ai/trafficlab/";
     public const string StoreUrl = "https://apps.microsoft.com/detail/9P5NGQF4HRPD";
     public const string AllProgramsUrl = "https://softwareplus.ai/#programs";
+    public const string PrivacyUrl = "https://softwareplus.ai/trafficlab/privacy/";
 
     /// <summary>One line of words followed by a link that opens in the web browser.</summary>
     private static TextBlock LinkLine(string words, string linkText, string url, double top)
@@ -146,6 +148,7 @@ public sealed class AboutView : SectionView
         words.Children.Add(LinkLine("More about TrafficLab+, with help and examples: ", "softwareplus.ai/trafficlab", SiteUrl, 8));
         words.Children.Add(LinkLine("TrafficLab+ on the Microsoft Store (updates, ratings and reviews): ", "apps.microsoft.com/detail/9P5NGQF4HRPD", StoreUrl, 4));
         words.Children.Add(LinkLine("All of Dr. Ron Eaglin's programs: ", "softwareplus.ai", AllProgramsUrl, 4));
+        words.Children.Add(LinkLine("Privacy policy: ", "softwareplus.ai/trafficlab/privacy", PrivacyUrl, 4));
         card.Children.Add(words);
         panel.Children.Add(card);
 

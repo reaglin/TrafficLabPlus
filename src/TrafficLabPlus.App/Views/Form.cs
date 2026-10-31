@@ -180,7 +180,7 @@ public sealed class Form(StackPanel panel, StudySession session)
         var content = new StackPanel { Orientation = Orientation.Horizontal };
         content.Children.Add(new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, MaxWidth = 430 });
         content.Children.Add(Chip(required: false));
-        var box = new CheckBox { Content = content, IsChecked = get(), Margin = new Thickness(0, 6, 0, 0) };
+        var box = new CheckBox { Content = content, IsChecked = get(), Margin = new Thickness(0, 6, 0, 0), ToolTip = help.Length > 0 ? help : null };
         AutomationProperties.SetName(box, text + " (optional)");
         panel.Children.Add(box);
         TextBlock? origin = OriginLine(key);
@@ -213,8 +213,9 @@ public sealed class Form(StackPanel panel, StudySession session)
             Padding = new Thickness(10, 4, 10, 4),
             HorizontalAlignment = HorizontalAlignment.Left,
             Margin = new Thickness(0, 6, 0, 2),
-            ToolTip = help,
+            ToolTip = help.Length > 0 ? help : text,
         };
+        ToolTipService.SetShowOnDisabled(button, true);
         if (primary)
         {
             button.Style = (Style)Application.Current.Resources["Primary"];
@@ -279,6 +280,13 @@ public sealed class Form(StackPanel panel, StudySession session)
         titleRow.Children.Add(Chip(required));
         panel.Children.Add(titleRow);
         panel.Children.Add(input);
+        // the help under the field is also its tooltip (usability checklist 2.2), on the box itself
+        FrameworkElement tipped = input is StackPanel { Children.Count: > 0 } row && row.Children[0] is FrameworkElement first ? first : input;
+        if (help.Length > 0)
+        {
+            tipped.ToolTip = label + ": " + help;
+        }
+
         if (input is not StackPanel)
         {
             AutomationProperties.SetName(input, label + (required ? " (needs a value)" : " (optional)"));

@@ -60,6 +60,59 @@ public static class Guides
         return box;
     }
 
+    /// <summary>TrafficLab+'s help on SoftwarePlus.ai.</summary>
+    public const string HelpRoot = "https://softwareplus.ai/trafficlab/help/";
+
+    /// <summary>The help page about one section of the window (Help ▸ Help for this screen, F1, and the link
+    /// under each step's guide; USABILITY-CHECKLIST.md 1.2–1.3).</summary>
+    public static string HelpPage(string section) => HelpRoot + section switch
+    {
+        "Start" => "studies.html",
+        "Map" => "map.html",
+        "Network" => "network.html",
+        "Traffic" => "traffic.html",
+        "Challenge" => "challenge.html",
+        "Preview" => "challenge.html#preview",
+        "Publish" => "publish.html",
+        "Settings" => "about.html#settings",
+        "About" => "about.html",
+        _ => "index.html",
+    };
+
+    /// <summary>Opens a web address in the person's browser; says so in words if none opens.</summary>
+    public static void OpenWeb(string url, Window? owner)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+        }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            string text = "No web browser opened. The address is " + url;
+            if (owner is null)
+            {
+                MessageBox.Show(text, "TrafficLab+", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            else
+            {
+                MessageBox.Show(owner, text, "TrafficLab+", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+    }
+
+    /// <summary>A guide with a link under it to the matching help page on the web.</summary>
+    private static StackPanel WithWebHelp(string section, StackPanel guide)
+    {
+        string url = HelpPage(section);
+        var link = new Hyperlink(new Run(url.Replace("https://", "", StringComparison.Ordinal))) { NavigateUri = new Uri(url), ToolTip = "Opens this step's help page in your web browser (F1 does the same)" };
+        link.RequestNavigate += (_, e) => { OpenWeb(url, Window.GetWindow(guide)); e.Handled = true; };
+        var line = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0), FontSize = 12 };
+        line.Inlines.Add(new Run("More help for this step, with examples (F1): "));
+        line.Inlines.Add(link);
+        guide.Children.Add(line);
+        return guide;
+    }
+
     private static TextBlock Line(string lead, string text)
     {
         var t = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 1, 0, 1) };
@@ -68,7 +121,7 @@ public static class Guides
         return t;
     }
 
-    public static StackPanel Map() => Build(
+    public static StackPanel Map() => WithWebHelp("Map", Build(
         "find your intersection (step 1), load its roads (step 2), choose one intersection or up to ten along a corridor (step 3), and make the study (step 4).",
         "this whole step, if your study already exists — made from a layout or from an example. Searching is optional too: you can simply drag and zoom the map.",
         new("What this step does",
@@ -80,9 +133,9 @@ public static class Guides
         new("3  Choose the intersections",
             "Every place two or more named roads meet is a dot. A green dot has a traffic signal on OpenStreetMap; a green ring is a roundabout; a grey dot has no signal on OpenStreetMap (it may be a stop sign, or the signal may simply not be mapped). Click a dot to choose it — it turns yellow with a number — and click again to un-choose it. Or tick it in the list; type part of a street name in Find by street name to shorten the list.\n\nOne intersection makes a single-intersection study. For a corridor, choose up to ten, in order along the main road: the numbers are the order. Use the ↑ and ↓ beside a chosen one to change its place, and Remove to drop it.\n\nA divided road's crossing is drawn by OpenStreetMap as four points close together; TrafficLab+ treats them as one intersection, so there is one dot."),
         new("4  Make the study",
-            "Press Make the study. You give it a title (one is suggested), the place, and the budget players get; then TrafficLab+ builds it and opens it in Network. A message lists anything to check: an intersection with more than four roads (TrafficLab+ keeps the four busiest), a junction with no signal in OpenStreetMap (it starts as a signal), a road that ran off the loaded area.\n\nWhat comes from OpenStreetMap is marked \"from OpenStreetMap\" in Network; what it could not know — the signal timing, the traffic — starts at a plain value marked \"a starting value\". Those are for you to set in the next steps."));
+            "Press Make the study. You give it a title (one is suggested), the place, and the budget players get; then TrafficLab+ builds it and opens it in Network. A message lists anything to check: an intersection with more than four roads (TrafficLab+ keeps the four busiest), a junction with no signal in OpenStreetMap (it starts as a signal), a road that ran off the loaded area.\n\nWhat comes from OpenStreetMap is marked \"from OpenStreetMap\" in Network; what it could not know — the signal timing, the traffic — starts at a plain value marked \"a starting value\". Those are for you to set in the next steps.")));
 
-    public static StackPanel Network() => Build(
+    public static StackPanel Network() => WithWebHelp("Network", Build(
         "check that the drawing matches the real intersection, and fix anything the yellow bar at the top lists (the page cannot run until it is fixed).",
         "everything else. Every name, lane count, speed, signal setting and turn lane already has a value; change any that are not what is on the street. Fill in with the AI is optional too.",
         new("What this step does",
@@ -98,9 +151,9 @@ public static class Guides
         new("Fill in with the AI (optional)",
             "Tell the AI what you know about the real intersections — lanes, turn lanes, speed limits, signal timing — and it proposes changes, each with its reason. You tick the ones you want and press Apply; nothing changes before that, and one Ctrl+Z takes them all back. Needs an AI key (Settings, on the left, then AI settings…); a question usually costs a few cents."),
         new("Where each value came from",
-            "Under each value a line says where it came from: from OpenStreetMap, from FDOT traffic counts, from the built-in example, suggested by the AI, typed by you, or a starting value. A starting value is a guess to begin with — change it to match the real road if you know better."));
+            "Under each value a line says where it came from: from OpenStreetMap, from FDOT traffic counts, from the built-in example, suggested by the AI, typed by you, or a starting value. A starting value is a guess to begin with — change it to match the real road if you know better.")));
 
-    public static StackPanel Traffic() => Build(
+    public static StackPanel Traffic() => WithWebHelp("Traffic", Build(
         "nothing, if the starting traffic is good enough to begin with. To match the real intersection, set how many vehicles come in at each road end — from FDOT's counts (Florida, studies made from the map) or typed from a count.",
         "the FDOT counts, the AI's estimate, the trips that do not happen, and the demand buttons. Each already has a value or can be left as it is.",
         new("What this step does",
@@ -114,9 +167,9 @@ public static class Guides
         new("Estimate traffic with the AI (optional)",
             "For road ends with no count, the AI estimates the vehicles an hour coming in, from the kind of road, the place and anything you tell it. Road ends with FDOT counts in use are kept. You see each estimate with its reason and apply the ones you want; applying switches How traffic is given to typed volumes. Needs an AI key (Settings, then AI settings…); a few cents a question."),
         new("Demand buttons on the page",
-            "Each is a button on the page's toolbar that sets demand to a percentage of today's: Today at 100%, a future year or an event day above it. Players use them to test their plans in harder conditions. Up to five; the name is what the button says."));
+            "Each is a button on the page's toolbar that sets demand to a percentage of today's: Today at 100%, a future year or an event day above it. Players use them to test their plans in harder conditions. Up to five; the name is what the button says.")));
 
-    public static StackPanel Challenge() => Build(
+    public static StackPanel Challenge() => WithWebHelp("Challenge", Build(
         "the title and the budget (both start with a value).",
         "everything else: the sign letters, subtitle, introduction, place, author, course, the prices of the fixes, your notes, and Write the challenge with the AI.",
         new("What this step does",
@@ -130,17 +183,17 @@ public static class Guides
         new("Write the challenge with the AI (optional)",
             "Describe the challenge you want — the class, how hard, what players should learn — and the AI proposes the title, introduction, budget, prices and demand buttons, each with its reason. A fix you want to rule out can be priced above the budget. You apply the ones you want. Needs an AI key (Settings, then AI settings…); a few cents a question."),
         new("Your notes",
-            "Anything you want to remember. Kept in the study file, never put on the page. A study made from the map starts with the list of things to check."));
+            "Anything you want to remember. Kept in the study file, never put on the page. A study made from the map starts with the list of things to check.")));
 
-    public static StackPanel Preview() => Build(
+    public static StackPanel Preview() => WithWebHelp("Preview", Build(
         "try the page the way a player will, and make sure it reads well.",
         "this whole step — nothing here changes your study, so it can be skipped.",
         new("What this step does",
             "It shows the page full size, exactly as it will be published — the same file. Try it as a player: read the instructions, press Start (the name is optional), raise the demand, click a red road or intersection, buy a fix, press Run traffic test, then Submit plan to see the printout."),
         new("Things to check",
-            "Is the page's goal clear from its title and introduction? Is the budget enough for a few fixes but not everything? At Today's demand, is there something worth fixing — orange or red roads at least on the busier demand buttons? Are the names the ones people use?\n\nOpen in your browser shows the same page in Edge or Chrome, as a visitor sees it."));
+            "Is the page's goal clear from its title and introduction? Is the budget enough for a few fixes but not everything? At Today's demand, is there something worth fixing — orange or red roads at least on the busier demand buttons? Are the names the ones people use?\n\nOpen in your browser shows the same page in Edge or Chrome, as a visitor sees it.")));
 
-    public static StackPanel Publish() => Build(
+    public static StackPanel Publish() => WithWebHelp("Publish", Build(
         "tick the studies to put on your website (1), say where (2: your GitHub account; the repository is TrafficLab unless you change it), and press Publish (3). Then copy the link to hand in.",
         "unticking a study (it stays off the website), the GitHub account when a token is saved, and saving one study's page as a file instead.",
         new("What this step does",
@@ -152,7 +205,7 @@ public static class Guides
         new("3  Publish",
             "Press Publish. It builds the website, sends it to GitHub, and switches GitHub Pages on. The first time, GitHub takes a minute or two to put it up — the address shows \"404\" until then. Then: the summary page's link and each study's link, each with Copy the link. Hand in the one your instructor asked for."),
         new("Save one study's page as a file",
-            "One .html file for the open study. It needs nothing else: it opens in any browser with no internet, can be emailed or put on any web site, and is exactly the page shown in Preview."));
+            "One .html file for the open study. It needs nothing else: it opens in any browser with no internet, can be emailed or put on any web site, and is exactly the page shown in Preview.")));
 }
 
 /// <summary>Preview: the guide beside the full page, and the AI coach for the last traffic test.</summary>

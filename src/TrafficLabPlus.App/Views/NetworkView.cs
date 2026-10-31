@@ -325,7 +325,7 @@ public sealed class NetworkView : SectionView
         foreach (StudyLink road in roads)
         {
             string other = s.Study.Node(road.A == n.Id ? road.B : road.A)?.Label ?? "";
-            var go = new Button { Content = $"{road.Title} — toward {other}", HorizontalAlignment = HorizontalAlignment.Left, Padding = new Thickness(8, 2, 8, 2), Margin = new Thickness(0, 2, 0, 2) };
+            var go = new Button { Content = $"{road.Title} — toward {other}", HorizontalAlignment = HorizontalAlignment.Left, Padding = new Thickness(8, 2, 8, 2), Margin = new Thickness(0, 2, 0, 2), ToolTip = "Choose this road to see and change its lanes, speed and turn lanes" };
             go.Click += (_, _) => _canvas.Select("link:" + road.Id);
             form.Panel.Children.Add(go);
         }
