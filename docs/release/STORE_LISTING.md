@@ -97,7 +97,8 @@ Reserved in Partner Center by Ron (Store ID 9P5NGQF4HRPD). In code and folders t
     Your studies stay on your computer. No account with us, no advertising, no tracking. The
     pages you hand out collect nothing and send nothing; a player's name is optional and stays on
     their printout. TrafficLab+ goes online only for what you ask: the map and its roads, FDOT
-    counts, your AI provider, and GitHub when you publish.
+    counts, your AI provider, GitHub when you publish, the Microsoft Store when you choose Check
+    for a new version, and your browser when you open help.
 
 ## Product features  [up to 20, 200 each]
 
